@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import WishlistButton from "@/components/wishlist/WishlistButton";
+import { useCartStore } from "@/store/cartStore";
+import { addCartItemAction } from "@/app/actions/cart";
 
 interface Product {
   id: string;
@@ -19,10 +21,15 @@ interface Product {
   images: {
     edges: { node: { url: string; altText: string } }[];
   };
+  variants?: {
+    edges: { node: { id: string } }[];
+  };
 }
 
 export default function ProductCard({ product }: { product: Product }) {
   const [isHovered, setIsHovered] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
+  const { cartId, setCart, openCart } = useCartStore();
 
   const price = parseFloat(product.priceRange.minVariantPrice.amount);
   const compareAtPrice = product.compareAtPriceRange?.minVariantPrice?.amount
@@ -30,36 +37,54 @@ export default function ProductCard({ product }: { product: Product }) {
     : null;
 
   const hasDiscount = compareAtPrice && compareAtPrice > price;
-  const discountPercentage = hasDiscount 
-    ? Math.round(((compareAtPrice - price) / compareAtPrice) * 100) 
+  const discountPercentage = hasDiscount
+    ? Math.round(((compareAtPrice - price) / compareAtPrice) * 100)
     : 0;
 
   const image1 = product.images.edges[0]?.node?.url;
-  const image2 = product.images.edges[1]?.node?.url || image1; // Fallback to image 1
+  const image2 = product.images.edges[1]?.node?.url || image1;
+
+  const firstVariantId = product.variants?.edges?.[0]?.node?.id;
+
+  const handleAddToCart = async () => {
+    if (!firstVariantId || isAdding) return;
+    setIsAdding(true);
+    try {
+      const result = await addCartItemAction(cartId, firstVariantId, 1);
+      if (result.success && result.cart) {
+        setCart(result.cart);
+        openCart();
+      }
+    } catch (e) {
+      console.error("Failed to add to cart:", e);
+    } finally {
+      setIsAdding(false);
+    }
+  };
 
   return (
-    <div 
+    <div
       className="group flex flex-col bg-white rounded-lg shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 relative"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Discount Badge */}
       {hasDiscount && (
-        <div className="absolute top-2 left-2 bg-secondary text-white text-xs font-bold px-2 py-1 rounded z-10">
+        <div className="absolute top-2 left-2 bg-goldClr text-white text-xs font-bold px-2 py-1 rounded z-10">
           -{discountPercentage}%
         </div>
       )}
 
       {/* Image Container with Crossfade */}
       <div className="relative w-full aspect-[3/4] overflow-hidden rounded-t-lg bg-gray-100">
-        <Link href={`/products/${product.handle}`} className="block w-full h-full">
+        <Link href={`/products/${product.handle}`} className="block w-full h-full relative">
           {image1 && (
             <Image
               src={isHovered ? image2 : image1}
               alt={product.title}
               fill
               className="object-cover transition-opacity duration-500 ease-in-out"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
             />
           )}
         </Link>
@@ -70,18 +95,18 @@ export default function ProductCard({ product }: { product: Product }) {
 
       {/* Content */}
       <div className="p-4 flex flex-col flex-grow">
-        <div className="flex gap-1 text-secondary mb-2 text-sm">
+        <div className="flex gap-1 text-goldClr mb-2 text-sm">
           ★★★★★ <span className="text-gray-400 text-xs ml-1">(0)</span>
         </div>
-        
+
         <Link href={`/products/${product.handle}`}>
-          <h3 className="text-sm font-semibold text-gray-800 line-clamp-2 min-h-[40px] group-hover:text-primary transition-colors">
+          <h3 className="text-sm font-semibold text-gray-800 line-clamp-2 min-h-[40px] group-hover:text-maroonClr transition-colors">
             {product.title}
           </h3>
         </Link>
 
         <div className="mt-2 flex items-center gap-2">
-          <span className="text-primary font-bold text-lg">
+          <span className="text-maroonClr font-bold text-lg">
             ₹{price.toFixed(2)}
           </span>
           {hasDiscount && (
@@ -93,12 +118,19 @@ export default function ProductCard({ product }: { product: Product }) {
 
         {/* Action Buttons */}
         <div className="mt-4 flex gap-2 w-full">
-          <button className="flex-1 bg-transparent border border-primary text-primary hover:bg-primary hover:text-white transition-colors py-2 text-xs font-bold uppercase rounded">
-            Add to Cart
+          <button
+            onClick={handleAddToCart}
+            disabled={isAdding || !firstVariantId}
+            className="flex-1 bg-transparent border border-maroonClr text-maroonClr hover:bg-maroonClr hover:text-white transition-colors py-2 text-xs font-bold uppercase rounded disabled:opacity-50"
+          >
+            {isAdding ? "Adding..." : "Add to Cart"}
           </button>
-          <button className="flex-1 bg-primary border border-primary text-white hover:bg-[#6A102A] transition-colors py-2 text-xs font-bold uppercase rounded">
+          <Link
+            href={`/products/${product.handle}`}
+            className="flex-1 bg-maroonClr border border-maroonClr text-white hover:bg-maroonClr/80 transition-colors py-2 text-xs font-bold uppercase rounded text-center"
+          >
             Buy Now
-          </button>
+          </Link>
         </div>
       </div>
     </div>

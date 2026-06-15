@@ -10,10 +10,25 @@ export const getProductsQuery = `
           handle
           description
           availableForSale
+          productType
+          tags
           priceRange {
             minVariantPrice {
               amount
               currencyCode
+            }
+          }
+          compareAtPriceRange {
+            minVariantPrice {
+              amount
+              currencyCode
+            }
+          }
+          variants(first: 1) {
+            edges {
+              node {
+                id
+              }
             }
           }
           images(first: 5) {

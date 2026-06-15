@@ -1,48 +1,59 @@
+import Image from "next/image";
+import Link from "next/link";
+
 export default function Footer() {
   return (
-    <footer className="bg-primary text-white pt-16 pb-8">
-      <div className="container mx-auto px-4 md:px-8">
+    <footer className="bg-maroonClr text-white pt-12 pb-20 sm:pb-8">
+      <div className="container mx-auto px-4 md:px-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           
+          {/* Brand */}
           <div>
-            <div className="bg-white text-primary p-2 w-16 h-16 flex items-center justify-center mb-6 rounded">
-              <span className="font-serif text-xs text-center font-bold">Boutiique Vastraa</span>
-            </div>
+            <Image
+              src="/images/logo.png"
+              alt="Boutiique Vastraa"
+              width={120}
+              height={60}
+              className="mb-4 rounded-lg bg-white/10 p-2 object-contain"
+            />
             <p className="text-sm text-gray-300 leading-relaxed max-w-xs">
               Timeless Elegance, Handcrafted for Every Occasion. Shop our exclusive range of luxury sarees, designer kurtis, and jewellery.
             </p>
           </div>
 
+          {/* Quick Links */}
           <div>
-            <h3 className="font-serif text-xl font-medium mb-6 text-secondary">Quick Links</h3>
+            <h3 className="font-kalnia text-xl font-medium mb-6 text-goldClr">Quick Links</h3>
             <ul className="space-y-3 text-sm text-gray-300">
-              <li><a href="#" className="hover:text-white transition">About Us</a></li>
-              <li><a href="#" className="hover:text-white transition">Contact Us</a></li>
-              <li><a href="#" className="hover:text-white transition">FAQ</a></li>
-              <li><a href="#" className="hover:text-white transition">Track Order</a></li>
+              <li><Link href="/about" className="hover:text-white transition">About Us</Link></li>
+              <li><Link href="/contact" className="hover:text-white transition">Contact Us</Link></li>
+              <li><Link href="/#faq" className="hover:text-white transition">FAQ</Link></li>
+              <li><Link href="/track-order" className="hover:text-white transition">Track Order</Link></li>
             </ul>
           </div>
 
+          {/* Policies */}
           <div>
-            <h3 className="font-serif text-xl font-medium mb-6 text-secondary">Policies</h3>
+            <h3 className="font-kalnia text-xl font-medium mb-6 text-goldClr">Policies</h3>
             <ul className="space-y-3 text-sm text-gray-300">
-              <li><a href="#" className="hover:text-white transition">Privacy Policy</a></li>
-              <li><a href="#" className="hover:text-white transition">Terms of Service</a></li>
-              <li><a href="#" className="hover:text-white transition">Shipping Policy</a></li>
-              <li><a href="#" className="hover:text-white transition">Refund Policy</a></li>
+              <li><Link href="/privacy-policy" className="hover:text-white transition">Privacy Policy</Link></li>
+              <li><Link href="/terms" className="hover:text-white transition">Terms of Service</Link></li>
+              <li><Link href="/shipping-policy" className="hover:text-white transition">Shipping Policy</Link></li>
+              <li><Link href="/refund-policy" className="hover:text-white transition">Refund Policy</Link></li>
             </ul>
           </div>
 
+          {/* Newsletter */}
           <div>
-            <h3 className="font-serif text-xl font-medium mb-6 text-secondary">Newsletter</h3>
+            <h3 className="font-kalnia text-xl font-medium mb-6 text-goldClr">Newsletter</h3>
             <p className="text-sm text-gray-300 mb-4">Subscribe to receive updates, access to exclusive deals, and more.</p>
             <div className="flex gap-2">
               <input 
                 type="email" 
                 placeholder="Enter your email" 
-                className="bg-transparent border border-gray-400 text-white px-4 py-2 w-full rounded focus:outline-none focus:border-secondary transition"
+                className="bg-transparent border border-gray-400 text-white px-4 py-2 w-full rounded focus:outline-none focus:border-goldClr transition text-sm"
               />
-              <button className="bg-secondary text-primary px-4 py-2 rounded font-medium hover:bg-white transition">
+              <button className="bg-goldClr text-maroonClr px-4 py-2 rounded font-medium hover:bg-white transition text-sm whitespace-nowrap">
                 Subscribe
               </button>
             </div>
@@ -50,14 +61,8 @@ export default function Footer() {
 
         </div>
 
-        <div className="mt-16 pt-8 border-t border-gray-600 text-center text-sm text-gray-400 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="mt-12 pt-6 border-t border-white/20 text-center text-sm text-gray-400">
           <p>© {new Date().getFullYear()} Boutiique Vastraa. All rights reserved.</p>
-          <div className="flex gap-4">
-            <span>Visa</span>
-            <span>Mastercard</span>
-            <span>Amex</span>
-            <span>UPI</span>
-          </div>
         </div>
       </div>
     </footer>

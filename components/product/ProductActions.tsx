@@ -56,23 +56,21 @@ export default function ProductActions({
   };
 
   return (
-    <div className="flex flex-col sm:flex-row gap-3 w-full">
+    <div className="flex flex-row gap-3 w-full">
       <button 
         onClick={handleAddToCart}
         disabled={!availableForSale || isAdding || isBuying}
-        className="flex-1 flex items-center justify-center gap-2 bg-transparent border-2 border-primary text-primary hover:bg-primary hover:text-white transition-colors py-3 md:py-4 font-bold uppercase tracking-widest text-sm rounded disabled:opacity-50"
+        className="flex-1 flex items-center justify-center bg-white border border-maroonClr text-maroonClr hover:bg-maroonClr hover:text-white transition-colors py-2 md:py-2.5 font-medium text-sm rounded disabled:opacity-50"
       >
-        <ShoppingBag className="w-5 h-5" />
         {isAdding ? "Adding..." : "Add to Cart"}
       </button>
       
       <button 
         onClick={handleBuyNow}
         disabled={!availableForSale || isAdding || isBuying}
-        className="flex-1 flex items-center justify-center gap-2 bg-primary border-2 border-primary text-white hover:bg-[#6A102A] transition-colors py-3 md:py-4 font-bold uppercase tracking-widest text-sm rounded disabled:opacity-50 shadow-md hover:shadow-lg"
+        className="flex-1 flex items-center justify-center bg-maroonClr border border-maroonClr text-white hover:bg-[#6A102A] transition-colors py-2 md:py-2.5 font-medium text-sm rounded disabled:opacity-50 shadow-sm"
       >
-        <CreditCard className="w-5 h-5" />
-        {isBuying ? "Processing..." : "Buy it Now"}
+        {isBuying ? "Processing..." : "Buy Now"}
       </button>
     </div>
   );

@@ -56,7 +56,7 @@ export default function ProductGallery({ images }: { images: any[] }) {
         className="w-full h-24"
       >
         {images.map((img, index) => (
-          <SwiperSlide key={index} className="cursor-pointer opacity-60 [&.swiper-slide-thumb-active]:opacity-100 transition-opacity">
+          <SwiperSlide key={index} className="cursor-pointer opacity-60 [&.swiper-slide-thumb-active]:opacity-100 transition-opacity [&.swiper-slide-thumb-active>div]:border-maroonClr [&.swiper-slide-thumb-active>div]:border-2">
             <div className="relative w-full h-full rounded border border-gray-200 overflow-hidden">
               <Image 
                 src={img.node.url} 

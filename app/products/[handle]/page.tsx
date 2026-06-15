@@ -29,6 +29,10 @@ export default async function ProductPage({ params }: { params: Promise<{ handle
     notFound();
   }
 
+  // Import dynamically here to avoid having to change imports at the top
+  const { getProductRecommendations } = await import("@/lib/shopify/queries");
+  const recommendedProducts = await getProductRecommendations(product.id);
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -50,31 +54,31 @@ export default async function ProductPage({ params }: { params: Promise<{ handle
   };
 
   return (
-    <div className="bg-[#FDFBF7] min-h-screen pb-16">
+    <div className="bg-white min-h-screen pb-16">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       {/* Breadcrumb could go here */}
-      <div className="container mx-auto px-4 pt-8 md:pt-12">
-        <div className="flex flex-col lg:flex-row gap-10 lg:gap-16">
+      <div className="container mx-auto px-4 pt-4 md:pt-8 max-w-7xl">
+        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
           
           {/* Left: Gallery */}
-          <div className="w-full lg:w-1/2">
+          <div className="w-full lg:w-[45%]">
             <div className="sticky top-24">
               <ProductGallery images={product.images.edges} />
             </div>
           </div>
 
           {/* Right: Product Info */}
-          <div className="w-full lg:w-1/2">
-            <ProductInfo product={product} />
+          <div className="w-full lg:w-[55%]">
+            <ProductInfo product={product} recommendedProducts={recommendedProducts} />
           </div>
 
         </div>
       </div>
 
-      {/* Related Products */}
+      {/* Explore Similar Styles at bottom */}
       <div className="mt-20 border-t border-gray-200">
         <RelatedProducts productId={product.id} />
       </div>

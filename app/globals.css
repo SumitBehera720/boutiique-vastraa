@@ -1,18 +1,59 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #800020; /* Dark Purple / Maroon */
-  --color-secondary: #D4AF37; /* Gold */
-  --color-accent: #ff4d4d;
-  --color-background-light: #FDFBF7;
-  --font-serif: "Playfair Display", serif;
-  --font-sans: "Inter", sans-serif;
+  /* Colors matching boutiquevastra.com exactly */
+  --color-maroonClr: #8D0B41;
+  --color-goldClr: #C9A84C;
+  --color-creamClr: #FFF8F0;
+  --color-bgClr: #FFFDF9;
+
+  /* Legacy aliases for existing components */
+  --color-primary: #8D0B41;
+  --color-secondary: #C9A84C;
+
+  /* Font families */
+  --font-poppins: "Poppins", sans-serif;
+  --font-kalnia: "Kalnia", serif;
+  --font-rubik: "Rubik", sans-serif;
+
+  /* Keep legacy aliases for existing components */
+  --font-serif: "Kalnia", serif;
+  --font-sans: "Poppins", sans-serif;
 }
 
 @layer base {
-  body {
-    background-color: var(--color-background-light);
-    color: #1A1A1A;
-    font-family: var(--font-sans);
+  html {
+    scroll-behavior: smooth;
   }
+
+  body {
+    background-color: var(--color-bgClr);
+    color: #171717;
+    font-family: var(--font-poppins);
+  }
+}
+
+/* Loader flip animation matching reference */
+@keyframes loader-flip {
+  0% { transform: rotateY(0deg); }
+  50% { transform: rotateY(180deg); }
+  100% { transform: rotateY(360deg); }
+}
+
+.loader-flip {
+  animation: loader-flip 1.2s infinite ease-in-out;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+
+/* Hide scrollbar utility matching reference */
+.hideScrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hideScrollbar::-webkit-scrollbar {
+  display: none;
 }
