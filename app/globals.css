@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #800020; /* Dark Purple / Maroon */
+  --color-secondary: #D4AF37; /* Gold */
+  --color-accent: #ff4d4d;
+  --color-background-light: #FDFBF7;
+  --font-serif: "Playfair Display", serif;
+  --font-sans: "Inter", sans-serif;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-background-light);
+    color: #1A1A1A;
+    font-family: var(--font-sans);
+  }
+}
