@@ -61,8 +61,19 @@ export default function Footer() {
 
         </div>
 
-        <div className="mt-12 pt-6 border-t border-white/20 text-center text-sm text-gray-400">
+        <div className="mt-12 pt-6 border-t border-white/20 text-center text-sm text-gray-400 flex flex-col items-center justify-center gap-2">
           <p>© {new Date().getFullYear()} Boutiique Vastraa. All rights reserved.</p>
+          <p>
+            Developed by{" "}
+            <a 
+              href="https://qubnixtechnology.com/" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-goldClr hover:text-white transition"
+            >
+              Qubnix
+            </a>
+          </p>
         </div>
       </div>
     </footer>
