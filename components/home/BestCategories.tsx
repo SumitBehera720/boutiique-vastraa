@@ -11,7 +11,7 @@ interface Collection {
   image?: { url: string; altText?: string } | null;
 }
 
-export default function BestCategories({ collections }: { collections: Collection[] }) {
+export default function BestCategories({ collections, title, subtitle }: { collections: Collection[]; title?: string; subtitle?: string }) {
   return (
     <section>
       <div className="relative px-4 pb-8 sm:pb-12 md:px-6 md:pb-16 lg:pb-20">
@@ -27,10 +27,10 @@ export default function BestCategories({ collections }: { collections: Collectio
 
         <div className="mx-auto max-w-2xl space-y-2 text-center">
           <h4 className="font-kalnia text-maroonClr text-2xl font-medium sm:text-3xl md:text-4xl">
-            Explore Best Categories
+            {title || "Explore Best Categories"}
           </h4>
           <p className="text-xs text-neutral-800 md:text-base">
-            Indulge in our handpicked categories featuring exquisite craftsmanship, premium fabrics, and timeless artistry made to elevate your wardrobe.
+            {subtitle || "Indulge in our handpicked categories featuring exquisite craftsmanship, premium fabrics, and timeless artistry made to elevate your wardrobe."}
           </p>
         </div>
 

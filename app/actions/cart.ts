@@ -22,6 +22,9 @@ export async function addCartItemAction(cartId: string | null, merchandiseId: st
 export async function createCheckoutDirectlyAction(merchandiseId: string, quantity: number) {
   try {
     const cart = await createCart([{ merchandiseId, quantity }]);
+    if (!cart) {
+      return { success: false, error: "Failed to initialize checkout" };
+    }
     return { success: true, checkoutUrl: cart.checkoutUrl };
   } catch (error) {
     console.error("Checkout Action Error:", error);

@@ -1,0 +1,18 @@
+[
+  {
+    "id": "customer_1782981527452_6wmj6",
+    "firstName": "Sumit",
+    "lastName": "Behera",
+    "email": "beherasumit772@gmail.com",
+    "passwordHash": "c775e7b757ede630cd0aa1113bd102661ab38829ca52a6422ab782862f268646",
+    "createdAt": "2026-07-02T08:38:47.452Z"
+  },
+  {
+    "id": "customer_admin",
+    "firstName": "Boutiique",
+    "lastName": "Admin",
+    "email": "admin@boutiquevastra.com",
+    "passwordHash": "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9",
+    "createdAt": "2026-07-02T09:06:15.571Z"
+  }
+]

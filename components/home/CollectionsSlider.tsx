@@ -12,7 +12,7 @@ interface Collection {
   image?: { url: string; altText?: string } | null;
 }
 
-export default function CollectionsSlider({ collections }: { collections: Collection[] }) {
+export default function CollectionsSlider({ collections, title }: { collections: Collection[]; title?: string }) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   return (
@@ -29,7 +29,7 @@ export default function CollectionsSlider({ collections }: { collections: Collec
         />
 
         <h1 className="font-kalnia text-maroonClr text-center text-2xl font-medium sm:text-3xl md:text-4xl">
-          Our Most Loved Collections
+          {title || "Our Most Loved Collections"}
         </h1>
 
         <div className="mx-auto mt-8 max-w-7xl sm:mt-12 px-4">

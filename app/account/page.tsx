@@ -18,6 +18,10 @@ export default async function AccountPage() {
     redirect("/account/login");
   }
 
+  if (customer.email.toLowerCase() === "admin@boutiquevastra.com") {
+    redirect("/admin");
+  }
+
   return (
     <div className="min-h-screen bg-[#FDFBF7] py-12 px-4">
       <div className="container mx-auto max-w-6xl">

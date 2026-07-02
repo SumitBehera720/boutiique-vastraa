@@ -22,7 +22,7 @@ interface TabData {
   products: Product[];
 }
 
-export default function PerfectSareeTabs({ tabs }: { tabs: TabData[] }) {
+export default function PerfectSareeTabs({ tabs, title, subtitle }: { tabs: TabData[]; title?: string; subtitle?: string }) {
   const [activeTab, setActiveTab] = useState(0);
 
   if (!tabs || tabs.length === 0) return null;
@@ -42,10 +42,10 @@ export default function PerfectSareeTabs({ tabs }: { tabs: TabData[] }) {
 
         <div className="mx-auto max-w-2xl space-y-2 text-center">
           <h4 className="font-kalnia text-maroonClr text-2xl font-medium sm:text-3xl md:text-4xl">
-            Find Your Perfect Saree
+            {title || "Find Your Perfect Saree"}
           </h4>
           <p className="text-xs text-neutral-800 md:text-base">
-            Discover elegance woven into every drape.
+            {subtitle || "Discover elegance woven into every drape."}
           </p>
         </div>
 

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { usePathname } from "next/navigation";
 
 const messages = [
   "Easy Return & Exchange",
@@ -9,6 +10,14 @@ const messages = [
 ];
 
 export default function AnnouncementBar() {
+  const pathname = usePathname();
+  const isLoginPage = pathname === "/account/login";
+  const isAdminPage = pathname.startsWith("/admin");
+  const isCheckoutPage = pathname.startsWith("/checkout");
+
+  if (isLoginPage || isAdminPage || isCheckoutPage) {
+    return null;
+  }
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {

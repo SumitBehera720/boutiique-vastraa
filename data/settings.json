@@ -1,0 +1,82 @@
+{
+  "seo": {
+    "titleTemplate": "%s | Boutiique Vastraa",
+    "defaultDescription": "Handcrafted sarees sourced from skilled artisans across India, including the rich brocades of Banarasi silks.",
+    "keywords": "sarees, banarasi, ethnic wear, boutique sarees, indian saree shop, handloom sarees"
+  },
+  "banners": [
+    {
+      "id": "slide_1",
+      "imageUrl": "/images/banner-1773659037696-747582281.webp",
+      "title": "Heritage Handlooms",
+      "subtitle": "Discover our new collections of Banarasi Silk & Organza Sarees",
+      "buttonText": "Explore Collection",
+      "link": "/collections/heritage-handlooms"
+    },
+    {
+      "id": "slide_2",
+      "imageUrl": "/images/banner-1773659047206-859638957.webp",
+      "title": "Elegance Redefined",
+      "subtitle": "Artisan craftsmanship, curated colors and modern designs",
+      "buttonText": "Shop All Products",
+      "link": "/collections/all"
+    },
+    {
+      "id": "slide_3",
+      "imageUrl": "/images/banner-1773659054836-332868013.webp",
+      "title": "Festive Splendor",
+      "subtitle": "Celebrate in style with our handloom cotton and linen sarees",
+      "buttonText": "Discover Festive",
+      "link": "/collections/festive"
+    }
+  ],
+  "homepage": {
+    "lovedCollectionsTitle": "Our Most Loved Collections",
+    "lovedCollectionsSubtitle": "Explore handpicked collections directly from regional weavers.",
+    "patternBanner": {
+      "heading": "Spot it. Style it. Own it."
+    },
+    "trendingTitle": "Top-Sellings",
+    "trendingSubtitle": "Wrap yourself in timeless beauty with our exquisite saree collection. Each drape is crafted to celebrate grace, tradition, and modern charm.",
+    "perfectSareeTitle": "Find Your Perfect Saree",
+    "perfectSareeSubtitle": "Discover elegance woven into every drape.",
+    "categoriesTitle": "Explore Best Categories",
+    "categoriesSubtitle": "Indulge in our handpicked categories featuring exquisite craftsmanship, premium fabrics, and timeless artistry made to elevate your wardrobe.",
+    "featuresTitle": "What makes shopping sarees with us special?",
+    "featuresSubtitle": "From handpicked fabrics to doorstep delivery, we take care of everything so you can simply enjoy the experience of finding your perfect saree.",
+    "features": [
+      {
+        "title": "Pure Fabrics Only",
+        "description": "We source only 100% genuine mulberry silks, cottons, and fine linens.",
+        "image": "/images/eco.jpg"
+      },
+      {
+        "title": "Artisanal Weaves",
+        "description": "Each item supports legacy weaving families across Varanasi and Bengal.",
+        "image": "/images/craftmanship.jpeg"
+      },
+      {
+        "title": "Perfect Tailoring",
+        "description": "Order matching pre-stitched blouses custom tailored to your measurements.",
+        "image": "/images/measure.jpg"
+      }
+    ],
+    "faqTitle": "Frequently Asked Questions",
+    "faqSubtitle": "At Boutiique Vastraa, we believe that finding the perfect saree should be a delightful and effortless experience. Here are answers to some of the most common questions our customers ask.",
+    "faqImage": "/images/woman-2.jpg",
+    "faqs": [
+      {
+        "question": "Are your sarees authentic handloom?",
+        "answer": "Yes! Every saree in our handloom collection comes with the official Silk Mark or Handloom Mark certification, sourced directly from weavers."
+      },
+      {
+        "question": "Do you customize blouse designs?",
+        "answer": "Absolutely! We offer custom tailoring services for blouses and petticoats. You can select your measurements on the product detail page."
+      },
+      {
+        "question": "What is your return policy?",
+        "answer": "We offer a hassle-free 7-day return policy on all unworn items with tags intact, except for custom tailored items."
+      }
+    ]
+  }
+}

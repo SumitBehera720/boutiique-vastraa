@@ -1,0 +1,18 @@
+[
+  {
+    "id": "coupon_1",
+    "code": "VASTRAA10",
+    "type": "PERCENTAGE",
+    "value": 10,
+    "active": true,
+    "minPurchaseAmount": 0
+  },
+  {
+    "id": "coupon_2",
+    "code": "WELCOME500",
+    "type": "FIXED_AMOUNT",
+    "value": 500,
+    "active": true,
+    "minPurchaseAmount": 4999
+  }
+]

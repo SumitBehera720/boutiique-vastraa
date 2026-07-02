@@ -5,10 +5,19 @@ import Image from "next/image";
 import { Search, ShoppingCart, LogIn, Route, ChevronDown, User, Mail } from "lucide-react";
 import { useState } from "react";
 import { useCartStore } from "@/store/cartStore";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import MarqueeBanner from "@/components/global/MarqueeBanner";
 
 export default function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
+  const pathname = usePathname();
+  const isLoginPage = pathname === "/account/login";
+  const isAdminPage = pathname.startsWith("/admin");
+  const isCheckoutPage = pathname.startsWith("/checkout");
+
+  if (isLoginPage || isAdminPage || isCheckoutPage) {
+    return null;
+  }
+
   const [searchValue, setSearchValue] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);

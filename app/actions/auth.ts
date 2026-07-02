@@ -32,7 +32,7 @@ export async function loginAction(formData: FormData) {
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
         path: "/",
-        expires: new Date(expiresAt)
+        expires: expiresAt ? new Date(expiresAt) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
       });
       return { success: true };
     }

@@ -1,83 +1,99 @@
-# Boutiique Vastraa - Next.js 15 E-Commerce Migration
-## Final Client Delivery & Deployment Guide
+# Boutiique Vastraa - Next.js E-Commerce
+## Client Delivery & Hostinger Deployment Guide
 
-This document outlines the final project architecture, environment configuration, and instructions for deploying the Boutiique Vastraa Next.js 15 frontend to production.
+This document outlines the final project architecture, local JSON database features, and complete instructions for deploying the Boutiique Vastraa application to **Hostinger** production servers.
 
 ---
 
-### 1. Project Structure
-The application has been completely refactored from a static Vite app into a highly scalable Next.js 15 App Router architecture.
+### 1. Backend Architecture
+The application has been completely disconnected from Shopify. It runs on a custom, high-performance in-memory database built directly in Next.js.
 
-```text
-BOUTIIQUE VASTRAA/
-├── app/                      # Next.js App Router root
-│   ├── account/              # Customer Dashboard & Auth
-│   ├── actions/              # Secure Server Actions (Auth, Cart sync)
-│   ├── collections/          # Dynamic Collection pages with filters
-│   ├── products/             # Dynamic Product Details pages
-│   ├── search/               # Global search logic
-│   ├── wishlist/             # Wishlist dashboard
-│   ├── layout.tsx            # Root layout (Header, Footer, Cart Drawer)
-│   └── page.tsx              # Dynamic Homepage
-├── components/               # React components library
-│   ├── global/               # Header, Footer, AnnouncementBar
-│   ├── home/                 # HeroBanner, Sliders, Promos
-│   ├── product/              # ProductCards, VariantSelectors
-│   └── account/              # Auth forms, OrderHistory
-├── lib/shopify/              # Shopify GraphQL Integration
-│   ├── client.ts             # Base fetch utility
-│   ├── queries.ts            # Products, Collections, Search Queries
-│   └── mutations.ts          # Cart and Customer Auth Mutations
-├── store/                    # Zustand persistent state management
-│   ├── cartStore.ts          
-│   └── wishlistStore.ts      
-└── public/                   # Static assets & Manifest
+- **Data Directory (`/data/`):** Contains flat JSON databases (`products.json`, `collections.json`, `users.json`, `orders.json`, `settings.json`, `coupons.json`, `reviews.json`).
+- **RAM Acceleration (`dbCache`):** The data client in [jsonDb.ts](file:///d:/BOUTIIQUE%2520VASTRAA/lib/db/jsonDb.ts) caches reads in RAM. Operations take `< 0.05ms`.
+- **Self-Contained Storage:** Updates from checkout and the admin panel write directly to these local files, keeping the application entirely self-contained without needing external database servers.
+
+---
+
+### 2. Administrator Login Credentials
+To manage settings, products, collections, coupons, reviews, and customers, sign in via the storefront customer login page `/account/login`:
+- **Email:** `admin@boutiquevastra.com`
+- **Password:** `admin123`
+
+The application automatically detects the admin role and redirects you to the Admin Panel.
+
+---
+
+### 3. Deploying on Hostinger (Option A: VPS Hosting - Recommended)
+A Virtual Private Server (VPS) is the best way to host a Next.js SSR application.
+
+#### Step 1: Prepare Node.js Environment
+1. Log in to your Hostinger VPS via SSH.
+2. Install Node.js (v18 or v20) and npm:
+   ```bash
+   curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+   sudo apt-get install -y nodejs
+   ```
+
+#### Step 2: Upload Files & Install Packages
+1. Clone your repository or upload the project folder to `/var/www/boutiique-vastraa`.
+2. Install packages:
+   ```bash
+   npm install --production=false
+   ```
+3. Run the production build to compile static resources:
+   ```bash
+   npm run build
+   ```
+
+#### Step 3: Run with PM2 (Continuous Process Manager)
+Install PM2 globally to ensure the application restarts if the server reboots or crashes:
+```bash
+sudo npm install -g pm2
+pm2 start server.js --name "boutiique-vastraa"
+pm2 save
+pm2 startup
 ```
 
----
+#### Step 4: Configure Reverse Proxy (Nginx)
+Configure Nginx to map your domain (`boutiquevastra.com`) to the running application port (default `3000`):
+1. Install Nginx: `sudo apt install nginx`
+2. Edit configuration: `sudo nano /etc/nginx/sites-available/default`
+3. Replace content:
+   ```nginx
+   server {
+       listen 80;
+       server_name boutiquevastra.com www.boutiquevastra.com;
 
-### 2. Environment Setup Guide
-To run the project locally or in production, ensure the following environment variables are strictly defined. **Never commit these to version control.**
-
-Create a `.env.local` file at the root:
-```env
-# Shopify Storefront credentials
-SHOPIFY_STORE_DOMAIN=https://your-store.myshopify.com
-SHOPIFY_ADMIN_ACCESS_TOKEN=your_storefront_access_token
-
-# Application Base URL (for SEO & Sitemaps)
-NEXT_PUBLIC_SITE_URL=https://boutiquevastra.com
-```
-
----
-
-### 3. Deployment Steps (Vercel Recommended)
-Since this is a Next.js 15 application leveraging React Server Components and Server Actions, **Vercel** is the officially recommended and highest-performing deployment target.
-
-1. **Push your code to GitHub/GitLab.**
-2. **Log into Vercel** and select "Add New Project".
-3. **Import the repository.**
-4. In the **Environment Variables** section, add `SHOPIFY_STORE_DOMAIN` and `SHOPIFY_ADMIN_ACCESS_TOKEN`.
-5. Ensure the framework preset is set to **Next.js**.
-6. Click **Deploy**.
-
-> **Note:** The application uses Shopify fetch caching natively. Subsequent hits to the homepage or collections will be lightning fast.
+       location / {
+           proxy_pass http://localhost:3000;
+           proxy_http_version 1.1;
+           proxy_set_header Upgrade $http_upgrade;
+           proxy_set_header Connection 'upgrade';
+           proxy_set_header Host $host;
+           proxy_cache_bypass $http_upgrade;
+       }
+   }
+   ```
+4. Restart Nginx: `sudo systemctl restart nginx`
 
 ---
 
-### 4. Shopify Configuration Guide
-To ensure the frontend functions seamlessly, verify the following in your Shopify Admin:
+### 4. Deploying on Hostinger (Option B: Shared Node.js Web Hosting)
+If your Hostinger plan includes Node.js application management directly in hPanel:
 
-1. **Storefront API App**: Ensure you have created a Headless app in Shopify Admin -> Settings -> Apps and sales channels -> Develop apps. The app requires the `unauthenticated_read_products`, `unauthenticated_read_product_listings`, `unauthenticated_write_customers`, and `unauthenticated_read_customers` scopes.
-2. **Tags & Handles**: Ensure your Shopify collections and products have clean URL handles (e.g., `saree`, `kurtis`). 
-3. **Inventory Management**: Ensure products have images, prices, and variant options configured. The Next.js frontend will automatically extract "Size", "Color", or "Fabric" options if they exist.
+1. **Upload Files:** Connect via FTP or Hostinger File Manager, and upload all files (excluding `node_modules` and `.next`) to your domain directory.
+2. **Setup Node.js App:**
+   - In Hostinger hPanel, search for **Node.js**.
+   - Create a new Node.js application.
+   - Set **Application URL** to your domain name.
+   - Set **Source directory** to the root folder.
+   - Set **Entry File** to `server.js` (we created this file at the root to handle boot configurations).
+3. **Install Dependencies:** Click the **NPM Install** button in hPanel to automatically fetch dependencies.
+4. **Build the Application:** Run `npm run build` using the Hostinger Web Console / SSH terminal.
+5. **Start Application:** Click **Start** to run the app.
 
 ---
 
-### 5. Maintenance Notes
-- **Updating the UI**: All styling uses standard Tailwind CSS classes. Global colors like `#800020` (Primary) and `#D4AF37` (Secondary/Gold) are configured in `tailwind.config.mjs`.
-- **Search Engine Optimization (SEO)**: `app/sitemap.ts` and `app/robots.ts` are dynamically generated. JSON-LD structured data is natively injected into `/products/[handle]`.
-- **State Persistence**: The Shopping Cart and Wishlist states are persisted across browser sessions utilizing `zustand/middleware` and `localStorage`.
-
----
-*Developed with Next.js 15, Tailwind CSS, Framer Motion, and the Shopify Storefront API.*
+### 5. Essential Maintenance Notes
+- **Permissions:** Ensure the Node.js user has write permissions to the `/data/` directory so order states, setting changes, reviews, and coupon additions save successfully.
+- **Images:** Homepage slide banner URLs and product images can be local paths (e.g. starting with `/images/`) or direct URLs from unsplash/external sources. Keep local assets in the `/public/images/` directory.

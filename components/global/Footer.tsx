@@ -1,7 +1,18 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export default function Footer() {
+  const pathname = usePathname();
+  const isLoginPage = pathname === "/account/login";
+  const isAdminPage = pathname.startsWith("/admin");
+  const isCheckoutPage = pathname.startsWith("/checkout");
+
+  if (isLoginPage || isAdminPage || isCheckoutPage) {
+    return null;
+  }
   return (
     <footer className="bg-maroonClr text-white pt-12 pb-20 sm:pb-8">
       <div className="container mx-auto px-4 md:px-6">

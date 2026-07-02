@@ -4,17 +4,29 @@ import Image from "next/image";
 import { testimonials } from "@/lib/design-tokens";
 import { useState, useEffect } from "react";
 
-export default function TestimonialsSection() {
+interface TestimonialProp {
+  name: string;
+  role: string;
+  quote: string;
+  image: string;
+}
+
+export default function TestimonialsSection({ customTestimonials }: { customTestimonials?: TestimonialProp[] }) {
+  const allTestimonials = customTestimonials && customTestimonials.length > 0 
+    ? customTestimonials 
+    : testimonials;
+    
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
+    if (allTestimonials.length <= 1) return;
     const interval = setInterval(() => {
-      setActiveIndex((prev) => (prev + 1) % testimonials.length);
+      setActiveIndex((prev) => (prev + 1) % allTestimonials.length);
     }, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [allTestimonials.length]);
 
-  const current = testimonials[activeIndex];
+  const current = allTestimonials[activeIndex];
 
   return (
     <div>
@@ -64,7 +76,7 @@ export default function TestimonialsSection() {
 
           {/* Dot indicators */}
           <div className="flex gap-2 mt-6">
-            {testimonials.map((_, i) => (
+            {allTestimonials.map((_, i) => (
               <button
                 key={i}
                 onClick={() => setActiveIndex(i)}

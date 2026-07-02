@@ -9,20 +9,53 @@ import FeaturesGrid from "@/components/home/FeaturesGrid";
 import TestimonialsSection from "@/components/home/TestimonialsSection";
 import FaqAccordion from "@/components/home/FaqAccordion";
 import HeroBanner from "@/components/home/HeroBanner";
+import { jsonDb } from "@/lib/db/jsonDb";
 
-export const metadata: Metadata = {
-  title: "Boutiique Vastraa",
-  description: "Handcrafted sarees sourced from skilled artisans across India, including the rich brocades of Banarasi silks.",
-  openGraph: {
-    type: 'website',
-    url: 'https://boutiquevastra.com',
-    title: "Boutiique Vastraa",
-    description: "Handcrafted sarees sourced from skilled artisans across India.",
-    siteName: 'Boutiique Vastraa',
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = jsonDb.getSettings();
+  const cleanTitle = settings.seo.titleTemplate
+    ? settings.seo.titleTemplate.replace("%s | ", "")
+    : "Boutiique Vastraa";
+  return {
+    title: "Home | " + cleanTitle,
+    description: settings.seo.defaultDescription,
+    openGraph: {
+      type: 'website',
+      url: 'https://boutiquevastra.com',
+      title: cleanTitle,
+      description: settings.seo.defaultDescription,
+      siteName: 'Boutiique Vastraa',
+    },
+  };
+}
 
 export default async function Home() {
+  // Load settings for homepage hero slideshow
+  const settings = jsonDb.getSettings();
+  const homeSettings = settings.homepage || {};
+  const bannerSlides = settings.banners.map((b) => ({
+    image: b.imageUrl,
+    alt: b.title,
+  }));
+
+  // Load verified testimonials
+  const dbReviews = jsonDb.getGlobalReviews();
+  const customTestimonials = dbReviews.map((r, idx) => {
+    const avatars = [
+      "/images/client-1.jpg",
+      "/images/client-2.jpg",
+      "/images/client-3.jpg",
+      "/images/client-4.jpg",
+      "/images/client-5.jpg"
+    ];
+    return {
+      name: r.author,
+      role: "Verified Buyer",
+      quote: r.comment,
+      image: avatars[idx % avatars.length]
+    };
+  });
+
   // Fetch live data from Shopify
   const allProducts = await getProducts(24);
   const allCollections = await getCollections(20);
@@ -59,35 +92,56 @@ export default async function Home() {
   return (
     <>
       {/* Hero Banner - user provided banner images */}
-      <HeroBanner />
+      <HeroBanner slides={bannerSlides} />
 
       {/* Section 1: Our Most Loved Collections */}
-      <CollectionsSlider collections={collectionsWithImages} />
+      <CollectionsSlider collections={collectionsWithImages} title={homeSettings.lovedCollectionsTitle} />
 
       {/* Section 2: Pattern Banner */}
-      <PatternBanner />
+      <PatternBanner heading={homeSettings.patternBanner?.heading} />
 
       {/* Section 3: Top-Sellings */}
-      <TopSellings products={allProducts.slice(0, 10)} />
+      <TopSellings 
+        products={allProducts.slice(0, 10)} 
+        title={homeSettings.trendingTitle} 
+        subtitle={homeSettings.trendingSubtitle} 
+      />
 
       {/* Section 4: Find Your Perfect Saree (Tabs) */}
-      <PerfectSareeTabs tabs={tabs} />
+      <PerfectSareeTabs 
+        tabs={tabs} 
+        title={homeSettings.perfectSareeTitle} 
+        subtitle={homeSettings.perfectSareeSubtitle} 
+      />
 
       {/* Section 5: Explore Best Categories */}
-      <BestCategories collections={collectionsWithImages} />
+      <BestCategories 
+        collections={collectionsWithImages} 
+        title={homeSettings.categoriesTitle} 
+        subtitle={homeSettings.categoriesSubtitle} 
+      />
 
       {/* Section 6 + 7 + 8: Maroon Section (Features + Testimonials + FAQ) */}
       <section className="bg-maroonClr">
         {/* Section 6: Features Grid */}
-        <FeaturesGrid />
+        <FeaturesGrid 
+          title={homeSettings.featuresTitle} 
+          subtitle={homeSettings.featuresSubtitle} 
+          features={homeSettings.features} 
+        />
 
         {/* Section 7: Testimonials */}
         <div className="px-4 md:px-6 pb-12 sm:pb-16 md:pb-20">
-          <TestimonialsSection />
+          <TestimonialsSection customTestimonials={customTestimonials} />
         </div>
 
         {/* Section 8: FAQ Accordion */}
-        <FaqAccordion />
+        <FaqAccordion 
+          title={homeSettings.faqTitle} 
+          subtitle={homeSettings.faqSubtitle} 
+          image={homeSettings.faqImage} 
+          faqs={homeSettings.faqs} 
+        />
       </section>
     </>
   );

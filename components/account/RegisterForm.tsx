@@ -3,10 +3,13 @@
 import { useState } from "react";
 import { registerAction } from "@/app/actions/auth";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function RegisterForm({ onToggleView }: { onToggleView: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -27,69 +30,115 @@ export default function RegisterForm({ onToggleView }: { onToggleView: () => voi
   };
 
   return (
-    <div className="w-full max-w-md mx-auto p-8 bg-white rounded-lg shadow-sm border border-gray-100">
-      <h2 className="text-3xl font-serif text-gray-800 mb-2 text-center">Create Account</h2>
-      <p className="text-gray-500 text-center mb-8 text-sm">Join Boutiique Vastraa today.</p>
+    <div className="w-full max-w-[420px] bg-white rounded-2xl shadow-xl border border-gray-100 p-8 md:p-10 animate-scaleUp">
+      {/* Brand Header */}
+      <div className="text-center mb-6">
+        <div className="w-16 h-16 bg-neutral-900 rounded-lg p-1.5 border border-[#C9A84C]/25 mx-auto mb-4 flex items-center justify-center relative shadow-sm">
+          <Image 
+            src="/images/logo.png" 
+            alt="Boutiique Vastraa" 
+            fill 
+            className="object-contain p-1"
+          />
+        </div>
+        <h2 className="text-lg font-serif font-bold text-gray-900 uppercase tracking-widest">
+          Boutiique Vastraa
+        </h2>
+      </div>
 
       {error && (
-        <div className="bg-red-50 text-red-600 p-3 rounded mb-6 text-sm border border-red-100">
+        <div className="bg-red-50 text-red-600 p-3.5 rounded-lg mb-6 text-xs font-semibold border border-red-100 text-center animate-fadeIn">
           {error}
         </div>
       )}
 
+      {/* Form Fields */}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">First Name</label>
             <input 
               type="text" 
               name="firstName"
               required
-              className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+              placeholder="First Name"
+              className="w-full border border-gray-300 rounded px-4 py-3 text-xs text-gray-800 focus:outline-none focus:border-[#8D0B41] focus:ring-1 focus:ring-[#8D0B41] transition-all bg-[#FDFBF7]"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Last Name</label>
             <input 
               type="text" 
               name="lastName"
               required
-              className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+              placeholder="Last Name"
+              className="w-full border border-gray-300 rounded px-4 py-3 text-xs text-gray-800 focus:outline-none focus:border-[#8D0B41] focus:ring-1 focus:ring-[#8D0B41] transition-all bg-[#FDFBF7]"
             />
           </div>
         </div>
+        
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Email ID</label>
           <input 
             type="email" 
             name="email"
             required
-            className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+            placeholder="Enter your email address"
+            className="w-full border border-gray-300 rounded px-4 py-3 text-xs text-gray-800 focus:outline-none focus:border-[#8D0B41] focus:ring-1 focus:ring-[#8D0B41] transition-all bg-[#FDFBF7]"
           />
         </div>
+        
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-          <input 
-            type="password" 
-            name="password"
-            required
-            className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-          />
+          <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Password</label>
+          <div className="relative">
+            <input 
+              type={showPassword ? "text" : "password"} 
+              name="password"
+              required
+              placeholder="Choose secure password"
+              className="w-full border border-gray-300 rounded px-4 py-3 pr-10 text-xs text-gray-800 focus:outline-none focus:border-[#8D0B41] focus:ring-1 focus:ring-[#8D0B41] transition-all bg-[#FDFBF7]"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#8D0B41] transition-colors"
+            >
+              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
         </div>
 
         <button 
           type="submit" 
           disabled={loading}
-          className="w-full bg-primary text-white py-3 rounded font-bold uppercase tracking-widest text-sm hover:bg-[#6A102A] transition-colors disabled:opacity-50 mt-4"
+          className="w-full bg-[#8D0B41] text-white py-3.5 rounded font-bold uppercase tracking-widest text-xs hover:bg-[#6A102A] transition-colors shadow-md hover:shadow-lg disabled:bg-gray-400 mt-4 flex items-center justify-center gap-2"
         >
-          {loading ? "Creating Account..." : "Create Account"}
+          {loading ? (
+            <>
+              <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              Creating Account...
+            </>
+          ) : (
+            "Create Account"
+          )}
         </button>
       </form>
 
-      <div className="mt-8 text-center text-sm text-gray-600 border-t border-gray-200 pt-6">
+      {/* Terms and Policies */}
+      <p className="text-[10px] text-gray-400 text-center mt-6 leading-relaxed">
+        By continuing, you agree to our{" "}
+        <a href="#" className="underline font-semibold hover:text-[#8D0B41]">Terms</a> and{" "}
+        <a href="#" className="underline font-semibold hover:text-[#8D0B41]">Privacy Policy</a>.
+      </p>
+
+      {/* Toggle View */}
+      <div className="mt-8 text-center text-xs text-gray-500 border-t border-gray-100 pt-6">
         Already have an account?{" "}
-        <button onClick={onToggleView} className="text-primary hover:underline font-semibold">
-          Sign in
+        <button 
+          onClick={onToggleView} 
+          className="text-[#8D0B41] hover:underline font-bold uppercase tracking-wider text-[10px]"
+        >
+          Sign In
         </button>
       </div>
     </div>

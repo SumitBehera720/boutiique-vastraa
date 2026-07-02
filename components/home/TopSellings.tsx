@@ -15,7 +15,7 @@ interface Product {
   images: { edges: { node: { url: string; altText: string } }[] };
 }
 
-export default function TopSellings({ products }: { products: Product[] }) {
+export default function TopSellings({ products, title, subtitle }: { products: Product[]; title?: string; subtitle?: string }) {
   return (
     <section>
       <div className="relative py-8 sm:py-12 md:py-16 lg:py-20">
@@ -31,10 +31,10 @@ export default function TopSellings({ products }: { products: Product[] }) {
 
         <div className="mx-auto max-w-2xl space-y-2 text-center">
           <h3 className="font-kalnia text-maroonClr text-2xl font-medium sm:text-3xl md:text-4xl">
-            Top-Sellings
+            {title || "Top-Sellings"}
           </h3>
           <p className="text-xs text-neutral-800 md:text-base">
-            Wrap yourself in timeless beauty with our exquisite saree collection. Each drape is crafted to celebrate grace, tradition, and modern charm.
+            {subtitle || "Wrap yourself in timeless beauty with our exquisite saree collection. Each drape is crafted to celebrate grace, tradition, and modern charm."}
           </p>
         </div>
 

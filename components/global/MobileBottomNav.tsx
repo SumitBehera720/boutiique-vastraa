@@ -2,8 +2,17 @@
 
 import Link from "next/link";
 import { Layers, User } from "lucide-react";
+import { usePathname } from "next/navigation";
 
 export default function MobileBottomNav() {
+  const pathname = usePathname();
+  const isLoginPage = pathname === "/account/login";
+  const isAdminPage = pathname.startsWith("/admin");
+  const isCheckoutPage = pathname.startsWith("/checkout");
+
+  if (isLoginPage || isAdminPage || isCheckoutPage) {
+    return null;
+  }
   return (
     <div className="bg-maroonClr fixed right-0 bottom-0 left-0 z-50 text-white shadow-[0_-1px_2px_rgba(0,0,0,0.1)] duration-200 sm:hidden">
       <div className="grid w-full grid-cols-4 p-2">

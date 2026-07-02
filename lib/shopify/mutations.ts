@@ -1,256 +1,167 @@
-import { shopifyFetch } from './client';
+import { jsonDb, hashPassword, Customer } from '../db/jsonDb';
 
-export const cartCreateMutation = `
-  mutation cartCreate($input: CartInput) {
-    cartCreate(input: $input) {
-      cart {
-        id
-        checkoutUrl
-        totalQuantity
-        cost {
-          subtotalAmount {
-            amount
+// Format cart helper to output Shopify GraphQL-like structure
+function formatCart(localCart: any) {
+  if (!localCart) return null;
+
+  const products = jsonDb.getProducts();
+  const edges = localCart.lines.map((line: any) => {
+    let matchedVariant: any = null;
+    let matchedProduct: any = null;
+
+    for (const p of products) {
+      const vEdge = p.variants.edges.find((v: any) => v.node.id === line.merchandiseId);
+      if (vEdge) {
+        matchedVariant = vEdge.node;
+        matchedProduct = p;
+        break;
+      }
+    }
+
+    const variantTitle = matchedVariant ? matchedVariant.title : "Default Title";
+    const priceAmount = matchedVariant ? matchedVariant.price.amount : "0.00";
+    const currencyCode = matchedVariant ? matchedVariant.price.currencyCode : "INR";
+    const productTitle = matchedProduct ? matchedProduct.title : "Unknown Product";
+    const productHandle = matchedProduct ? matchedProduct.handle : "";
+    const imageUrl = matchedVariant?.image?.url || matchedProduct?.images?.edges[0]?.node?.url || "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=100&auto=format&fit=crop&q=60";
+    const altText = matchedVariant?.image?.altText || matchedProduct?.images?.edges[0]?.node?.altText || productTitle;
+
+    return {
+      node: {
+        id: line.id,
+        quantity: line.quantity,
+        merchandise: {
+          id: line.merchandiseId,
+          title: variantTitle,
+          product: {
+            title: productTitle,
+            handle: productHandle
+          },
+          price: {
+            amount: priceAmount,
             currencyCode
-          }
-        }
-        lines(first: 100) {
-          edges {
-            node {
-              id
-              quantity
-              merchandise {
-                ... on ProductVariant {
-                  id
-                  title
-                  product {
-                    title
-                    handle
-                  }
-                  price {
-                    amount
-                    currencyCode
-                  }
-                  image {
-                    url
-                    altText
-                  }
-                }
-              }
-            }
+          },
+          image: {
+            url: imageUrl,
+            altText
           }
         }
       }
-    }
-  }
-`;
+    };
+  });
 
-export const cartLinesAddMutation = `
-  mutation cartLinesAdd($cartId: ID!, $lines: [CartLineInput!]!) {
-    cartLinesAdd(cartId: $cartId, lines: $lines) {
-      cart {
-        id
-        checkoutUrl
-        totalQuantity
-        cost {
-          subtotalAmount {
-            amount
-            currencyCode
-          }
-        }
-        lines(first: 100) {
-          edges {
-            node {
-              id
-              quantity
-              merchandise {
-                ... on ProductVariant {
-                  id
-                  title
-                  product {
-                    title
-                    handle
-                  }
-                  price {
-                    amount
-                    currencyCode
-                  }
-                  image {
-                    url
-                    altText
-                  }
-                }
-              }
-            }
-          }
-        }
+  const totalQuantity = localCart.lines.reduce((sum: number, l: any) => sum + l.quantity, 0);
+  const subtotal = localCart.lines.reduce((sum: number, line: any) => {
+    let priceAmount = 0;
+    for (const p of products) {
+      const vEdge = p.variants.edges.find((v: any) => v.node.id === line.merchandiseId);
+      if (vEdge) {
+        priceAmount = parseFloat(vEdge.node.price.amount);
+        break;
       }
     }
-  }
-`;
+    return sum + (priceAmount * line.quantity);
+  }, 0);
 
-export const cartLinesUpdateMutation = `
-  mutation cartLinesUpdate($cartId: ID!, $lines: [CartLineUpdateInput!]!) {
-    cartLinesUpdate(cartId: $cartId, lines: $lines) {
-      cart {
-        id
-        totalQuantity
-        cost {
-          subtotalAmount {
-            amount
-            currencyCode
-          }
-        }
-        lines(first: 100) {
-          edges {
-            node {
-              id
-              quantity
-              merchandise {
-                ... on ProductVariant {
-                  id
-                  title
-                  product {
-                    title
-                    handle
-                  }
-                  price {
-                    amount
-                    currencyCode
-                  }
-                  image {
-                    url
-                    altText
-                  }
-                }
-              }
-            }
-          }
-        }
+  return {
+    id: localCart.id,
+    checkoutUrl: `/checkout?cartId=${localCart.id}`,
+    totalQuantity,
+    cost: {
+      subtotalAmount: {
+        amount: subtotal.toFixed(2),
+        currencyCode: "INR"
       }
+    },
+    lines: {
+      edges
     }
-  }
-`;
-
-export const cartLinesRemoveMutation = `
-  mutation cartLinesRemove($cartId: ID!, $lineIds: [ID!]!) {
-    cartLinesRemove(cartId: $cartId, lineIds: $lineIds) {
-      cart {
-        id
-        totalQuantity
-        cost {
-          subtotalAmount {
-            amount
-            currencyCode
-          }
-        }
-        lines(first: 100) {
-          edges {
-            node {
-              id
-              quantity
-              merchandise {
-                ... on ProductVariant {
-                  id
-                  title
-                  product {
-                    title
-                    handle
-                  }
-                  price {
-                    amount
-                    currencyCode
-                  }
-                  image {
-                    url
-                    altText
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-`;
+  };
+}
 
 export async function createCart(lines: { merchandiseId: string; quantity: number }[] = []) {
-  const { body } = await shopifyFetch<any>({
-    query: cartCreateMutation,
-    variables: { input: { lines } }
-  });
-  return body.data.cartCreate.cart;
+  const cart = jsonDb.createCart(lines);
+  return formatCart(cart);
 }
 
 export async function addToCart(cartId: string, lines: { merchandiseId: string; quantity: number }[]) {
-  const { body } = await shopifyFetch<any>({
-    query: cartLinesAddMutation,
-    variables: { cartId, lines }
-  });
-  return body.data.cartLinesAdd.cart;
+  const cart = jsonDb.addToCart(cartId, lines);
+  return formatCart(cart);
 }
 
 export async function updateCartLines(cartId: string, lines: { id: string; quantity: number }[]) {
-  const { body } = await shopifyFetch<any>({
-    query: cartLinesUpdateMutation,
-    variables: { cartId, lines }
-  });
-  return body.data.cartLinesUpdate.cart;
+  const cart = jsonDb.updateCartLines(cartId, lines);
+  return formatCart(cart);
 }
 
 export async function removeFromCart(cartId: string, lineIds: string[]) {
-  const { body } = await shopifyFetch<any>({
-    query: cartLinesRemoveMutation,
-    variables: { cartId, lineIds }
-  });
-  return body.data.cartLinesRemove.cart;
+  const cart = jsonDb.removeFromCart(cartId, lineIds);
+  return formatCart(cart);
 }
 
-// --- Customer Auth Mutations ---
-
-export const customerCreateMutation = `
-  mutation customerCreate($input: CustomerCreateInput!) {
-    customerCreate(input: $input) {
-      customer {
-        id
-      }
-      customerUserErrors {
-        code
-        field
-        message
-      }
-    }
-  }
-`;
-
-export const customerAccessTokenCreateMutation = `
-  mutation customerAccessTokenCreate($input: CustomerAccessTokenCreateInput!) {
-    customerAccessTokenCreate(input: $input) {
-      customerAccessToken {
-        accessToken
-        expiresAt
-      }
-      customerUserErrors {
-        code
-        field
-        message
-      }
-    }
-  }
-`;
-
 export async function createCustomer(input: any) {
-  const { body } = await shopifyFetch<any>({
-    query: customerCreateMutation,
-    variables: { input }
-  });
-  return body.data.customerCreate;
+  const { firstName, lastName, email, password } = input;
+  const customers = jsonDb.getCustomers();
+
+  // Check if customer already exists
+  const existing = customers.find(c => c.email.toLowerCase() === email.toLowerCase());
+  if (existing) {
+    return {
+      customer: null,
+      customerUserErrors: [
+        {
+          code: "TAKEN",
+          field: ["email"],
+          message: "Email has already been taken."
+        }
+      ]
+    };
+  }
+
+  const newCustomer: Customer = {
+    id: `customer_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+    firstName,
+    lastName,
+    email,
+    passwordHash: hashPassword(password),
+    createdAt: new Date().toISOString()
+  };
+
+  customers.push(newCustomer);
+  jsonDb.saveCustomers(customers);
+
+  return {
+    customer: {
+      id: newCustomer.id
+    },
+    customerUserErrors: []
+  };
 }
 
 export async function createCustomerAccessToken(input: any) {
-  const { body } = await shopifyFetch<any>({
-    query: customerAccessTokenCreateMutation,
-    variables: { input }
-  });
-  return body.data.customerAccessTokenCreate;
+  const { email, password } = input;
+  const customer = jsonDb.getCustomerByEmail(email);
+
+  if (!customer || customer.passwordHash !== hashPassword(password)) {
+    return {
+      customerAccessToken: null,
+      customerUserErrors: [
+        {
+          code: "UNAUTHORIZED",
+          field: ["email", "password"],
+          message: "Unidentified customer, check email and password."
+        }
+      ]
+    };
+  }
+
+  // Generate simple token (we use email as the accessToken, or customer ID)
+  // Let's use the customer ID as the token to keep it secure-ish and easy to query
+  return {
+    customerAccessToken: {
+      accessToken: customer.id,
+      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days
+    },
+    customerUserErrors: []
+  };
 }
