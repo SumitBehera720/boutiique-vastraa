@@ -54,6 +54,9 @@ export default async function RootLayout({
   const token = await getCustomerToken();
   const isLoggedIn = !!token;
 
+  const settings = jsonDb.getSettings();
+  const footerSettings = settings.footer || {};
+
   const headersList = await headers();
   const pathname = headersList.get("x-pathname") || "";
 
@@ -79,7 +82,7 @@ export default async function RootLayout({
         </main>
         {showHeaderFooter && (
           <>
-            <Footer />
+            <Footer settings={footerSettings} />
             <MobileBottomNav />
           </>
         )}

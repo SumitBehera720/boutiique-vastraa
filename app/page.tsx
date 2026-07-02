@@ -40,21 +40,33 @@ export default async function Home() {
 
   // Load verified testimonials
   const dbReviews = jsonDb.getGlobalReviews();
-  const customTestimonials = dbReviews.map((r, idx) => {
-    const avatars = [
-      "/images/client-1.jpg",
-      "/images/client-2.jpg",
-      "/images/client-3.jpg",
-      "/images/client-4.jpg",
-      "/images/client-5.jpg"
-    ];
-    return {
-      name: r.author,
+  
+  // Custom Testimonials mapping
+  let customTestimonials = [];
+  if (homeSettings.testimonials && homeSettings.testimonials.length > 0) {
+    customTestimonials = homeSettings.testimonials.map((t: any) => ({
+      name: t.name,
       role: "Verified Buyer",
-      quote: r.comment,
-      image: avatars[idx % avatars.length]
-    };
-  });
+      quote: t.comment,
+      image: t.image || "/images/client-1.jpg"
+    }));
+  } else {
+    customTestimonials = dbReviews.map((r, idx) => {
+      const avatars = [
+        "/images/client-1.jpg",
+        "/images/client-2.jpg",
+        "/images/client-3.jpg",
+        "/images/client-4.jpg",
+        "/images/client-5.jpg"
+      ];
+      return {
+        name: r.author,
+        role: "Verified Buyer",
+        quote: r.comment,
+        image: avatars[idx % avatars.length]
+      };
+    });
+  }
 
   // Fetch live data from Shopify
   const allProducts = await getProducts(24);
@@ -68,26 +80,92 @@ export default async function Home() {
     image: c.image || null,
   }));
 
+  // Loved Collections Slider Selection
+  let lovedCollections = [];
+  if (homeSettings.lovedCollectionsItems && homeSettings.lovedCollectionsItems.length > 0) {
+    lovedCollections = homeSettings.lovedCollectionsItems.map((item: any) => {
+      const matched = allCollections.find((c: any) => c.handle === item.collectionHandle);
+      return {
+        id: matched?.id || `col_${item.collectionHandle}`,
+        title: item.customTitle || matched?.title || item.collectionHandle,
+        handle: item.collectionHandle,
+        image: item.customImage ? { url: item.customImage } : (matched?.image || null)
+      };
+    });
+  } else {
+    lovedCollections = collectionsWithImages;
+  }
+
+  // Explore Best Categories Selection
+  let bestCategories = [];
+  if (homeSettings.categoriesItems && homeSettings.categoriesItems.length > 0) {
+    bestCategories = homeSettings.categoriesItems.map((item: any) => {
+      const matched = allCollections.find((c: any) => c.handle === item.collectionHandle);
+      return {
+        id: matched?.id || `col_${item.collectionHandle}`,
+        title: item.customTitle || matched?.title || item.collectionHandle,
+        handle: item.collectionHandle,
+        image: item.customImage ? { url: item.customImage } : (matched?.image || null)
+      };
+    });
+  } else {
+    bestCategories = collectionsWithImages;
+  }
+
+  // Trending Products selection
+  let trendingProducts = [];
+  if (homeSettings.topSellingsProductIds && homeSettings.topSellingsProductIds.length > 0) {
+    trendingProducts = homeSettings.topSellingsProductIds.map((pId: string) => {
+      return allProducts.find((p: any) => p.id === pId || p.handle === pId);
+    }).filter(Boolean);
+  }
+  if (trendingProducts.length === 0) {
+    trendingProducts = allProducts.slice(0, 10);
+  }
+
   // Build tabs from collections for PerfectSareeTabs
   const { getCollectionByHandle } = await import("@/lib/shopify/queries");
-  const tabs = await Promise.all(
-    allCollections.slice(0, 10).map(async (col: any) => {
-      try {
-        const colData = await getCollectionByHandle({ handle: col.handle, first: 8 });
-        return {
-          label: col.title,
-          image: col.image?.url || null,
-          products: colData?.products?.edges?.map((e: any) => e.node) || [],
-        };
-      } catch (e) {
-        return {
-          label: col.title,
-          image: col.image?.url || null,
-          products: [],
-        };
-      }
-    })
-  );
+  let perfectSareeTabs = [];
+  if (homeSettings.perfectSareeTabs && homeSettings.perfectSareeTabs.length > 0) {
+    perfectSareeTabs = await Promise.all(
+      homeSettings.perfectSareeTabs.map(async (tabItem: any) => {
+        try {
+          const matchedCol = allCollections.find((c: any) => c.handle === tabItem.collectionHandle);
+          const colData = await getCollectionByHandle({ handle: tabItem.collectionHandle, first: 8 });
+          return {
+            label: tabItem.label || matchedCol?.title || tabItem.collectionHandle,
+            image: tabItem.image || matchedCol?.image?.url || null,
+            products: colData?.products?.edges?.map((e: any) => e.node) || [],
+          };
+        } catch (e) {
+          return {
+            label: tabItem.label || tabItem.collectionHandle,
+            image: tabItem.image || null,
+            products: [],
+          };
+        }
+      })
+    );
+  } else {
+    perfectSareeTabs = await Promise.all(
+      allCollections.slice(0, 10).map(async (col: any) => {
+        try {
+          const colData = await getCollectionByHandle({ handle: col.handle, first: 8 });
+          return {
+            label: col.title,
+            image: col.image?.url || null,
+            products: colData?.products?.edges?.map((e: any) => e.node) || [],
+          };
+        } catch (e) {
+          return {
+            label: col.title,
+            image: col.image?.url || null,
+            products: [],
+          };
+        }
+      })
+    );
+  }
 
   return (
     <>
@@ -95,28 +173,28 @@ export default async function Home() {
       <HeroBanner slides={bannerSlides} />
 
       {/* Section 1: Our Most Loved Collections */}
-      <CollectionsSlider collections={collectionsWithImages} title={homeSettings.lovedCollectionsTitle} />
+      <CollectionsSlider collections={lovedCollections} title={homeSettings.lovedCollectionsTitle} />
 
       {/* Section 2: Pattern Banner */}
-      <PatternBanner heading={homeSettings.patternBanner?.heading} />
+      <PatternBanner heading={homeSettings.patternBanner?.heading} mediaUrl={homeSettings.patternBanner?.mediaUrl} type={homeSettings.patternBanner?.type} />
 
       {/* Section 3: Top-Sellings */}
       <TopSellings 
-        products={allProducts.slice(0, 10)} 
+        products={trendingProducts} 
         title={homeSettings.trendingTitle} 
         subtitle={homeSettings.trendingSubtitle} 
       />
 
       {/* Section 4: Find Your Perfect Saree (Tabs) */}
       <PerfectSareeTabs 
-        tabs={tabs} 
+        tabs={perfectSareeTabs} 
         title={homeSettings.perfectSareeTitle} 
         subtitle={homeSettings.perfectSareeSubtitle} 
       />
 
       {/* Section 5: Explore Best Categories */}
       <BestCategories 
-        collections={collectionsWithImages} 
+        collections={bestCategories} 
         title={homeSettings.categoriesTitle} 
         subtitle={homeSettings.categoriesSubtitle} 
       />

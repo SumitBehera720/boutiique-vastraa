@@ -72,3 +72,20 @@ export async function saveHomepageSettingsAction(homepageData: any) {
     return { success: false, error: error.message || "Failed to save homepage settings." };
   }
 }
+
+export async function saveFooterSettingsAction(footerData: any) {
+  try {
+    await requireAuth();
+    const settings = jsonDb.getSettings();
+
+    settings.footer = footerData;
+
+    jsonDb.saveSettings(settings);
+    revalidatePath("/admin/settings");
+    revalidatePath("/");
+    return { success: true };
+  } catch (error: any) {
+    console.error("Save Footer Settings Error:", error);
+    return { success: false, error: error.message || "Failed to save footer settings." };
+  }
+}

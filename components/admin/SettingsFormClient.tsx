@@ -1,148 +1,204 @@
 "use client";
 
 import { useState } from "react";
-import { saveSeoSettingsAction, saveBannersSettingsAction, saveHomepageSettingsAction } from "@/app/actions/adminSettings";
-import { Sparkles, Save, Plus, Trash2, ArrowUp, ArrowDown, Image as ImageIcon, Globe, AlertCircle, CheckCircle2, Home, HelpCircle, Gift } from "lucide-react";
+import { saveSeoSettingsAction, saveBannersSettingsAction, saveHomepageSettingsAction, saveFooterSettingsAction } from "@/app/actions/adminSettings";
+import { Sparkles, Save, Plus, Trash2, ArrowUp, ArrowDown, Image as ImageIcon, Globe, AlertCircle, CheckCircle2, Home, HelpCircle, Gift, Info, Star, PlusCircle, Link2, Mail, Phone, Heart, Grid, Video, Play, List, Compass, MessageSquare } from "lucide-react";
 
 interface SettingsFormClientProps {
   initialSettings: any;
+  products?: any[];
+  collections?: any[];
 }
 
-export default function SettingsFormClient({ initialSettings }: SettingsFormClientProps) {
-  const [activeTab, setActiveTab] = useState<"SEO" | "BANNERS" | "HOMEPAGE">("SEO");
+export default function SettingsFormClient({ initialSettings, products = [], collections = [] }: SettingsFormClientProps) {
+  const [activeTab, setActiveTab] = useState<"SEO" | "BANNERS" | "HOMEPAGE" | "FOOTER">("SEO");
+  const [activeSubSection, setActiveSubSection] = useState<string>("lovedCollections");
+  
   const [seoSuccess, setSeoSuccess] = useState("");
   const [bannersSuccess, setBannersSuccess] = useState("");
   const [homeSuccess, setHomeSuccess] = useState("");
+  const [footerSuccess, setFooterSuccess] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // SEO State
+  // ----------------------------------------------------
+  // 1. SEO State
+  // ----------------------------------------------------
   const [titleTemplate, setTitleTemplate] = useState(initialSettings.seo?.titleTemplate || "");
   const [defaultDescription, setDefaultDescription] = useState(initialSettings.seo?.defaultDescription || "");
   const [keywords, setKeywords] = useState(initialSettings.seo?.keywords || "");
 
-  // Banners State
+  // ----------------------------------------------------
+  // 2. Banners State
+  // ----------------------------------------------------
   const [banners, setBanners] = useState<any[]>(initialSettings.banners || []);
 
-  // Homepage Sections State
+  // ----------------------------------------------------
+  // 3. Homepage Sections State
+  // ----------------------------------------------------
   const hp = initialSettings.homepage || {};
+  
+  // Section 1: Loved Collections
   const [lovedCollectionsTitle, setLovedCollectionsTitle] = useState(hp.lovedCollectionsTitle || "");
   const [lovedCollectionsSubtitle, setLovedCollectionsSubtitle] = useState(hp.lovedCollectionsSubtitle || "");
+  const [lovedCollectionsItems, setLovedCollectionsItems] = useState<any[]>(hp.lovedCollectionsItems || []);
+
+  // Section 2: Pattern Banner
   const [patternBannerHeading, setPatternBannerHeading] = useState(hp.patternBanner?.heading || "");
+  const [patternBannerType, setPatternBannerType] = useState<"IMAGE" | "VIDEO">(hp.patternBanner?.type || "IMAGE");
+  const [patternBannerMediaUrl, setPatternBannerMediaUrl] = useState(hp.patternBanner?.mediaUrl || "");
+
+  // Section 3: Top Sellings
   const [trendingTitle, setTrendingTitle] = useState(hp.trendingTitle || "");
   const [trendingSubtitle, setTrendingSubtitle] = useState(hp.trendingSubtitle || "");
+  const [topSellingsProductIds, setTopSellingsProductIds] = useState<string[]>(hp.topSellingsProductIds || []);
+
+  // Section 4: Perfect Saree Tabs
   const [perfectSareeTitle, setPerfectSareeTitle] = useState(hp.perfectSareeTitle || "");
   const [perfectSareeSubtitle, setPerfectSareeSubtitle] = useState(hp.perfectSareeSubtitle || "");
+  const [perfectSareeTabs, setPerfectSareeTabs] = useState<any[]>(hp.perfectSareeTabs || []);
+
+  // Section 5: Best Categories
   const [categoriesTitle, setCategoriesTitle] = useState(hp.categoriesTitle || "");
   const [categoriesSubtitle, setCategoriesSubtitle] = useState(hp.categoriesSubtitle || "");
-  
-  // Features (Value Props)
+  const [categoriesItems, setCategoriesItems] = useState<any[]>(hp.categoriesItems || []);
+
+  // Section 6: Features
   const [featuresTitle, setFeaturesTitle] = useState(hp.featuresTitle || "");
   const [featuresSubtitle, setFeaturesSubtitle] = useState(hp.featuresSubtitle || "");
-  const [features, setFeatures] = useState<any[]>(
-    hp.features || [
-      { title: "", description: "", image: "" },
-      { title: "", description: "", image: "" },
-      { title: "", description: "", image: "" }
-    ]
-  );
+  const [features, setFeatures] = useState<any[]>(hp.features || []);
 
-  // FAQs
+  // Section 7: Testimonials
+  const [testimonialsTitle, setTestimonialsTitle] = useState(hp.testimonialsTitle || "");
+  const [testimonials, setTestimonials] = useState<any[]>(hp.testimonials || []);
+
+  // Section 8: FAQs
   const [faqTitle, setFaqTitle] = useState(hp.faqTitle || "");
   const [faqSubtitle, setFaqSubtitle] = useState(hp.faqSubtitle || "");
   const [faqImage, setFaqImage] = useState(hp.faqImage || "");
   const [faqs, setFaqs] = useState<any[]>(hp.faqs || []);
 
-  const handleSaveSEO = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setSeoSuccess("");
-    setLoading(true);
+  // ----------------------------------------------------
+  // 4. Footer Settings State
+  // ----------------------------------------------------
+  const ft = initialSettings.footer || {};
+  const [footerLogoUrl, setFooterLogoUrl] = useState(ft.logoUrl || "");
+  const [footerDescription, setFooterDescription] = useState(ft.description || "");
+  const [footerEmail, setFooterEmail] = useState(ft.contactEmail || "");
+  const [footerPhone, setFooterPhone] = useState(ft.contactPhone || "");
+  const [footerCopyright, setFooterCopyright] = useState(ft.copyright || "");
+  const [facebookUrl, setFacebookUrl] = useState(ft.facebookUrl || "");
+  const [instagramUrl, setInstagramUrl] = useState(ft.instagramUrl || "");
+  const [pinterestUrl, setPinterestUrl] = useState(ft.pinterestUrl || "");
+  const [footerLinks, setFooterLinks] = useState<any[]>(ft.links || []);
 
-    try {
-      const res = await saveSeoSettingsAction({
-        titleTemplate,
-        defaultDescription,
-        keywords,
-      });
+  // ----------------------------------------------------
+  // Add/Remove Helpers for Layout Items
+  // ----------------------------------------------------
 
-      if (res.success) {
-        setSeoSuccess("SEO Settings saved successfully!");
-      } else {
-        setError(res.error || "Failed to save SEO settings.");
-      }
-    } catch (err) {
-      console.error(err);
-      setError("An unexpected error occurred.");
-    } finally {
-      setLoading(false);
-    }
+  // Loved Collections Helpers
+  const [lovedColHandle, setLovedColHandle] = useState("");
+  const [lovedColTitle, setLovedColTitle] = useState("");
+  const [lovedColImage, setLovedColImage] = useState("");
+  const addLovedCollection = () => {
+    if (!lovedColHandle) return;
+    setLovedCollectionsItems([
+      ...lovedCollectionsItems,
+      { collectionHandle: lovedColHandle, customTitle: lovedColTitle, customImage: lovedColImage }
+    ]);
+    setLovedColHandle("");
+    setLovedColTitle("");
+    setLovedColImage("");
   };
 
-  const handleSaveBanners = async () => {
-    setError("");
-    setBannersSuccess("");
-    setLoading(true);
-
-    for (const b of banners) {
-      if (!b.imageUrl) {
-        setError("All slides must have an Image URL.");
-        setLoading(false);
-        return;
-      }
-    }
-
-    try {
-      const res = await saveBannersSettingsAction(banners);
-      if (res.success) {
-        setBannersSuccess("Homepage Banner slides saved successfully!");
-      } else {
-        setError(res.error || "Failed to save banners.");
-      }
-    } catch (err) {
-      console.error(err);
-      setError("An unexpected error occurred.");
-    } finally {
-      setLoading(false);
-    }
+  // Top Sellings (Featured Products) Helpers
+  const [featuredProdId, setFeaturedProdId] = useState("");
+  const addFeaturedProduct = () => {
+    if (!featuredProdId || topSellingsProductIds.includes(featuredProdId)) return;
+    setTopSellingsProductIds([...topSellingsProductIds, featuredProdId]);
+    setFeaturedProdId("");
   };
 
-  const handleSaveHomepage = async () => {
-    setError("");
-    setHomeSuccess("");
-    setLoading(true);
+  // Perfect Saree Tabs Helpers
+  const [sareeTabColHandle, setSareeTabColHandle] = useState("");
+  const [sareeTabLabel, setSareeTabLabel] = useState("");
+  const [sareeTabImage, setSareeTabImage] = useState("");
+  const addSareeTab = () => {
+    if (!sareeTabColHandle || !sareeTabLabel) return;
+    setPerfectSareeTabs([
+      ...perfectSareeTabs,
+      { collectionHandle: sareeTabColHandle, label: sareeTabLabel, image: sareeTabImage }
+    ]);
+    setSareeTabColHandle("");
+    setSareeTabLabel("");
+    setSareeTabImage("");
+  };
 
-    try {
-      const res = await saveHomepageSettingsAction({
-        lovedCollectionsTitle,
-        lovedCollectionsSubtitle,
-        patternBanner: { heading: patternBannerHeading },
-        trendingTitle,
-        trendingSubtitle,
-        perfectSareeTitle,
-        perfectSareeSubtitle,
-        categoriesTitle,
-        categoriesSubtitle,
-        featuresTitle,
-        featuresSubtitle,
-        features,
-        faqTitle,
-        faqSubtitle,
-        faqImage,
-        faqs
-      });
+  // Best Categories Helpers
+  const [bestCatColHandle, setBestCatColHandle] = useState("");
+  const [bestCatTitle, setBestCatTitle] = useState("");
+  const [bestCatImage, setBestCatImage] = useState("");
+  const addBestCategory = () => {
+    if (!bestCatColHandle) return;
+    setCategoriesItems([
+      ...categoriesItems,
+      { collectionHandle: bestCatColHandle, customTitle: bestCatTitle, customImage: bestCatImage }
+    ]);
+    setBestCatColHandle("");
+    setBestCatTitle("");
+    setBestCatImage("");
+  };
 
-      if (res.success) {
-        setHomeSuccess("Homepage layout configuration saved successfully!");
-      } else {
-        setError(res.error || "Failed to save homepage layout.");
-      }
-    } catch (err) {
-      console.error(err);
-      setError("An unexpected error occurred.");
-    } finally {
-      setLoading(false);
-    }
+  // Testimonials Helpers
+  const [testName, setTestName] = useState("");
+  const [testRating, setTestRating] = useState("5");
+  const [testComment, setTestComment] = useState("");
+  const [testImage, setTestImage] = useState("");
+  const addTestimonial = () => {
+    if (!testName || !testComment) return;
+    setTestimonials([
+      ...testimonials,
+      { id: `t_${Date.now()}`, name: testName, rating: parseInt(testRating), comment: testComment, image: testImage }
+    ]);
+    setTestName("");
+    setTestComment("");
+    setTestImage("");
+  };
+
+  // FAQ Helpers
+  const [faqQ, setFaqQ] = useState("");
+  const [faqA, setFaqA] = useState("");
+  const addFaq = () => {
+    if (!faqQ || !faqA) return;
+    setFaqs([...faqs, { question: faqQ, answer: faqA }]);
+    setFaqQ("");
+    setFaqA("");
+  };
+
+  // Footer Link Helpers
+  const [footLinkLabel, setFootLinkLabel] = useState("");
+  const [footLinkUrl, setFootLinkUrl] = useState("");
+  const addFooterLink = () => {
+    if (!footLinkLabel || !footLinkUrl) return;
+    setFooterLinks([...footerLinks, { label: footLinkLabel, url: footLinkUrl }]);
+    setFootLinkLabel("");
+    setFootLinkUrl("");
+  };
+
+  // Reorder/Delete utility
+  const moveItem = (list: any[], setList: Function, index: number, direction: "UP" | "DOWN") => {
+    if (direction === "UP" && index === 0) return;
+    if (direction === "DOWN" && index === list.length - 1) return;
+    const targetIndex = direction === "UP" ? index - 1 : index + 1;
+    const updated = [...list];
+    const temp = updated[index];
+    updated[index] = updated[targetIndex];
+    updated[targetIndex] = temp;
+    setList(updated);
+  };
+
+  const deleteItem = (list: any[], setList: Function, index: number) => {
+    setList(list.filter((_, idx) => idx !== index));
   };
 
   // Banner list controls
@@ -160,64 +216,114 @@ export default function SettingsFormClient({ initialSettings }: SettingsFormClie
     ]);
   };
 
-  const handleRemoveBanner = (index: number) => {
-    setBanners(banners.filter((_, idx) => idx !== index));
-  };
-
   const handleBannerChange = (index: number, key: string, val: string) => {
     const updated = [...banners];
     updated[index] = { ...updated[index], [key]: val };
     setBanners(updated);
   };
 
-  const moveBanner = (index: number, direction: "UP" | "DOWN") => {
-    if (direction === "UP" && index === 0) return;
-    if (direction === "DOWN" && index === banners.length - 1) return;
-    const targetIndex = direction === "UP" ? index - 1 : index + 1;
-    const updated = [...banners];
-    const temp = updated[index];
-    updated[index] = updated[targetIndex];
-    updated[targetIndex] = temp;
-    setBanners(updated);
-  };
-
-  // Feature controls
   const handleFeatureChange = (index: number, key: string, val: string) => {
     const updated = [...features];
     updated[index] = { ...updated[index], [key]: val };
     setFeatures(updated);
   };
 
-  // FAQ controls
-  const handleAddFaq = () => {
-    setFaqs([...faqs, { question: "", answer: "" }]);
+  // ----------------------------------------------------
+  // Save Action Triggers
+  // ----------------------------------------------------
+  const triggerSaveSEO = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSeoSuccess("");
+    setError("");
+    setLoading(true);
+    const res = await saveSeoSettingsAction({ titleTemplate, defaultDescription, keywords });
+    setLoading(false);
+    if (res.success) setSeoSuccess("SEO Settings saved successfully!");
+    else setError(res.error || "Failed to save SEO settings.");
   };
 
-  const handleRemoveFaq = (index: number) => {
-    setFaqs(faqs.filter((_, idx) => idx !== index));
+  const triggerSaveBanners = async () => {
+    setBannersSuccess("");
+    setError("");
+    setLoading(true);
+    const res = await saveBannersSettingsAction(banners);
+    setLoading(false);
+    if (res.success) setBannersSuccess("Homepage Banner slides saved successfully!");
+    else setError(res.error || "Failed to save banners.");
   };
 
-  const handleFaqChange = (index: number, key: "question" | "answer", val: string) => {
-    const updated = [...faqs];
-    updated[index] = { ...updated[index], [key]: val };
-    setFaqs(updated);
+  const triggerSaveHomepage = async () => {
+    setHomeSuccess("");
+    setError("");
+    setLoading(true);
+    const res = await saveHomepageSettingsAction({
+      lovedCollectionsTitle,
+      lovedCollectionsSubtitle,
+      lovedCollectionsItems,
+      patternBanner: {
+        heading: patternBannerHeading,
+        type: patternBannerType,
+        mediaUrl: patternBannerMediaUrl
+      },
+      trendingTitle,
+      trendingSubtitle,
+      topSellingsProductIds,
+      perfectSareeTitle,
+      perfectSareeSubtitle,
+      perfectSareeTabs,
+      categoriesTitle,
+      categoriesSubtitle,
+      categoriesItems,
+      featuresTitle,
+      featuresSubtitle,
+      features,
+      testimonialsTitle,
+      testimonials,
+      faqTitle,
+      faqSubtitle,
+      faqImage,
+      faqs
+    });
+    setLoading(false);
+    if (res.success) setHomeSuccess("Homepage Visual Layout saved successfully!");
+    else setError(res.error || "Failed to save homepage layout.");
+  };
+
+  const triggerSaveFooter = async () => {
+    setFooterSuccess("");
+    setError("");
+    setLoading(true);
+    const res = await saveFooterSettingsAction({
+      logoUrl: footerLogoUrl,
+      description: footerDescription,
+      contactEmail: footerEmail,
+      contactPhone: footerPhone,
+      copyright: footerCopyright,
+      facebookUrl,
+      instagramUrl,
+      pinterestUrl,
+      links: footerLinks
+    });
+    setLoading(false);
+    if (res.success) setFooterSuccess("Footer Configuration saved successfully!");
+    else setError(res.error || "Failed to save footer settings.");
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-6xl">
       
       {/* Header and Tabs */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-neutral-850">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-4 border-b border-neutral-850">
         <div>
           <h1 className="text-2xl font-serif font-bold text-white flex items-center gap-2">
-            Site Settings & SEO <Sparkles className="w-4 h-4 text-[#C9A84C]" />
+            Store Content Settings <Sparkles className="w-4.5 h-4.5 text-[#C9A84C]" />
           </h1>
-          <p className="text-xs text-neutral-400">Configure global metadata, search tags, and homepage layout blocks.</p>
+          <p className="text-xs text-neutral-400">Manage SEO keywords, banner sliders, homepage visual blocks, and footer columns.</p>
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex border border-neutral-850 rounded-lg bg-neutral-950 p-1">
-          {(["SEO", "BANNERS", "HOMEPAGE"] as const).map((tab) => (
+        <div className="flex border border-neutral-800 rounded-lg bg-neutral-950 p-1 flex-wrap gap-1">
+          {(["SEO", "BANNERS", "HOMEPAGE", "FOOTER"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => {
@@ -226,14 +332,15 @@ export default function SettingsFormClient({ initialSettings }: SettingsFormClie
                 setSeoSuccess("");
                 setBannersSuccess("");
                 setHomeSuccess("");
+                setFooterSuccess("");
               }}
-              className={`px-3 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all ${
+              className={`px-3.5 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all ${
                 activeTab === tab
                   ? "bg-maroonClr text-white"
                   : "text-neutral-400 hover:text-white"
               }`}
             >
-              {tab === "SEO" ? "SEO & META" : tab === "BANNERS" ? "HERO SLIDES" : "HOMEPAGE SECTIONS"}
+              {tab === "SEO" ? "SEO & METADATA" : tab === "BANNERS" ? "HERO SLIDES" : tab === "HOMEPAGE" ? "HOMEPAGE SECTIONS" : "STORE FOOTER"}
             </button>
           ))}
         </div>
@@ -246,22 +353,24 @@ export default function SettingsFormClient({ initialSettings }: SettingsFormClie
         </div>
       )}
 
-      {/* Tab 1: SEO */}
+      {/* ----------------------------------------------------
+          TAB 1: SEO
+          ---------------------------------------------------- */}
       {activeTab === "SEO" && (
         <div className="bg-neutral-950 border border-neutral-800 rounded-xl p-6 md:p-8 shadow-sm space-y-6 max-w-2xl">
           <div className="flex items-center gap-2 pb-2 border-b border-neutral-900">
-            <Globe className="w-5 h-5 text-goldClr" />
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider">Search Engine Optimization</h3>
+            <Globe className="w-5 h-5 text-[#C9A84C]" />
+            <h3 className="text-sm font-bold text-white uppercase tracking-wider">Search Engine Tags</h3>
           </div>
 
           {seoSuccess && (
             <div className="p-3.5 bg-green-950/40 border border-green-900/50 text-green-400 text-xs rounded-lg flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4" />
+              <CheckCircle2 className="w-4.5 h-4.5" />
               <span>{seoSuccess}</span>
             </div>
           )}
 
-          <form onSubmit={handleSaveSEO} className="space-y-4">
+          <form onSubmit={triggerSaveSEO} className="space-y-4">
             <div>
               <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1.5">Meta Title Template</label>
               <input
@@ -273,30 +382,27 @@ export default function SettingsFormClient({ initialSettings }: SettingsFormClie
                 className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-maroonClr font-mono"
               />
             </div>
-
             <div>
-              <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1.5">Meta Description Template</label>
+              <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1.5">Meta Description</label>
               <textarea
                 required
                 rows={3}
                 value={defaultDescription}
                 onChange={(e) => setDefaultDescription(e.target.value)}
-                placeholder="Site-wide default meta description..."
+                placeholder="Default description..."
                 className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-maroonClr leading-relaxed"
               />
             </div>
-
             <div>
               <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1.5">SEO Keywords</label>
               <input
                 type="text"
                 value={keywords}
                 onChange={(e) => setKeywords(e.target.value)}
-                placeholder="sarees, banarasi, ethnic wear, handloom"
+                placeholder="sarees, handloom, silk"
                 className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-maroonClr"
               />
             </div>
-
             <button
               type="submit"
               disabled={loading}
@@ -308,114 +414,64 @@ export default function SettingsFormClient({ initialSettings }: SettingsFormClie
         </div>
       )}
 
-      {/* Tab 2: Banners */}
+      {/* ----------------------------------------------------
+          TAB 2: BANNERS
+          ---------------------------------------------------- */}
       {activeTab === "BANNERS" && (
         <div className="space-y-6">
           <div className="flex justify-between items-center bg-neutral-950 p-4 rounded-xl border border-neutral-800">
             <div className="flex items-center gap-2">
-              <ImageIcon className="w-5 h-5 text-goldClr" />
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider">Homepage Banner Slide Editor</h3>
+              <ImageIcon className="w-5 h-5 text-[#C9A84C]" />
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider">Homepage Banner Slides</h3>
             </div>
             <button
               onClick={handleAddBanner}
               className="bg-neutral-900 border border-neutral-800 hover:border-neutral-700 text-white px-3.5 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors flex items-center gap-1.5"
             >
-              <Plus className="w-4 h-4 text-[#C9A84C]" /> Add New Slide
+              <Plus className="w-4 h-4 text-[#C9A84C]" /> Add Slide
             </button>
           </div>
 
           {bannersSuccess && (
             <div className="p-3.5 bg-green-950/40 border border-green-900/50 text-green-400 text-xs rounded-lg flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4" />
+              <CheckCircle2 className="w-4.5 h-4.5" />
               <span>{bannersSuccess}</span>
             </div>
           )}
 
           <div className="space-y-6">
             {banners.map((slide, index) => (
-              <div 
-                key={slide.id} 
-                className="bg-neutral-950 border border-neutral-800 hover:border-neutral-750 transition-all rounded-xl p-6 shadow-sm space-y-4 relative"
-              >
+              <div key={slide.id} className="bg-neutral-950 border border-neutral-800 hover:border-neutral-755 transition-all rounded-xl p-5 shadow-sm space-y-4 relative">
                 <div className="absolute right-4 top-4 flex gap-1">
-                  <button
-                    onClick={() => moveBanner(index, "UP")}
-                    disabled={index === 0}
-                    className="p-1.5 bg-neutral-900 hover:bg-neutral-800 text-neutral-400 hover:text-white rounded border border-neutral-800 disabled:opacity-30 disabled:hover:bg-neutral-900"
-                  >
-                    <ArrowUp className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    onClick={() => moveBanner(index, "DOWN")}
-                    disabled={index === banners.length - 1}
-                    className="p-1.5 bg-neutral-900 hover:bg-neutral-800 text-neutral-400 hover:text-white rounded border border-neutral-800 disabled:opacity-30 disabled:hover:bg-neutral-900"
-                  >
-                    <ArrowDown className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    onClick={() => handleRemoveBanner(index)}
-                    className="p-1.5 bg-neutral-900 hover:bg-red-950/50 text-neutral-500 hover:text-red-400 rounded border border-neutral-800"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                  <button onClick={() => moveItem(banners, setBanners, index, "UP")} disabled={index === 0} className="p-1 bg-neutral-900 hover:bg-neutral-800 text-neutral-400 hover:text-white rounded border border-neutral-800 disabled:opacity-20"><ArrowUp className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => moveItem(banners, setBanners, index, "DOWN")} disabled={index === banners.length - 1} className="p-1 bg-neutral-900 hover:bg-neutral-800 text-neutral-400 hover:text-white rounded border border-neutral-800 disabled:opacity-20"><ArrowDown className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => deleteItem(banners, setBanners, index)} className="p-1 bg-neutral-900 hover:bg-red-950/40 text-neutral-500 hover:text-red-400 rounded border border-neutral-800"><Trash2 className="w-3.5 h-3.5" /></button>
                 </div>
-
-                <h4 className="text-xs font-bold text-[#C9A84C] uppercase tracking-widest pb-2 border-b border-neutral-900">
-                  Slide #{index + 1}
-                </h4>
-
+                <h4 className="text-xs font-bold text-[#C9A84C] uppercase tracking-widest pb-1 border-b border-neutral-900">Slide #{index + 1}</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     <div>
-                      <label className="block text-[9px] font-bold text-neutral-500 uppercase tracking-wider mb-1">Slide Image Path or URL</label>
-                      <input
-                        type="text"
-                        placeholder="/images/banner-custom.jpg"
-                        value={slide.imageUrl}
-                        onChange={(e) => handleBannerChange(index, "imageUrl", e.target.value)}
-                        className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-maroonClr font-mono"
-                      />
+                      <label className="block text-[9px] font-bold text-neutral-500 uppercase tracking-wider mb-1">Image URL / Path</label>
+                      <input type="text" value={slide.imageUrl} onChange={(e) => handleBannerChange(index, "imageUrl", e.target.value)} className="w-full bg-neutral-900 border border-neutral-800 rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-maroonClr font-mono" />
                     </div>
                     <div>
-                      <label className="block text-[9px] font-bold text-neutral-500 uppercase tracking-wider mb-1">Slide Title / Headline</label>
-                      <input
-                        type="text"
-                        placeholder="Festive Collection"
-                        value={slide.title}
-                        onChange={(e) => handleBannerChange(index, "title", e.target.value)}
-                        className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-maroonClr"
-                      />
+                      <label className="block text-[9px] font-bold text-neutral-500 uppercase tracking-wider mb-1">Slide Title</label>
+                      <input type="text" value={slide.title} onChange={(e) => handleBannerChange(index, "title", e.target.value)} className="w-full bg-neutral-900 border border-neutral-800 rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-maroonClr" />
                     </div>
                   </div>
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     <div>
-                      <label className="block text-[9px] font-bold text-neutral-500 uppercase tracking-wider mb-1">Subheading / Description</label>
-                      <input
-                        type="text"
-                        placeholder="Discover linen sarees"
-                        value={slide.subtitle}
-                        onChange={(e) => handleBannerChange(index, "subtitle", e.target.value)}
-                        className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-maroonClr"
-                      />
+                      <label className="block text-[9px] font-bold text-neutral-500 uppercase tracking-wider mb-1">Subtitle</label>
+                      <input type="text" value={slide.subtitle} onChange={(e) => handleBannerChange(index, "subtitle", e.target.value)} className="w-full bg-neutral-900 border border-neutral-800 rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-maroonClr" />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-[9px] font-bold text-neutral-500 uppercase tracking-wider mb-1">Button text</label>
-                        <input
-                          type="text"
-                          value={slide.buttonText}
-                          onChange={(e) => handleBannerChange(index, "buttonText", e.target.value)}
-                          className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-maroonClr"
-                        />
+                        <label className="block text-[9px] font-bold text-neutral-500 uppercase tracking-wider mb-1">Button Text</label>
+                        <input type="text" value={slide.buttonText} onChange={(e) => handleBannerChange(index, "buttonText", e.target.value)} className="w-full bg-neutral-900 border border-neutral-800 rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-maroonClr" />
                       </div>
                       <div>
-                        <label className="block text-[9px] font-bold text-neutral-500 uppercase tracking-wider mb-1">Click Action Link</label>
-                        <input
-                          type="text"
-                          value={slide.link}
-                          onChange={(e) => handleBannerChange(index, "link", e.target.value)}
-                          className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-maroonClr"
-                        />
+                        <label className="block text-[9px] font-bold text-neutral-500 uppercase tracking-wider mb-1">Action Link</label>
+                        <input type="text" value={slide.link} onChange={(e) => handleBannerChange(index, "link", e.target.value)} className="w-full bg-neutral-900 border border-neutral-800 rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-maroonClr font-mono" />
                       </div>
                     </div>
                   </div>
@@ -424,279 +480,558 @@ export default function SettingsFormClient({ initialSettings }: SettingsFormClie
             ))}
           </div>
 
-          {banners.length > 0 && (
-            <button
-              onClick={handleSaveBanners}
-              disabled={loading}
-              className="bg-maroonClr hover:bg-[#A30C4D] text-white px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-2 shadow-lg shadow-maroonClr/20 disabled:opacity-50"
-            >
-              <Save className="w-4 h-4" /> {loading ? "Saving Slideshow..." : "Save Banners Layout"}
-            </button>
-          )}
+          <button onClick={triggerSaveBanners} disabled={loading} className="bg-maroonClr hover:bg-[#A30C4D] text-white px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-2 shadow-lg shadow-maroonClr/20 disabled:opacity-50"><Save className="w-4 h-4" /> Save Banner Slideshow</button>
         </div>
       )}
 
-      {/* Tab 3: Homepage Sections */}
+      {/* ----------------------------------------------------
+          TAB 3: HOMEPAGE CMS
+          ---------------------------------------------------- */}
       {activeTab === "HOMEPAGE" && (
-        <div className="space-y-6 pb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
           
-          <div className="flex justify-between items-center bg-neutral-950 p-4 rounded-xl border border-neutral-800">
-            <div className="flex items-center gap-2">
-              <Home className="w-5 h-5 text-goldClr" />
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider">Homepage Copy & Text Configurator</h3>
-            </div>
+          {/* Subsections Menu */}
+          <div className="bg-neutral-950 border border-neutral-800 rounded-xl p-3 flex flex-col gap-1 lg:sticky lg:top-24">
+            <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider px-3 mb-2 pt-2">Homepage Sections</p>
+            {[
+              { id: "lovedCollections", label: "Loved Collections", icon: Heart },
+              { id: "patternBanner", label: "Pattern Banner (Video/Img)", icon: Video },
+              { id: "topSellings", label: "Top-Sellings Products", icon: List },
+              { id: "perfectSaree", label: "Perfect Saree Tabs", icon: Compass },
+              { id: "bestCategories", label: "Best Categories Grid", icon: Grid },
+              { id: "features", label: "Value Props / Features", icon: Gift },
+              { id: "testimonials", label: "Customer Reviews", icon: MessageSquare },
+              { id: "faqs", label: "Frequently FAQs", icon: HelpCircle }
+            ].map((section) => {
+              const Icon = section.icon;
+              return (
+                <button
+                  key={section.id}
+                  onClick={() => {
+                    setActiveSubSection(section.id);
+                    setHomeSuccess("");
+                    setError("");
+                  }}
+                  className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-2.5 transition-colors ${
+                    activeSubSection === section.id
+                      ? "bg-maroonClr/20 text-white border-l-2 border-[#C9A84C]"
+                      : "text-neutral-400 hover:bg-neutral-900 hover:text-white"
+                  }`}
+                >
+                  <Icon className="w-4 h-4 shrink-0 text-[#C9A84C]" />
+                  <span>{section.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Subsections Editors */}
+          <div className="lg:col-span-3 bg-neutral-950 border border-neutral-800 rounded-xl p-6 space-y-6">
+            
             {homeSuccess && (
+              <div className="p-3.5 bg-green-950/40 border border-green-900/50 text-green-400 text-xs rounded-lg flex items-center gap-2">
+                <CheckCircle2 className="w-4.5 h-4.5" />
+                <span>{homeSuccess}</span>
+              </div>
+            )}
+
+            {/* Subsection 1: Loved Collections */}
+            {activeSubSection === "lovedCollections" && (
+              <div className="space-y-4">
+                <h3 className="text-xs font-bold text-[#C9A84C] uppercase tracking-widest pb-1 border-b border-neutral-900">1. Our Most Loved Collections Slider</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Section Title</label>
+                    <input type="text" value={lovedCollectionsTitle} onChange={(e) => setLovedCollectionsTitle(e.target.value)} className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-maroonClr" />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Section Subtitle</label>
+                    <input type="text" value={lovedCollectionsSubtitle} onChange={(e) => setLovedCollectionsSubtitle(e.target.value)} className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-maroonClr" />
+                  </div>
+                </div>
+
+                {/* Add collection item */}
+                <div className="bg-neutral-900 p-4 rounded-lg border border-neutral-850 space-y-3">
+                  <h4 className="text-[10px] font-bold text-white uppercase tracking-wider">Add Featured Collection Card</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-[8px] font-bold text-neutral-400 uppercase tracking-wider mb-0.5">Select Collection</label>
+                      <select value={lovedColHandle} onChange={(e) => setLovedColHandle(e.target.value)} className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white focus:outline-none">
+                        <option value="">-- Choose --</option>
+                        {collections.map(c => <option key={c.id} value={c.handle}>{c.title}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[8px] font-bold text-neutral-400 uppercase tracking-wider mb-0.5">Custom Title (Optional)</label>
+                      <input type="text" value={lovedColTitle} onChange={(e) => setLovedColTitle(e.target.value)} className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white focus:outline-none" />
+                    </div>
+                    <div>
+                      <label className="block text-[8px] font-bold text-neutral-400 uppercase tracking-wider mb-0.5">Custom Cover Image URL (Optional)</label>
+                      <input type="text" value={lovedColImage} onChange={(e) => setLovedColImage(e.target.value)} className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white focus:outline-none font-mono" />
+                    </div>
+                  </div>
+                  <button type="button" onClick={addLovedCollection} className="bg-neutral-800 hover:bg-[#C9A84C] hover:text-black text-white px-3 py-1 text-[10px] font-bold uppercase rounded tracking-wider transition-colors flex items-center gap-1.5"><Plus className="w-3.5 h-3.5" /> Add Collection</button>
+                </div>
+
+                {/* Items List */}
+                <div className="space-y-2 max-h-[250px] overflow-y-auto pr-1 custom-scrollbar">
+                  {lovedCollectionsItems.map((item, idx) => (
+                    <div key={idx} className="flex justify-between items-center bg-neutral-900 border border-neutral-850 p-2.5 rounded-lg text-xs">
+                      <div>
+                        <span className="font-semibold text-white uppercase">{item.collectionHandle}</span>
+                        {item.customTitle && <span className="text-[10px] text-neutral-400 ml-2">({item.customTitle})</span>}
+                      </div>
+                      <div className="flex gap-1">
+                        <button onClick={() => moveItem(lovedCollectionsItems, setLovedCollectionsItems, idx, "UP")} disabled={idx === 0} className="p-1 bg-neutral-950 text-neutral-400 disabled:opacity-20"><ArrowUp className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => moveItem(lovedCollectionsItems, setLovedCollectionsItems, idx, "DOWN")} disabled={idx === lovedCollectionsItems.length - 1} className="p-1 bg-neutral-950 text-neutral-400 disabled:opacity-20"><ArrowDown className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => deleteItem(lovedCollectionsItems, setLovedCollectionsItems, idx)} className="p-1 bg-neutral-955 hover:text-red-400 text-neutral-500"><Trash2 className="w-3.5 h-3.5" /></button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Subsection 2: Pattern Banner */}
+            {activeSubSection === "patternBanner" && (
+              <div className="space-y-4">
+                <h3 className="text-xs font-bold text-[#C9A84C] uppercase tracking-widest pb-1 border-b border-neutral-900">2. Pattern Banner (Video/Image Strip)</h3>
+                <div>
+                  <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Banner Text Headline</label>
+                  <input type="text" value={patternBannerHeading} onChange={(e) => setPatternBannerHeading(e.target.value)} className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-maroonClr" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Background Media Type</label>
+                    <select value={patternBannerType} onChange={(e: any) => setPatternBannerType(e.target.value)} className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none">
+                      <option value="IMAGE">IMAGE BACKGROUND</option>
+                      <option value="VIDEO">VIDEO BACKGROUND (MP4 LOOP)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Media Path / Video URL</label>
+                    <input type="text" value={patternBannerMediaUrl} onChange={(e) => setPatternBannerMediaUrl(e.target.value)} placeholder="/images/pattern-bg.jpg" className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none font-mono" />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Subsection 3: Top Sellings */}
+            {activeSubSection === "topSellings" && (
+              <div className="space-y-4">
+                <h3 className="text-xs font-bold text-[#C9A84C] uppercase tracking-widest pb-1 border-b border-neutral-900">3. Featured Products Slider (Top Sellings)</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Section Title</label>
+                    <input type="text" value={trendingTitle} onChange={(e) => setTrendingTitle(e.target.value)} className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-maroonClr" />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Section Subtitle</label>
+                    <input type="text" value={trendingSubtitle} onChange={(e) => setTrendingSubtitle(e.target.value)} className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-maroonClr" />
+                  </div>
+                </div>
+
+                {/* Add product */}
+                <div className="bg-neutral-900 p-4 rounded-lg border border-neutral-850 flex gap-4 items-end">
+                  <div className="flex-1">
+                    <label className="block text-[8px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Select Product to Feature</label>
+                    <select value={featuredProdId} onChange={(e) => setFeaturedProdId(e.target.value)} className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white focus:outline-none">
+                      <option value="">-- Choose Product --</option>
+                      {products.map(p => <option key={p.id} value={p.id}>{p.title}</option>)}
+                    </select>
+                  </div>
+                  <button type="button" onClick={addFeaturedProduct} className="bg-neutral-800 hover:bg-[#C9A84C] hover:text-black text-white px-4 py-2 text-[10px] font-bold uppercase rounded tracking-wider transition-all"><Plus className="w-3.5 h-3.5 inline-block mr-1" /> Add</button>
+                </div>
+
+                {/* List */}
+                <div className="space-y-2 max-h-[250px] overflow-y-auto pr-1 custom-scrollbar">
+                  {topSellingsProductIds.map((pId, idx) => {
+                    const prodObj = products.find(p => p.id === pId || p.handle === pId);
+                    return (
+                      <div key={idx} className="flex justify-between items-center bg-neutral-900 border border-neutral-850 p-2.5 rounded-lg text-xs">
+                        <span className="font-semibold text-white">{prodObj?.title || `Product ID: ${pId}`}</span>
+                        <div className="flex gap-1">
+                          <button onClick={() => moveItem(topSellingsProductIds, setTopSellingsProductIds, idx, "UP")} disabled={idx === 0} className="p-1 bg-neutral-955 text-neutral-450 disabled:opacity-20"><ArrowUp className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => moveItem(topSellingsProductIds, setTopSellingsProductIds, idx, "DOWN")} disabled={idx === topSellingsProductIds.length - 1} className="p-1 bg-neutral-955 text-neutral-455 disabled:opacity-20"><ArrowDown className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => deleteItem(topSellingsProductIds, setTopSellingsProductIds, idx)} className="p-1 bg-neutral-955 hover:text-red-400 text-neutral-500"><Trash2 className="w-3.5 h-3.5" /></button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Subsection 4: Perfect Saree Tabs */}
+            {activeSubSection === "perfectSaree" && (
+              <div className="space-y-4">
+                <h3 className="text-xs font-bold text-[#C9A84C] uppercase tracking-widest pb-1 border-b border-neutral-900">4. Find Your Perfect Saree (Filtered Tabs)</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Section Title</label>
+                    <input type="text" value={perfectSareeTitle} onChange={(e) => setPerfectSareeTitle(e.target.value)} className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-maroonClr" />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Section Subtitle</label>
+                    <input type="text" value={perfectSareeSubtitle} onChange={(e) => setPerfectSareeSubtitle(e.target.value)} className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-maroonClr" />
+                  </div>
+                </div>
+
+                {/* Add Tab form */}
+                <div className="bg-neutral-900 p-4 rounded-lg border border-neutral-850 space-y-3">
+                  <h4 className="text-[10px] font-bold text-white uppercase tracking-wider">Add Category Tab</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-[8px] font-bold text-neutral-400 uppercase tracking-wider mb-0.5">Select Collection</label>
+                      <select value={sareeTabColHandle} onChange={(e) => setSareeTabColHandle(e.target.value)} className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white focus:outline-none">
+                        <option value="">-- Choose --</option>
+                        {collections.map(c => <option key={c.id} value={c.handle}>{c.title}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[8px] font-bold text-neutral-400 uppercase tracking-wider mb-0.5">Tab Label Name</label>
+                      <input type="text" value={sareeTabLabel} onChange={(e) => setSareeTabLabel(e.target.value)} className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white focus:outline-none" />
+                    </div>
+                    <div>
+                      <label className="block text-[8px] font-bold text-neutral-400 uppercase tracking-wider mb-0.5">Tab Icon URL / Path (Optional)</label>
+                      <input type="text" value={sareeTabImage} onChange={(e) => setSareeTabImage(e.target.value)} className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white focus:outline-none font-mono" />
+                    </div>
+                  </div>
+                  <button type="button" onClick={addSareeTab} className="bg-neutral-800 hover:bg-[#C9A84C] hover:text-black text-white px-3 py-1 text-[10px] font-bold uppercase rounded tracking-wider transition-colors flex items-center gap-1.5"><Plus className="w-3.5 h-3.5" /> Add Tab</button>
+                </div>
+
+                {/* Tab items list */}
+                <div className="space-y-2 max-h-[250px] overflow-y-auto pr-1 custom-scrollbar">
+                  {perfectSareeTabs.map((item, idx) => (
+                    <div key={idx} className="flex justify-between items-center bg-neutral-900 border border-neutral-850 p-2.5 rounded-lg text-xs">
+                      <div>
+                        <span className="font-semibold text-white uppercase">{item.label}</span>
+                        <span className="text-[10px] text-neutral-400 ml-2">({item.collectionHandle})</span>
+                      </div>
+                      <div className="flex gap-1">
+                        <button onClick={() => moveItem(perfectSareeTabs, setPerfectSareeTabs, idx, "UP")} disabled={idx === 0} className="p-1 bg-neutral-955 text-neutral-400 disabled:opacity-20"><ArrowUp className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => moveItem(perfectSareeTabs, setPerfectSareeTabs, idx, "DOWN")} disabled={idx === perfectSareeTabs.length - 1} className="p-1 bg-neutral-955 text-neutral-400 disabled:opacity-20"><ArrowDown className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => deleteItem(perfectSareeTabs, setPerfectSareeTabs, idx)} className="p-1 bg-neutral-955 hover:text-red-400 text-neutral-500"><Trash2 className="w-3.5 h-3.5" /></button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Subsection 5: Best Categories */}
+            {activeSubSection === "bestCategories" && (
+              <div className="space-y-4">
+                <h3 className="text-xs font-bold text-[#C9A84C] uppercase tracking-widest pb-1 border-b border-neutral-900">5. Explore Best Categories Grid</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Section Title</label>
+                    <input type="text" value={categoriesTitle} onChange={(e) => setCategoriesTitle(e.target.value)} className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-maroonClr" />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Section Subtitle</label>
+                    <input type="text" value={categoriesSubtitle} onChange={(e) => setCategoriesSubtitle(e.target.value)} className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-maroonClr" />
+                  </div>
+                </div>
+
+                {/* Add category box */}
+                <div className="bg-neutral-900 p-4 rounded-lg border border-neutral-850 space-y-3">
+                  <h4 className="text-[10px] font-bold text-white uppercase tracking-wider">Add Category Grid Box</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-[8px] font-bold text-neutral-400 uppercase tracking-wider mb-0.5">Select Collection</label>
+                      <select value={bestCatColHandle} onChange={(e) => setBestCatColHandle(e.target.value)} className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white focus:outline-none">
+                        <option value="">-- Choose --</option>
+                        {collections.map(c => <option key={c.id} value={c.handle}>{c.title}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[8px] font-bold text-neutral-400 uppercase tracking-wider mb-0.5">Grid Headline Label (Optional)</label>
+                      <input type="text" value={bestCatTitle} onChange={(e) => setBestCatTitle(e.target.value)} className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white focus:outline-none" />
+                    </div>
+                    <div>
+                      <label className="block text-[8px] font-bold text-neutral-400 uppercase tracking-wider mb-0.5">Custom Cover URL (Optional)</label>
+                      <input type="text" value={bestCatImage} onChange={(e) => setBestCatImage(e.target.value)} className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white focus:outline-none font-mono" />
+                    </div>
+                  </div>
+                  <button type="button" onClick={addBestCategory} className="bg-neutral-800 hover:bg-[#C9A84C] hover:text-black text-white px-3 py-1 text-[10px] font-bold uppercase rounded tracking-wider transition-colors flex items-center gap-1.5"><Plus className="w-3.5 h-3.5" /> Add Grid Item</button>
+                </div>
+
+                {/* Items list */}
+                <div className="space-y-2 max-h-[250px] overflow-y-auto pr-1 custom-scrollbar">
+                  {categoriesItems.map((item, idx) => (
+                    <div key={idx} className="flex justify-between items-center bg-neutral-900 border border-neutral-850 p-2.5 rounded-lg text-xs">
+                      <div>
+                        <span className="font-semibold text-white uppercase">{item.collectionHandle}</span>
+                        {item.customTitle && <span className="text-[10px] text-neutral-400 ml-2">({item.customTitle})</span>}
+                      </div>
+                      <div className="flex gap-1">
+                        <button onClick={() => moveItem(categoriesItems, setCategoriesItems, idx, "UP")} disabled={idx === 0} className="p-1 bg-neutral-955 text-neutral-400 disabled:opacity-20"><ArrowUp className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => moveItem(categoriesItems, setCategoriesItems, idx, "DOWN")} disabled={idx === categoriesItems.length - 1} className="p-1 bg-neutral-955 text-neutral-400 disabled:opacity-20"><ArrowDown className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => deleteItem(categoriesItems, setCategoriesItems, idx)} className="p-1 bg-neutral-955 hover:text-red-400 text-neutral-500"><Trash2 className="w-3.5 h-3.5" /></button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Subsection 6: Features */}
+            {activeSubSection === "features" && (
+              <div className="space-y-4">
+                <h3 className="text-xs font-bold text-[#C9A84C] uppercase tracking-widest pb-1 border-b border-neutral-900">6. Special Shopping Features / Value Props</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Section Title</label>
+                    <input type="text" value={featuresTitle} onChange={(e) => setFeaturesTitle(e.target.value)} className="w-full bg-neutral-900 border border-neutral-855 rounded px-3 py-2 text-xs text-white focus:outline-none" />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Description Subtitle</label>
+                    <input type="text" value={featuresSubtitle} onChange={(e) => setFeaturesSubtitle(e.target.value)} className="w-full bg-neutral-900 border border-neutral-855 rounded px-3 py-2 text-xs text-white focus:outline-none" />
+                  </div>
+                </div>
+
+                <div className="space-y-4 pt-2">
+                  {features.map((feat, idx) => (
+                    <div key={idx} className="bg-neutral-900 p-4 rounded-lg border border-neutral-850 space-y-3">
+                      <p className="text-[10px] font-bold text-[#C9A84C] uppercase">Feature Card #{idx + 1}</p>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[8px] font-bold text-neutral-500 uppercase mb-0.5">Card Title</label>
+                          <input type="text" value={feat.title} onChange={(e) => handleFeatureChange(idx, "title", e.target.value)} className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white" />
+                        </div>
+                        <div>
+                          <label className="block text-[8px] font-bold text-neutral-500 uppercase mb-0.5">Image Path / Icon</label>
+                          <input type="text" value={feat.image} onChange={(e) => handleFeatureChange(idx, "image", e.target.value)} className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white font-mono" />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-[8px] font-bold text-neutral-500 uppercase mb-0.5">Card Description Text</label>
+                        <textarea rows={1} value={feat.description} onChange={(e) => handleFeatureChange(idx, "description", e.target.value)} className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1 text-xs text-white leading-relaxed" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Subsection 7: Testimonials */}
+            {activeSubSection === "testimonials" && (
+              <div className="space-y-4">
+                <h3 className="text-xs font-bold text-[#C9A84C] uppercase tracking-widest pb-1 border-b border-neutral-900">7. What Our Customers Say (Testimonials slider)</h3>
+                <div>
+                  <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Section Title</label>
+                  <input type="text" value={testimonialsTitle} onChange={(e) => setTestimonialsTitle(e.target.value)} className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none" />
+                </div>
+
+                {/* Add Testimonial */}
+                <div className="bg-neutral-900 p-4 rounded-lg border border-neutral-850 space-y-3">
+                  <h4 className="text-[10px] font-bold text-white uppercase tracking-wider">Add Custom Review Card</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-[8px] font-bold text-neutral-400 uppercase tracking-wider mb-0.5">Customer Name</label>
+                      <input type="text" value={testName} onChange={(e) => setTestName(e.target.value)} placeholder="Prisha V." className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white" />
+                    </div>
+                    <div>
+                      <label className="block text-[8px] font-bold text-neutral-400 uppercase tracking-wider mb-0.5">Star Rating (1-5)</label>
+                      <select value={testRating} onChange={(e) => setTestRating(e.target.value)} className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white">
+                        <option value="5">5 Stars</option>
+                        <option value="4">4 Stars</option>
+                        <option value="3">3 Stars</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[8px] font-bold text-neutral-400 uppercase tracking-wider mb-0.5">Customer Avatar Path (Optional)</label>
+                      <input type="text" value={testImage} onChange={(e) => setTestImage(e.target.value)} placeholder="/images/woman-2.jpg" className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white font-mono" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[8px] font-bold text-neutral-400 uppercase tracking-wider mb-0.5">Review Comment</label>
+                    <textarea rows={2} value={testComment} onChange={(e) => setTestComment(e.target.value)} placeholder="Write review here..." className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1 text-xs text-white" />
+                  </div>
+                  <button type="button" onClick={addTestimonial} className="bg-neutral-800 hover:bg-[#C9A84C] hover:text-black text-white px-3 py-1 text-[10px] font-bold uppercase rounded tracking-wider transition-colors flex items-center gap-1.5"><Plus className="w-3.5 h-3.5" /> Add Review</button>
+                </div>
+
+                {/* List */}
+                <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
+                  {testimonials.map((test, idx) => (
+                    <div key={test.id} className="bg-neutral-900 border border-neutral-850 p-3 rounded-lg text-xs relative space-y-2">
+                      <button onClick={() => deleteItem(testimonials, setTestimonials, idx)} className="absolute right-2 top-2 text-neutral-500 hover:text-red-400"><Trash2 className="w-3.5 h-3.5" /></button>
+                      <div className="flex justify-between w-[90%] items-center">
+                        <span className="font-semibold text-white">{test.name}</span>
+                        <span className="flex text-[#C9A84C] gap-0.5 font-bold text-[9px] uppercase"><Star className="w-3 h-3 fill-current" /> {test.rating} stars</span>
+                      </div>
+                      <p className="text-neutral-400 italic leading-relaxed">&quot;{test.comment}&quot;</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Subsection 8: FAQs */}
+            {activeSubSection === "faqs" && (
+              <div className="space-y-4">
+                <h3 className="text-xs font-bold text-[#C9A84C] uppercase tracking-widest pb-1 border-b border-neutral-900">8. Frequently Asked Questions Accordion</h3>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="col-span-1">
+                    <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">FAQ Header Title</label>
+                    <input type="text" value={faqTitle} onChange={(e) => setFaqTitle(e.target.value)} className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none" />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">FAQ Cover Image Path</label>
+                    <input type="text" value={faqImage} onChange={(e) => setFaqImage(e.target.value)} className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none font-mono" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">FAQ Subheading Text</label>
+                  <textarea rows={2} value={faqSubtitle} onChange={(e) => setFaqSubtitle(e.target.value)} className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none leading-relaxed" />
+                </div>
+
+                {/* Add FAQ form */}
+                <div className="bg-neutral-900 p-4 rounded-lg border border-neutral-850 space-y-3">
+                  <h4 className="text-[10px] font-bold text-white uppercase tracking-wider">Add Accordion Question</h4>
+                  <div>
+                    <label className="block text-[8px] font-bold text-neutral-400 uppercase tracking-wider mb-0.5">Question Text</label>
+                    <input type="text" value={faqQ} onChange={(e) => setFaqQ(e.target.value)} className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white" />
+                  </div>
+                  <div>
+                    <label className="block text-[8px] font-bold text-neutral-400 uppercase tracking-wider mb-0.5">Answer Text</label>
+                    <textarea rows={2} value={faqA} onChange={(e) => setFaqA(e.target.value)} className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1 text-xs text-white" />
+                  </div>
+                  <button type="button" onClick={addFaq} className="bg-neutral-800 hover:bg-[#C9A84C] hover:text-black text-white px-3 py-1 text-[10px] font-bold uppercase rounded tracking-wider transition-colors flex items-center gap-1.5"><Plus className="w-3.5 h-3.5" /> Add Q&A</button>
+                </div>
+
+                {/* FAQs list */}
+                <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
+                  {faqs.map((faq, idx) => (
+                    <div key={idx} className="bg-neutral-900 border border-neutral-850 p-3 rounded-lg text-xs relative space-y-2">
+                      <button onClick={() => deleteItem(faqs, setFaqs, idx)} className="absolute right-2 top-2 text-neutral-500 hover:text-red-400"><Trash2 className="w-3.5 h-3.5" /></button>
+                      <p className="font-semibold text-white w-[90%]">Q: {faq.question}</p>
+                      <p className="text-neutral-400 leading-relaxed">A: {faq.answer}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end pt-2 border-t border-neutral-900">
+              <button onClick={triggerSaveHomepage} disabled={loading} className="bg-maroonClr hover:bg-[#A30C4D] text-white px-6 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-2 shadow-lg shadow-maroonClr/20 disabled:opacity-50"><Save className="w-4 h-4" /> Save Page Sections</button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* ----------------------------------------------------
+          TAB 4: FOOTER CUSTOMIZER
+          ---------------------------------------------------- */}
+      {activeTab === "FOOTER" && (
+        <div className="bg-neutral-950 border border-neutral-800 rounded-xl p-6 md:p-8 shadow-sm space-y-6">
+          <div className="flex items-center gap-2 pb-2 border-b border-neutral-900 justify-between">
+            <div className="flex items-center gap-2">
+              <Link2 className="w-5 h-5 text-[#C9A84C]" />
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider">Store Footer Customizer</h3>
+            </div>
+            {footerSuccess && (
               <span className="text-[10px] text-green-400 font-bold uppercase tracking-wider flex items-center gap-1">
-                <CheckCircle2 className="w-3.5 h-3.5" /> Saved!
+                <CheckCircle2 className="w-3.5 h-3.5" /> Saved Successfully!
               </span>
             )}
           </div>
 
-          {homeSuccess && (
+          {footerSuccess && (
             <div className="p-3.5 bg-green-950/40 border border-green-900/50 text-green-400 text-xs rounded-lg flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4" />
-              <span>{homeSuccess}</span>
+              <CheckCircle2 className="w-4.5 h-4.5" />
+              <span>{footerSuccess}</span>
             </div>
           )}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             
-            {/* Column 1: Section Headings */}
-            <div className="bg-neutral-950 border border-neutral-800 rounded-xl p-6 space-y-4">
-              <h3 className="text-xs font-bold text-[#C9A84C] uppercase tracking-widest pb-2 border-b border-neutral-900">
-                1. Main Title Copy & Text Blocks
-              </h3>
-
-              {/* Collections Title */}
-              <div>
-                <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Section 1: Loved Collections Title</label>
-                <input
-                  type="text"
-                  value={lovedCollectionsTitle}
-                  onChange={(e) => setLovedCollectionsTitle(e.target.value)}
-                  className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-maroonClr"
-                />
-              </div>
-
-              {/* Pattern Banner Heading */}
-              <div>
-                <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Section 2: Pattern Banner Text</label>
-                <input
-                  type="text"
-                  value={patternBannerHeading}
-                  onChange={(e) => setPatternBannerHeading(e.target.value)}
-                  className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-maroonClr"
-                />
-              </div>
-
-              {/* Trending Title */}
-              <div className="grid grid-cols-1 gap-3 pt-2">
-                <div>
-                  <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Section 3: Trending Title</label>
-                  <input
-                    type="text"
-                    value={trendingTitle}
-                    onChange={(e) => setTrendingTitle(e.target.value)}
-                    className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-maroonClr"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Trending Subtitle</label>
-                  <textarea
-                    rows={2}
-                    value={trendingSubtitle}
-                    onChange={(e) => setTrendingSubtitle(e.target.value)}
-                    className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-maroonClr leading-relaxed"
-                  />
-                </div>
-              </div>
-
-              {/* Perfect Saree Title */}
-              <div className="grid grid-cols-1 gap-3 pt-2">
-                <div>
-                  <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Section 4: Perfect Saree Title</label>
-                  <input
-                    type="text"
-                    value={perfectSareeTitle}
-                    onChange={(e) => setPerfectSareeTitle(e.target.value)}
-                    className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-maroonClr"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Perfect Saree Subtitle</label>
-                  <input
-                    type="text"
-                    value={perfectSareeSubtitle}
-                    onChange={(e) => setPerfectSareeSubtitle(e.target.value)}
-                    className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-maroonClr"
-                  />
-                </div>
-              </div>
-
-              {/* Categories Title */}
-              <div className="grid grid-cols-1 gap-3 pt-2">
-                <div>
-                  <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Section 5: Explore Categories Title</label>
-                  <input
-                    type="text"
-                    value={categoriesTitle}
-                    onChange={(e) => setCategoriesTitle(e.target.value)}
-                    className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-maroonClr"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Categories Subtitle</label>
-                  <textarea
-                    rows={2}
-                    value={categoriesSubtitle}
-                    onChange={(e) => setCategoriesSubtitle(e.target.value)}
-                    className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-maroonClr leading-relaxed"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Column 2: Value Propositions & FAQs */}
-            <div className="space-y-6">
+            {/* Column A: Logo, Brand Text, Contact Info */}
+            <div className="space-y-4">
+              <h4 className="text-xs font-bold text-[#C9A84C] uppercase tracking-widest pb-1 border-b border-neutral-900">1. Contact & Brand Profile</h4>
               
-              {/* Block A: Value Propositions */}
-              <div className="bg-neutral-950 border border-neutral-800 rounded-xl p-6 space-y-4">
-                <h3 className="text-xs font-bold text-[#C9A84C] uppercase tracking-widest pb-2 border-b border-neutral-900 flex items-center gap-1">
-                  <Gift className="w-4 h-4" /> 2. Section 6: Value Proposition Cards
-                </h3>
-                
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Features Heading</label>
-                    <input
-                      type="text"
-                      value={featuresTitle}
-                      onChange={(e) => setFeaturesTitle(e.target.value)}
-                      className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-maroonClr"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Features Description</label>
-                    <input
-                      type="text"
-                      value={featuresSubtitle}
-                      onChange={(e) => setFeaturesSubtitle(e.target.value)}
-                      className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-maroonClr"
-                    />
-                  </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Footer Brand Logo Path</label>
+                  <input type="text" value={footerLogoUrl} onChange={(e) => setFooterLogoUrl(e.target.value)} className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none font-mono" />
                 </div>
-
-                <div className="space-y-3 pt-2">
-                  {features.map((feat, idx) => (
-                    <div key={idx} className="bg-neutral-900 p-3 rounded-lg border border-neutral-850 space-y-2">
-                      <p className="text-[9px] font-bold text-[#C9A84C] uppercase">Card #{idx + 1}</p>
-                      <div className="grid grid-cols-2 gap-2">
-                        <input
-                          type="text"
-                          placeholder="Feature Title"
-                          value={feat.title}
-                          onChange={(e) => handleFeatureChange(idx, "title", e.target.value)}
-                          className="bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-maroonClr"
-                        />
-                        <input
-                          type="text"
-                          placeholder="Image Path (e.g. /images/eco.jpg)"
-                          value={feat.image}
-                          onChange={(e) => handleFeatureChange(idx, "image", e.target.value)}
-                          className="bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-maroonClr font-mono"
-                        />
-                      </div>
-                      <textarea
-                        rows={1}
-                        placeholder="Feature Description"
-                        value={feat.description}
-                        onChange={(e) => handleFeatureChange(idx, "description", e.target.value)}
-                        className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1 text-xs text-white focus:outline-none focus:border-maroonClr"
-                      />
-                    </div>
-                  ))}
+                <div>
+                  <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Copyright Footer Line</label>
+                  <input type="text" value={footerCopyright} onChange={(e) => setFooterCopyright(e.target.value)} className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none" />
                 </div>
               </div>
 
-              {/* Block B: FAQs accordion */}
-              <div className="bg-neutral-950 border border-neutral-800 rounded-xl p-6 space-y-4">
-                <div className="flex justify-between items-center pb-2 border-b border-neutral-900">
-                  <h3 className="text-xs font-bold text-[#C9A84C] uppercase tracking-widest flex items-center gap-1">
-                    <HelpCircle className="w-4 h-4" /> 3. Section 8: FAQ Accordion items
-                  </h3>
-                  <button
-                    onClick={handleAddFaq}
-                    className="text-[9px] font-bold text-white hover:text-goldClr uppercase tracking-wider flex items-center gap-0.5"
-                  >
-                    <Plus className="w-3.5 h-3.5" /> Add Q&A
-                  </button>
-                </div>
+              <div>
+                <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Footer Brand Description</label>
+                <textarea rows={3} value={footerDescription} onChange={(e) => setFooterDescription(e.target.value)} className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none leading-relaxed" />
+              </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">FAQ Heading</label>
-                    <input
-                      type="text"
-                      value={faqTitle}
-                      onChange={(e) => setFaqTitle(e.target.value)}
-                      className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-maroonClr"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">FAQ Cover Image Path</label>
-                    <input
-                      type="text"
-                      value={faqImage}
-                      onChange={(e) => setFaqImage(e.target.value)}
-                      className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-maroonClr font-mono"
-                    />
-                  </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1"><Mail className="w-3.5 h-3.5 inline mr-1 text-[#C9A84C]" /> Contact Email Address</label>
+                  <input type="email" value={footerEmail} onChange={(e) => setFooterEmail(e.target.value)} className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none" />
                 </div>
-
-                <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
-                  {faqs.map((faq, idx) => (
-                    <div key={idx} className="bg-neutral-900 p-3 rounded-lg border border-neutral-850 space-y-2 relative">
-                      <button
-                        onClick={() => handleRemoveFaq(idx)}
-                        className="absolute right-2 top-2 text-neutral-500 hover:text-red-400"
-                        title="Remove Accordion"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                      <p className="text-[9px] font-bold text-neutral-500 uppercase">Q&A #{idx + 1}</p>
-                      <input
-                        type="text"
-                        placeholder="Question"
-                        value={faq.question}
-                        onChange={(e) => handleFaqChange(idx, "question", e.target.value)}
-                        className="w-[90%] bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-maroonClr font-semibold"
-                      />
-                      <textarea
-                        rows={2}
-                        placeholder="Answer"
-                        value={faq.answer}
-                        onChange={(e) => handleFaqChange(idx, "answer", e.target.value)}
-                        className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1 text-xs text-white focus:outline-none focus:border-maroonClr leading-relaxed"
-                      />
-                    </div>
-                  ))}
+                <div>
+                  <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1"><Phone className="w-3.5 h-3.5 inline mr-1 text-[#C9A84C]" /> Contact Phone Number</label>
+                  <input type="text" value={footerPhone} onChange={(e) => setFooterPhone(e.target.value)} className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none" />
                 </div>
               </div>
 
+              <div className="space-y-2 pt-2">
+                <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Social Media Links</p>
+                <div className="grid grid-cols-3 gap-2">
+                  <input type="text" placeholder="Facebook Link" value={facebookUrl} onChange={(e) => setFacebookUrl(e.target.value)} className="bg-neutral-905 border border-neutral-850 rounded px-2.5 py-1.5 text-xs text-white font-mono" />
+                  <input type="text" placeholder="Instagram Link" value={instagramUrl} onChange={(e) => setInstagramUrl(e.target.value)} className="bg-neutral-905 border border-neutral-850 rounded px-2.5 py-1.5 text-xs text-white font-mono" />
+                  <input type="text" placeholder="Pinterest Link" value={pinterestUrl} onChange={(e) => setPinterestUrl(e.target.value)} className="bg-neutral-905 border border-neutral-850 rounded px-2.5 py-1.5 text-xs text-white font-mono" />
+                </div>
+              </div>
+            </div>
+
+            {/* Column B: Quick Links Editor */}
+            <div className="space-y-4">
+              <h4 className="text-xs font-bold text-[#C9A84C] uppercase tracking-widest pb-1 border-b border-neutral-900">2. Quick Navigation Links</h4>
+
+              {/* Add link form */}
+              <div className="bg-neutral-905 border border-neutral-850 p-4 rounded-lg space-y-3">
+                <h4 className="text-[10px] font-bold text-white uppercase tracking-wider">Add Custom Menu Link</h4>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[8px] font-bold text-neutral-400 uppercase tracking-wider mb-0.5">Link Label (e.g. Shipping policy)</label>
+                    <input type="text" value={footLinkLabel} onChange={(e) => setFootLinkLabel(e.target.value)} className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white focus:outline-none" />
+                  </div>
+                  <div>
+                    <label className="block text-[8px] font-bold text-neutral-400 uppercase tracking-wider mb-0.5">Link URL Destination (e.g. /shipping)</label>
+                    <input type="text" value={footLinkUrl} onChange={(e) => setFootLinkUrl(e.target.value)} className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white focus:outline-none font-mono" />
+                  </div>
+                </div>
+                <button type="button" onClick={addFooterLink} className="bg-neutral-800 hover:bg-[#C9A84C] hover:text-black text-white px-3 py-1 text-[10px] font-bold uppercase rounded tracking-wider transition-colors flex items-center gap-1.5"><Plus className="w-3.5 h-3.5" /> Add Menu Link</button>
+              </div>
+
+              {/* List */}
+              <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
+                {footerLinks.map((link, idx) => (
+                  <div key={idx} className="flex justify-between items-center bg-neutral-905 border border-neutral-850 p-2.5 rounded-lg text-xs">
+                    <div>
+                      <span className="font-semibold text-white">{link.label}</span>
+                      <span className="text-[10px] text-neutral-400 ml-2">({link.url})</span>
+                    </div>
+                    <div className="flex gap-1">
+                      <button onClick={() => moveItem(footerLinks, setFooterLinks, idx, "UP")} disabled={idx === 0} className="p-1 bg-neutral-950 text-neutral-400 disabled:opacity-20"><ArrowUp className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => moveItem(footerLinks, setFooterLinks, idx, "DOWN")} disabled={idx === footerLinks.length - 1} className="p-1 bg-neutral-950 text-neutral-400 disabled:opacity-20"><ArrowDown className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => deleteItem(footerLinks, setFooterLinks, idx)} className="p-1 bg-neutral-950 hover:text-red-400 text-neutral-550"><Trash2 className="w-3.5 h-3.5" /></button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
 
           </div>
 
-          <div className="flex justify-end pt-4">
-            <button
-              onClick={handleSaveHomepage}
-              disabled={loading}
-              className="bg-maroonClr hover:bg-[#A30C4D] text-white px-6 py-3 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors flex items-center gap-2 shadow-lg shadow-maroonClr/20 disabled:opacity-50"
-            >
-              <Save className="w-4 h-4" /> {loading ? "Saving homepage..." : "Save Homepage Layout"}
-            </button>
+          <div className="flex justify-end pt-2 border-t border-neutral-900">
+            <button onClick={triggerSaveFooter} disabled={loading} className="bg-maroonClr hover:bg-[#A30C4D] text-white px-6 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-2 shadow-lg shadow-maroonClr/20 disabled:opacity-50"><Save className="w-4 h-4" /> Save Footer Settings</button>
           </div>
-
         </div>
       )}
     </div>

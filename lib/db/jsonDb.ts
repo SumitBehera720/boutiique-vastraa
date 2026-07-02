@@ -210,6 +210,7 @@ export interface Settings {
   seo: SeoSettings;
   banners: BannerSlide[];
   homepage?: any;
+  footer?: any;
 }
 
 export interface Coupon {

@@ -33,15 +33,39 @@
   "homepage": {
     "lovedCollectionsTitle": "Our Most Loved Collections",
     "lovedCollectionsSubtitle": "Explore handpicked collections directly from regional weavers.",
+    "lovedCollectionsItems": [
+      {
+        "collectionHandle": "heritage-handlooms",
+        "customTitle": "Heritage Silks",
+        "customImage": "/images/banner-1773659037696-747582281.webp"
+      }
+    ],
     "patternBanner": {
-      "heading": "Spot it. Style it. Own it."
+      "heading": "Spot it. Style it. Own it.",
+      "type": "IMAGE",
+      "mediaUrl": "/images/pattern-bg.jpg"
     },
     "trendingTitle": "Top-Sellings",
     "trendingSubtitle": "Wrap yourself in timeless beauty with our exquisite saree collection. Each drape is crafted to celebrate grace, tradition, and modern charm.",
+    "topSellingsProductIds": [],
     "perfectSareeTitle": "Find Your Perfect Saree",
     "perfectSareeSubtitle": "Discover elegance woven into every drape.",
+    "perfectSareeTabs": [
+      {
+        "collectionHandle": "heritage-handlooms",
+        "label": "Heritage Silk",
+        "image": "/images/measure.jpg"
+      }
+    ],
     "categoriesTitle": "Explore Best Categories",
     "categoriesSubtitle": "Indulge in our handpicked categories featuring exquisite craftsmanship, premium fabrics, and timeless artistry made to elevate your wardrobe.",
+    "categoriesItems": [
+      {
+        "collectionHandle": "heritage-handlooms",
+        "customTitle": "Banarasi Pure",
+        "customImage": "/images/woman-2.jpg"
+      }
+    ],
     "featuresTitle": "What makes shopping sarees with us special?",
     "featuresSubtitle": "From handpicked fabrics to doorstep delivery, we take care of everything so you can simply enjoy the experience of finding your perfect saree.",
     "features": [
@@ -61,6 +85,23 @@
         "image": "/images/measure.jpg"
       }
     ],
+    "testimonialsTitle": "What Our Customers Say",
+    "testimonials": [
+      {
+        "id": "t1",
+        "name": "Aaradhya Sen",
+        "rating": 5,
+        "comment": "Absolutely gorgeous saree! The texture is soft, and the gold zari border looks extremely premium.",
+        "image": "/images/woman-2.jpg"
+      },
+      {
+        "id": "t2",
+        "name": "Meera Nair",
+        "rating": 5,
+        "comment": "The packaging was beautiful and shipping was incredibly fast. Will definitely purchase again.",
+        "image": "/images/measure.jpg"
+      }
+    ],
     "faqTitle": "Frequently Asked Questions",
     "faqSubtitle": "At Boutiique Vastraa, we believe that finding the perfect saree should be a delightful and effortless experience. Here are answers to some of the most common questions our customers ask.",
     "faqImage": "/images/woman-2.jpg",
@@ -76,6 +117,34 @@
       {
         "question": "What is your return policy?",
         "answer": "We offer a hassle-free 7-day return policy on all unworn items with tags intact, except for custom tailored items."
+      }
+    ]
+  },
+  "footer": {
+    "logoUrl": "/images/logo.png",
+    "description": "Timeless Elegance, Handcrafted for Every Occasion. Shop our exclusive range of luxury sarees, designer kurtis, and jewellery.",
+    "contactEmail": "info@boutiquevastra.com",
+    "contactPhone": "+91 99999 99999",
+    "copyright": "© 2026 Boutiique Vastraa. All rights reserved.",
+    "facebookUrl": "https://facebook.com",
+    "instagramUrl": "https://instagram.com",
+    "pinterestUrl": "https://pinterest.com",
+    "links": [
+      {
+        "label": "About Us",
+        "url": "/about"
+      },
+      {
+        "label": "Contact Us",
+        "url": "/contact"
+      },
+      {
+        "label": "FAQ",
+        "url": "/#faq"
+      },
+      {
+        "label": "Track Order",
+        "url": "/track-order"
       }
     ]
   }
