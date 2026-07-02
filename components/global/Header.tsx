@@ -8,7 +8,17 @@ import { useCartStore } from "@/store/cartStore";
 import { useRouter, usePathname } from "next/navigation";
 import MarqueeBanner from "@/components/global/MarqueeBanner";
 
-export default function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
+interface HeaderProps {
+  isLoggedIn?: boolean;
+  settings?: {
+    logoUrl?: string;
+    whatsappNumber?: string;
+    marquee?: { text: string; icon?: string }[];
+    menuLinks?: { label: string; url: string }[];
+  };
+}
+
+export default function Header({ isLoggedIn = false, settings }: HeaderProps) {
   const pathname = usePathname();
   const isLoginPage = pathname === "/account/login";
   const isAdminPage = pathname.startsWith("/admin");
@@ -57,13 +67,12 @@ export default function Header({ isLoggedIn = false }: { isLoggedIn?: boolean })
 
         {/* Center: Logo */}
         <div className="flex items-center">
-          <Link href="/" className="bg-[#2a1705] rounded block w-[64px] h-[64px] overflow-hidden flex items-center justify-center">
+          <Link href="/" className="bg-[#2a1705] rounded block w-[64px] h-[64px] overflow-hidden flex items-center justify-center relative">
             <Image
               alt="Logo"
-              width={64}
-              height={64}
-              className="h-[64px] w-[64px] object-contain"
-              src="/images/logo.png"
+              fill
+              className="object-contain p-1"
+              src={settings?.logoUrl || "/images/logo.png"}
               priority
             />
           </Link>
@@ -92,7 +101,7 @@ export default function Header({ isLoggedIn = false }: { isLoggedIn?: boolean })
           {/* WhatsApp */}
           <a
             className="items-center justify-center hidden h-8 w-8 rounded-full bg-[#25D366] hover:opacity-80 text-white sm:inline-flex transition-all shadow-sm"
-            href="https://wa.me/919205238666"
+            href={`https://wa.me/${settings?.whatsappNumber || "919205238666"}`}
             target="_blank"
             rel="noopener noreferrer"
             aria-label="WhatsApp"
@@ -194,23 +203,20 @@ export default function Header({ isLoggedIn = false }: { isLoggedIn?: boolean })
               )}
             </li>
 
-            {/* Static Links */}
-            <li>
-              <Link href="/collections/saree" className="group inline-flex w-max items-center justify-center px-2 py-1 text-[15px] font-medium hover:text-maroonClr transition-all text-gray-800">
-                Sarees
-              </Link>
-            </li>
-            <li>
-              <Link href="/collections/lehenga" className="group inline-flex w-max items-center justify-center px-2 py-1 text-[15px] font-medium hover:text-maroonClr transition-all text-gray-800">
-                Lehenga
-              </Link>
-            </li>
+            {/* Dynamic Links */}
+            {settings?.menuLinks && settings.menuLinks.map((link: any, idx: number) => (
+              <li key={idx}>
+                <Link href={link.url} className="group inline-flex w-max items-center justify-center px-2 py-1 text-[15px] font-medium hover:text-maroonClr transition-all text-gray-800">
+                  {link.label}
+                </Link>
+              </li>
+            ))}
           </ul>
         </nav>
       </div>
 
       {/* Marquee Banner */}
-      <MarqueeBanner />
+      <MarqueeBanner settings={settings} />
 
       {/* Mobile Menu Drawer */}
       {mobileMenuOpen && (
@@ -221,12 +227,11 @@ export default function Header({ isLoggedIn = false }: { isLoggedIn?: boolean })
           <Link href="/products" className="block px-3 py-2 text-sm font-medium hover:bg-creamClr rounded" onClick={() => setMobileMenuOpen(false)}>
             Products
           </Link>
-          <Link href="/collections/saree" className="block px-3 py-2 text-sm font-medium hover:bg-creamClr rounded" onClick={() => setMobileMenuOpen(false)}>
-            Sarees
-          </Link>
-          <Link href="/collections/lehenga" className="block px-3 py-2 text-sm font-medium hover:bg-creamClr rounded" onClick={() => setMobileMenuOpen(false)}>
-            Lehenga
-          </Link>
+          {settings?.menuLinks && settings.menuLinks.map((link: any, idx: number) => (
+            <Link key={idx} href={link.url} className="block px-3 py-2 text-sm font-medium hover:bg-creamClr rounded" onClick={() => setMobileMenuOpen(false)}>
+              {link.label}
+            </Link>
+          ))}
           <Link href="/track-order" className="block px-3 py-2 text-sm font-medium hover:bg-creamClr rounded" onClick={() => setMobileMenuOpen(false)}>
             Track Order
           </Link>

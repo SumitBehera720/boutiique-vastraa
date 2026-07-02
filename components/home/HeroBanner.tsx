@@ -1,24 +1,38 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface BannerSlide {
-  image: string;
-  alt: string;
+  id?: string;
+  imageUrl: string;
+  title?: string;
+  subtitle?: string;
+  buttonText?: string;
+  link?: string;
 }
 
-const defaultSlides: BannerSlide[] = [
-  { image: "/images/banner-1773659047206-859638957.webp", alt: "New Arrivals" },
-  { image: "/images/banner-1773659037696-747582281.webp", alt: "Signature Style" },
-  { image: "/images/banner-1773659054836-332868013.webp", alt: "Draping Elegance" },
-];
-
 export default function HeroBanner({ slides }: { slides?: BannerSlide[] }) {
-  const bannerSlides = slides && slides.length > 0 ? slides : defaultSlides;
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
+
+  const bannerSlides = slides && slides.length > 0 ? slides : [
+    {
+      imageUrl: "/images/banner-1773659037696-747582281.webp",
+      title: "Heritage Handlooms",
+      subtitle: "Discover our new collections of Banarasi Silk & Organza Sarees",
+      buttonText: "Explore Collection",
+      link: "/collections/saree"
+    },
+    {
+      imageUrl: "/images/banner-1773659047206-859638957.webp",
+      title: "Elegance Redefined",
+      subtitle: "Artisan craftsmanship, curated colors and modern designs",
+      buttonText: "Shop All Products",
+      link: "/collections/all"
+    }
+  ];
 
   useEffect(() => {
     if (bannerSlides.length <= 1) return;
@@ -28,66 +42,72 @@ export default function HeroBanner({ slides }: { slides?: BannerSlide[] }) {
     return () => clearInterval(timer);
   }, [bannerSlides.length]);
 
-  const goPrev = () =>
-    setCurrentSlide((prev) => (prev - 1 + bannerSlides.length) % bannerSlides.length);
-  const goNext = () =>
-    setCurrentSlide((prev) => (prev + 1) % bannerSlides.length);
-
-  // If all images errored, show a solid color fallback banner
-  const allErrored = imageErrors.size >= bannerSlides.length;
-
   return (
-    <section className="relative w-full overflow-hidden bg-maroonClr">
-      <div className="relative w-full">
-        {allErrored ? (
-          /* Fallback: Solid maroon banner with gold text */
-          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-maroonClr via-maroonClr/90 to-maroonClr">
-            <div className="absolute top-0 left-0 max-h-32 w-auto opacity-30 sm:max-h-44">
-              <Image src="/images/rangoli.png" alt="" width={300} height={300} className="object-contain" />
-            </div>
-            <div className="absolute bottom-0 right-0 max-h-32 w-auto opacity-30 sm:max-h-44 rotate-180">
-              <Image src="/images/rangoli.png" alt="" width={300} height={300} className="object-contain" />
-            </div>
-            <div className="relative z-10 text-center px-4">
-              <h1 className="font-kalnia text-goldClr text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-medium mb-3">
-                New Arrivals
-              </h1>
-              <p className="text-white/80 text-sm sm:text-base md:text-lg max-w-lg mx-auto">
-                Handcrafted sarees sourced from skilled artisans across India
-              </p>
+    <section className="relative w-full h-[320px] sm:h-[450px] md:h-[600px] lg:h-[680px] overflow-hidden bg-maroonClr">
+      <AnimatePresence initial={false} mode="wait">
+        <motion.div
+          key={currentSlide}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.6, ease: "easeInOut" }}
+          className="absolute inset-0 w-full h-full"
+        >
+          {/* Slide Background Image */}
+          <Image
+            src={bannerSlides[currentSlide].imageUrl || "/images/banner-1773659037696-747582281.webp"}
+            alt={bannerSlides[currentSlide].title || "Banner"}
+            fill
+            priority
+            className="object-cover object-center"
+            sizes="100vw"
+          />
+          {/* Overlay gradient */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent" />
+          
+          {/* Banner Content Overlay */}
+          <div className="absolute inset-0 flex items-center px-6 sm:px-12 md:px-20 lg:px-28 z-10">
+            <div className="max-w-xl text-left space-y-3 sm:space-y-4">
+              {bannerSlides[currentSlide].title && (
+                <h1 className="font-kalnia text-goldClr text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-medium leading-tight">
+                  {bannerSlides[currentSlide].title}
+                </h1>
+              )}
+              {bannerSlides[currentSlide].subtitle && (
+                <p className="text-white/90 text-sm sm:text-base md:text-lg font-light leading-relaxed max-w-md">
+                  {bannerSlides[currentSlide].subtitle}
+                </p>
+              )}
+              {bannerSlides[currentSlide].link && (
+                <div className="pt-2">
+                  <Link
+                    href={bannerSlides[currentSlide].link}
+                    className="inline-block bg-maroonClr hover:bg-[#8f193c] text-white text-xs sm:text-sm font-bold uppercase tracking-wider px-6 py-3 rounded shadow-md hover:shadow-lg transition-all"
+                  >
+                    {bannerSlides[currentSlide].buttonText || "Shop Now"}
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
-        ) : (
-          /* Image slider */
-          <div className="w-full flex relative h-[602.55px] sm:h-auto overflow-hidden">
-             <AnimatePresence mode="popLayout">
-                <motion.div
-                  key={currentSlide}
-                  initial={{ x: "100%" }}
-                  animate={{ x: 0 }}
-                  exit={{ x: "-100%" }}
-                  transition={{ duration: 0.8, ease: "easeInOut" }}
-                  className="w-full flex-shrink-0 relative h-full sm:h-auto"
-                >
-                  {!imageErrors.has(currentSlide) && (
-                    <Image
-                      src={bannerSlides[currentSlide].image}
-                      alt={bannerSlides[currentSlide].alt}
-                      width={1920}
-                      height={800}
-                      priority={currentSlide === 0}
-                      className="w-full h-full sm:h-auto object-cover sm:object-contain"
-                      sizes="100vw"
-                      onError={() => {
-                        setImageErrors((prev) => new Set(prev).add(currentSlide));
-                      }}
-                    />
-                  )}
-                </motion.div>
-             </AnimatePresence>
-          </div>
-        )}
-      </div>
+        </motion.div>
+      </AnimatePresence>
+
+      {/* Navigation Indicators */}
+      {bannerSlides.length > 1 && (
+        <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-20">
+          {bannerSlides.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => setCurrentSlide(idx)}
+              className={`w-2 h-2 rounded-full transition-all ${
+                currentSlide === idx ? "bg-[#C9A84C] w-6" : "bg-white/40 hover:bg-white"
+              }`}
+              aria-label={`Go to slide ${idx + 1}`}
+            />
+          ))}
+        </div>
+      )}
     </section>
   );
 }

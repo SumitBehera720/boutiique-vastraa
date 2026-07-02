@@ -211,6 +211,7 @@ export interface Settings {
   banners: BannerSlide[];
   homepage?: any;
   footer?: any;
+  header?: any;
 }
 
 export interface Coupon {

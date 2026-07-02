@@ -33,10 +33,7 @@ export default async function Home() {
   // Load settings for homepage hero slideshow
   const settings = jsonDb.getSettings();
   const homeSettings = settings.homepage || {};
-  const bannerSlides = settings.banners.map((b) => ({
-    image: b.imageUrl,
-    alt: b.title,
-  }));
+  const bannerSlides = settings.banners || [];
 
   // Load verified testimonials
   const dbReviews = jsonDb.getGlobalReviews();

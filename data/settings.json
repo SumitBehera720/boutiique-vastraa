@@ -11,7 +11,7 @@
       "title": "Heritage Handlooms",
       "subtitle": "Discover our new collections of Banarasi Silk & Organza Sarees",
       "buttonText": "Explore Collection",
-      "link": "/collections/heritage-handlooms"
+      "link": "/collections/saree"
     },
     {
       "id": "slide_2",
@@ -27,7 +27,7 @@
       "title": "Festive Splendor",
       "subtitle": "Celebrate in style with our handloom cotton and linen sarees",
       "buttonText": "Discover Festive",
-      "link": "/collections/festive"
+      "link": "/collections/saree"
     }
   ],
   "homepage": {
@@ -35,9 +35,14 @@
     "lovedCollectionsSubtitle": "Explore handpicked collections directly from regional weavers.",
     "lovedCollectionsItems": [
       {
-        "collectionHandle": "heritage-handlooms",
+        "collectionHandle": "saree",
         "customTitle": "Heritage Silks",
         "customImage": "/images/banner-1773659037696-747582281.webp"
+      },
+      {
+        "collectionHandle": "kurti",
+        "customTitle": "Elegant Kurtis",
+        "customImage": "/images/banner-1773659047206-859638957.webp"
       }
     ],
     "patternBanner": {
@@ -52,18 +57,28 @@
     "perfectSareeSubtitle": "Discover elegance woven into every drape.",
     "perfectSareeTabs": [
       {
-        "collectionHandle": "heritage-handlooms",
-        "label": "Heritage Silk",
+        "collectionHandle": "saree",
+        "label": "Banarasi Silk",
         "image": "/images/measure.jpg"
+      },
+      {
+        "collectionHandle": "kurti",
+        "label": "Designer Kurtis",
+        "image": "/images/craftmanship.jpeg"
       }
     ],
     "categoriesTitle": "Explore Best Categories",
     "categoriesSubtitle": "Indulge in our handpicked categories featuring exquisite craftsmanship, premium fabrics, and timeless artistry made to elevate your wardrobe.",
     "categoriesItems": [
       {
-        "collectionHandle": "heritage-handlooms",
+        "collectionHandle": "saree",
         "customTitle": "Banarasi Pure",
         "customImage": "/images/woman-2.jpg"
+      },
+      {
+        "collectionHandle": "lehenga",
+        "customTitle": "Luxury Lehenga",
+        "customImage": "/images/measure.jpg"
       }
     ],
     "featuresTitle": "What makes shopping sarees with us special?",
@@ -145,6 +160,46 @@
       {
         "label": "Track Order",
         "url": "/track-order"
+      }
+    ]
+  },
+  "header": {
+    "logoUrl": "/images/logo.png",
+    "whatsappNumber": "919205238666",
+    "announcements": [
+      "FREE SHIPPING ON ALL DOMESTIC ORDERS | COMPLIMENTARY BLOUSE STITCHING",
+      "EASY RETURNS & EXCHANGE POLICY"
+    ],
+    "marquee": [
+      {
+        "text": "UP TO 49% PRIVILEGE SAVINGS",
+        "icon": "gift"
+      },
+      {
+        "text": "COMPLIMENTARY GIFT ON PURCHASE OF ANY 2 STYLES ₹1,500+",
+        "icon": "gift"
+      },
+      {
+        "text": "LOVED BY 10,000+ ESTEEMED CUSTOMERS",
+        "icon": "star"
+      }
+    ],
+    "menuLinks": [
+      {
+        "label": "Sarees",
+        "url": "/collections/saree"
+      },
+      {
+        "label": "Lehenga",
+        "url": "/collections/lehenga"
+      },
+      {
+        "label": "Kurtis",
+        "url": "/collections/kurti"
+      },
+      {
+        "label": "Jewellery",
+        "url": "/collections/jewellery"
       }
     ]
   }

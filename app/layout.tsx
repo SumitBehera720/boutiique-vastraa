@@ -56,6 +56,7 @@ export default async function RootLayout({
 
   const settings = jsonDb.getSettings();
   const footerSettings = settings.footer || {};
+  const headerSettings = settings.header || {};
 
   const headersList = await headers();
   const pathname = headersList.get("x-pathname") || "";
@@ -72,8 +73,8 @@ export default async function RootLayout({
         <PageLoader />
         {showHeaderFooter && (
           <div className="sticky top-0 z-50">
-            <AnnouncementBar />
-            <Header isLoggedIn={isLoggedIn} />
+            <AnnouncementBar settings={headerSettings} />
+            <Header isLoggedIn={isLoggedIn} settings={headerSettings} />
           </div>
         )}
         <CartDrawer />

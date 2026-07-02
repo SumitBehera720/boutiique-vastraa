@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { saveSeoSettingsAction, saveBannersSettingsAction, saveHomepageSettingsAction, saveFooterSettingsAction } from "@/app/actions/adminSettings";
-import { Sparkles, Save, Plus, Trash2, ArrowUp, ArrowDown, Image as ImageIcon, Globe, AlertCircle, CheckCircle2, Home, HelpCircle, Gift, Info, Star, PlusCircle, Link2, Mail, Phone, Heart, Grid, Video, Play, List, Compass, MessageSquare } from "lucide-react";
+import { saveSeoSettingsAction, saveBannersSettingsAction, saveHomepageSettingsAction, saveFooterSettingsAction, saveHeaderSettingsAction, uploadFileAction } from "@/app/actions/adminSettings";
+import { Sparkles, Save, Plus, Trash2, ArrowUp, ArrowDown, Image as ImageIcon, Globe, AlertCircle, CheckCircle2, Home, HelpCircle, Gift, Info, Star, PlusCircle, Link2, Mail, Phone, Heart, Grid, Video, Play, List, Compass, MessageSquare, Menu, Smile } from "lucide-react";
 
 interface SettingsFormClientProps {
   initialSettings: any;
@@ -10,11 +10,87 @@ interface SettingsFormClientProps {
   collections?: any[];
 }
 
+// ----------------------------------------------------
+// Reusable local device file uploader widget
+// ----------------------------------------------------
+function ImageOrVideoUploader({ 
+  label, 
+  value, 
+  onChange, 
+  accept = "image/*,video/*" 
+}: { 
+  label: string; 
+  value: string; 
+  onChange: (val: string) => void;
+  accept?: string;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const [localError, setLocalError] = useState("");
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    setLocalError("");
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await uploadFileAction(formData);
+      if (res.success && res.url) {
+        onChange(res.url);
+      } else {
+        setLocalError(res.error || "Failed to upload.");
+      }
+    } catch (err) {
+      setLocalError("Failed to upload file.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-1.5">
+      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider">{label}</label>
+      <div className="flex gap-3 items-center">
+        {/* Preview */}
+        {value && (
+          <div className="relative w-12 h-12 rounded border border-neutral-800 bg-neutral-900 overflow-hidden flex items-center justify-center flex-shrink-0">
+            {value.endsWith(".mp4") || value.endsWith(".webm") || value.endsWith(".mov") ? (
+              <Video className="w-6 h-6 text-[#C9A84C]" />
+            ) : (
+              <img src={value} alt="Preview" className="object-cover w-full h-full" />
+            )}
+          </div>
+        )}
+        <div className="flex-1 space-y-1">
+          <input
+            type="file"
+            accept={accept}
+            onChange={handleFileChange}
+            className="block w-full text-xs text-neutral-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-[10px] file:font-bold file:uppercase file:bg-maroonClr file:text-white file:cursor-pointer hover:file:opacity-90"
+          />
+          {value ? (
+            <span className="text-[9px] text-neutral-500 block truncate font-mono">{value}</span>
+          ) : (
+            <span className="text-[9px] text-neutral-550 block font-sans">No file uploaded</span>
+          )}
+          {uploading && <span className="text-[9px] text-[#C9A84C] block animate-pulse">Uploading file...</span>}
+          {localError && <span className="text-[9px] text-red-500 block">{localError}</span>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function SettingsFormClient({ initialSettings, products = [], collections = [] }: SettingsFormClientProps) {
-  const [activeTab, setActiveTab] = useState<"SEO" | "BANNERS" | "HOMEPAGE" | "FOOTER">("SEO");
+  const [activeTab, setActiveTab] = useState<"SEO" | "HEADER" | "BANNERS" | "HOMEPAGE" | "FOOTER">("SEO");
   const [activeSubSection, setActiveSubSection] = useState<string>("lovedCollections");
   
   const [seoSuccess, setSeoSuccess] = useState("");
+  const [headerSuccess, setHeaderSuccess] = useState("");
   const [bannersSuccess, setBannersSuccess] = useState("");
   const [homeSuccess, setHomeSuccess] = useState("");
   const [footerSuccess, setFooterSuccess] = useState("");
@@ -29,12 +105,22 @@ export default function SettingsFormClient({ initialSettings, products = [], col
   const [keywords, setKeywords] = useState(initialSettings.seo?.keywords || "");
 
   // ----------------------------------------------------
-  // 2. Banners State
+  // 2. Header State
+  // ----------------------------------------------------
+  const hd = initialSettings.header || {};
+  const [headerLogoUrl, setHeaderLogoUrl] = useState(hd.logoUrl || "");
+  const [whatsappNumber, setWhatsappNumber] = useState(hd.whatsappNumber || "");
+  const [announcements, setAnnouncements] = useState<string[]>(hd.announcements || []);
+  const [marqueeItems, setMarqueeItems] = useState<any[]>(hd.marquee || []);
+  const [menuLinks, setMenuLinks] = useState<any[]>(hd.menuLinks || []);
+
+  // ----------------------------------------------------
+  // 3. Banners State
   // ----------------------------------------------------
   const [banners, setBanners] = useState<any[]>(initialSettings.banners || []);
 
   // ----------------------------------------------------
-  // 3. Homepage Sections State
+  // 4. Homepage Sections State
   // ----------------------------------------------------
   const hp = initialSettings.homepage || {};
   
@@ -79,7 +165,7 @@ export default function SettingsFormClient({ initialSettings, products = [], col
   const [faqs, setFaqs] = useState<any[]>(hp.faqs || []);
 
   // ----------------------------------------------------
-  // 4. Footer Settings State
+  // 5. Footer Settings State
   // ----------------------------------------------------
   const ft = initialSettings.footer || {};
   const [footerLogoUrl, setFooterLogoUrl] = useState(ft.logoUrl || "");
@@ -93,8 +179,33 @@ export default function SettingsFormClient({ initialSettings, products = [], col
   const [footerLinks, setFooterLinks] = useState<any[]>(ft.links || []);
 
   // ----------------------------------------------------
-  // Add/Remove Helpers for Layout Items
+  // Helpers
   // ----------------------------------------------------
+
+  // Header helpers
+  const [newAnnouncement, setNewAnnouncement] = useState("");
+  const addAnnouncement = () => {
+    if (!newAnnouncement) return;
+    setAnnouncements([...announcements, newAnnouncement]);
+    setNewAnnouncement("");
+  };
+
+  const [newMarqueeText, setNewMarqueeText] = useState("");
+  const [newMarqueeIcon, setNewMarqueeIcon] = useState("gift");
+  const addMarqueeItem = () => {
+    if (!newMarqueeText) return;
+    setMarqueeItems([...marqueeItems, { text: newMarqueeText, icon: newMarqueeIcon }]);
+    setNewMarqueeText("");
+  };
+
+  const [newMenuLabel, setNewMenuLabel] = useState("");
+  const [newMenuUrl, setNewMenuUrl] = useState("");
+  const addMenuLink = () => {
+    if (!newMenuLabel || !newMenuUrl) return;
+    setMenuLinks([...menuLinks, { label: newMenuLabel, url: newMenuUrl }]);
+    setNewMenuLabel("");
+    setNewMenuUrl("");
+  };
 
   // Loved Collections Helpers
   const [lovedColHandle, setLovedColHandle] = useState("");
@@ -111,7 +222,7 @@ export default function SettingsFormClient({ initialSettings, products = [], col
     setLovedColImage("");
   };
 
-  // Top Sellings (Featured Products) Helpers
+  // Top Sellings Helpers
   const [featuredProdId, setFeaturedProdId] = useState("");
   const addFeaturedProduct = () => {
     if (!featuredProdId || topSellingsProductIds.includes(featuredProdId)) return;
@@ -185,7 +296,7 @@ export default function SettingsFormClient({ initialSettings, products = [], col
     setFootLinkUrl("");
   };
 
-  // Reorder/Delete utility
+  // Reorder/Delete
   const moveItem = (list: any[], setList: Function, index: number, direction: "UP" | "DOWN") => {
     if (direction === "UP" && index === 0) return;
     if (direction === "DOWN" && index === list.length - 1) return;
@@ -229,7 +340,7 @@ export default function SettingsFormClient({ initialSettings, products = [], col
   };
 
   // ----------------------------------------------------
-  // Save Action Triggers
+  // Save Trigger Handlers
   // ----------------------------------------------------
   const triggerSaveSEO = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -240,6 +351,22 @@ export default function SettingsFormClient({ initialSettings, products = [], col
     setLoading(false);
     if (res.success) setSeoSuccess("SEO Settings saved successfully!");
     else setError(res.error || "Failed to save SEO settings.");
+  };
+
+  const triggerSaveHeader = async () => {
+    setHeaderSuccess("");
+    setError("");
+    setLoading(true);
+    const res = await saveHeaderSettingsAction({
+      logoUrl: headerLogoUrl,
+      whatsappNumber,
+      announcements,
+      marquee: marqueeItems,
+      menuLinks
+    });
+    setLoading(false);
+    if (res.success) setHeaderSuccess("Header layouts saved successfully!");
+    else setError(res.error || "Failed to save header settings.");
   };
 
   const triggerSaveBanners = async () => {
@@ -318,18 +445,19 @@ export default function SettingsFormClient({ initialSettings, products = [], col
           <h1 className="text-2xl font-serif font-bold text-white flex items-center gap-2">
             Store Content Settings <Sparkles className="w-4.5 h-4.5 text-[#C9A84C]" />
           </h1>
-          <p className="text-xs text-neutral-400">Manage SEO keywords, banner sliders, homepage visual blocks, and footer columns.</p>
+          <p className="text-xs text-neutral-400">Configure site announcement strips, sliders, and homepage visuals with device file uploads.</p>
         </div>
 
         {/* Tab Switcher */}
         <div className="flex border border-neutral-800 rounded-lg bg-neutral-950 p-1 flex-wrap gap-1">
-          {(["SEO", "BANNERS", "HOMEPAGE", "FOOTER"] as const).map((tab) => (
+          {(["SEO", "HEADER", "BANNERS", "HOMEPAGE", "FOOTER"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => {
                 setActiveTab(tab);
                 setError("");
                 setSeoSuccess("");
+                setHeaderSuccess("");
                 setBannersSuccess("");
                 setHomeSuccess("");
                 setFooterSuccess("");
@@ -340,7 +468,7 @@ export default function SettingsFormClient({ initialSettings, products = [], col
                   : "text-neutral-400 hover:text-white"
               }`}
             >
-              {tab === "SEO" ? "SEO & METADATA" : tab === "BANNERS" ? "HERO SLIDES" : tab === "HOMEPAGE" ? "HOMEPAGE SECTIONS" : "STORE FOOTER"}
+              {tab === "SEO" ? "SEO & METADATA" : tab === "HEADER" ? "HEADER LAYOUT" : tab === "BANNERS" ? "HERO SLIDES" : tab === "HOMEPAGE" ? "HOMEPAGE SECTIONS" : "STORE FOOTER"}
             </button>
           ))}
         </div>
@@ -415,7 +543,160 @@ export default function SettingsFormClient({ initialSettings, products = [], col
       )}
 
       {/* ----------------------------------------------------
-          TAB 2: BANNERS
+          TAB 2: HEADER LAYOUT
+          ---------------------------------------------------- */}
+      {activeTab === "HEADER" && (
+        <div className="bg-neutral-950 border border-neutral-800 rounded-xl p-6 md:p-8 shadow-sm space-y-6">
+          <div className="flex items-center justify-between pb-2 border-b border-neutral-900">
+            <div className="flex items-center gap-2">
+              <Menu className="w-5 h-5 text-[#C9A84C]" />
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider">Header & Navigation Customizer</h3>
+            </div>
+            {headerSuccess && (
+              <span className="text-[10px] text-green-400 font-bold uppercase tracking-wider flex items-center gap-1">
+                <CheckCircle2 className="w-3.5 h-3.5" /> Saved!
+              </span>
+            )}
+          </div>
+
+          {headerSuccess && (
+            <div className="p-3.5 bg-green-950/40 border border-green-900/50 text-green-400 text-xs rounded-lg flex items-center gap-2">
+              <CheckCircle2 className="w-4.5 h-4.5" />
+              <span>{headerSuccess}</span>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Left Column: Logo & WhatsApp */}
+            <div className="space-y-4">
+              <h4 className="text-xs font-bold text-[#C9A84C] uppercase tracking-widest pb-1 border-b border-neutral-900">1. Brand Identity</h4>
+              
+              <ImageOrVideoUploader
+                label="Store Header Logo"
+                value={headerLogoUrl}
+                onChange={setHeaderLogoUrl}
+                accept="image/*"
+              />
+
+              <div>
+                <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">WhatsApp Contact Number</label>
+                <input
+                  type="text"
+                  value={whatsappNumber}
+                  onChange={(e) => setWhatsappNumber(e.target.value)}
+                  placeholder="919205238666"
+                  className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none"
+                />
+                <span className="text-[9px] text-neutral-500 block mt-1">Include country code without + or spaces (e.g. 919205238666)</span>
+              </div>
+
+              {/* Dynamic Announcement list */}
+              <div className="space-y-3 pt-2">
+                <h4 className="text-xs font-bold text-[#C9A84C] uppercase tracking-widest pb-1 border-b border-neutral-900">2. Announcement Bar Sliding Items</h4>
+                <div className="bg-neutral-900 p-3 rounded border border-neutral-850 flex gap-2 items-end">
+                  <div className="flex-1">
+                    <label className="block text-[8px] font-bold text-neutral-400 uppercase mb-1">New Announcement Message</label>
+                    <input type="text" value={newAnnouncement} onChange={(e) => setNewAnnouncement(e.target.value)} placeholder="FREE SHIPPING ON ALL STYLES" className="w-full bg-neutral-955 border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white" />
+                  </div>
+                  <button type="button" onClick={addAnnouncement} className="bg-neutral-800 hover:bg-[#C9A84C] hover:text-black text-white px-3 py-1.5 text-[10px] font-bold uppercase rounded tracking-wider transition-colors"><Plus className="w-3.5 h-3.5" /></button>
+                </div>
+                <div className="space-y-1.5 max-h-[150px] overflow-y-auto pr-1">
+                  {announcements.map((ann, idx) => (
+                    <div key={idx} className="flex justify-between items-center bg-neutral-900 border border-neutral-855 p-2 rounded text-xs">
+                      <span className="text-white truncate max-w-[80%]">{ann}</span>
+                      <div className="flex gap-1">
+                        <button onClick={() => moveItem(announcements, setAnnouncements, idx, "UP")} disabled={idx === 0} className="p-0.5 bg-neutral-950 text-neutral-400 disabled:opacity-20"><ArrowUp className="w-3 h-3" /></button>
+                        <button onClick={() => moveItem(announcements, setAnnouncements, idx, "DOWN")} disabled={idx === announcements.length - 1} className="p-0.5 bg-neutral-950 text-neutral-400 disabled:opacity-20"><ArrowDown className="w-3 h-3" /></button>
+                        <button onClick={() => deleteItem(announcements, setAnnouncements, idx)} className="p-0.5 text-neutral-500 hover:text-red-400"><Trash2 className="w-3.5 h-3.5" /></button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: Menu links and Marquee list */}
+            <div className="space-y-4">
+              <h4 className="text-xs font-bold text-[#C9A84C] uppercase tracking-widest pb-1 border-b border-neutral-900">3. Navigation Menu Links</h4>
+              
+              <div className="bg-neutral-900 p-3 rounded border border-neutral-850 space-y-3">
+                <h5 className="text-[10px] font-bold text-white uppercase tracking-wider">Add Custom Menu Item</h5>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[8px] font-bold text-neutral-400 uppercase mb-0.5">Link Label Name</label>
+                    <input type="text" value={newMenuLabel} onChange={(e) => setNewMenuLabel(e.target.value)} placeholder="Linen Sarees" className="w-full bg-neutral-950 border border-neutral-800 rounded px-2 py-1 text-xs text-white" />
+                  </div>
+                  <div>
+                    <label className="block text-[8px] font-bold text-neutral-400 uppercase mb-0.5">URL Target Route</label>
+                    <input type="text" value={newMenuUrl} onChange={(e) => setNewMenuUrl(e.target.value)} placeholder="/collections/linen" className="w-full bg-neutral-955 border border-neutral-800 rounded px-2 py-1 text-xs text-white font-mono" />
+                  </div>
+                </div>
+                <button type="button" onClick={addMenuLink} className="bg-neutral-800 hover:bg-[#C9A84C] hover:text-black text-white px-3 py-1 text-[9px] font-bold uppercase rounded tracking-wider flex items-center gap-1"><Plus className="w-3 h-3" /> Add Link</button>
+              </div>
+
+              <div className="space-y-1.5 max-h-[160px] overflow-y-auto pr-1">
+                {menuLinks.map((link, idx) => (
+                  <div key={idx} className="flex justify-between items-center bg-neutral-900 border border-neutral-850 p-2 rounded text-xs">
+                    <div>
+                      <span className="text-white font-medium">{link.label}</span>
+                      <span className="text-[9px] text-neutral-400 ml-2">({link.url})</span>
+                    </div>
+                    <div className="flex gap-1">
+                      <button onClick={() => moveItem(menuLinks, setMenuLinks, idx, "UP")} disabled={idx === 0} className="p-0.5 bg-neutral-950 text-neutral-400 disabled:opacity-20"><ArrowUp className="w-3 h-3" /></button>
+                      <button onClick={() => moveItem(menuLinks, setMenuLinks, idx, "DOWN")} disabled={idx === menuLinks.length - 1} className="p-0.5 bg-neutral-950 text-neutral-400 disabled:opacity-20"><ArrowDown className="w-3 h-3" /></button>
+                      <button onClick={() => deleteItem(menuLinks, setMenuLinks, idx)} className="p-0.5 text-neutral-500 hover:text-red-400"><Trash2 className="w-3.5 h-3.5" /></button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Dynamic Scrolling Marquee Strip */}
+              <div className="space-y-3 pt-2">
+                <h4 className="text-xs font-bold text-[#C9A84C] uppercase tracking-widest pb-1 border-b border-neutral-900">4. Scrolling Offer Strip (Marquee)</h4>
+                
+                <div className="bg-neutral-900 p-3 rounded border border-neutral-850 space-y-3">
+                  <div className="grid grid-cols-3 gap-2 items-end">
+                    <div className="col-span-2">
+                      <label className="block text-[8px] font-bold text-neutral-400 uppercase mb-0.5">Promo Message Text</label>
+                      <input type="text" value={newMarqueeText} onChange={(e) => setNewMarqueeText(e.target.value)} placeholder="UP TO 40% OFF" className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white" />
+                    </div>
+                    <div>
+                      <label className="block text-[8px] font-bold text-neutral-400 uppercase mb-0.5">Icon Decor</label>
+                      <select value={newMarqueeIcon} onChange={(e) => setNewMarqueeIcon(e.target.value)} className="w-full bg-neutral-950 border border-neutral-800 rounded px-2 py-1 text-xs text-white">
+                        <option value="gift">Gift</option>
+                        <option value="star">Star</option>
+                        <option value="sparkles">Sparkles</option>
+                      </select>
+                    </div>
+                  </div>
+                  <button type="button" onClick={addMarqueeItem} className="bg-neutral-800 hover:bg-[#C9A84C] hover:text-black text-white px-3 py-1 text-[9px] font-bold uppercase tracking-wider flex items-center gap-1"><Plus className="w-3 h-3" /> Add Message</button>
+                </div>
+
+                <div className="space-y-1.5 max-h-[150px] overflow-y-auto pr-1">
+                  {marqueeItems.map((item, idx) => (
+                    <div key={idx} className="flex justify-between items-center bg-neutral-900 border border-neutral-850 p-2 rounded text-xs">
+                      <span className="text-white truncate font-medium">{item.text} <span className="text-[9px] text-[#C9A84C] ml-1.5 font-bold uppercase">({item.icon})</span></span>
+                      <div className="flex gap-1">
+                        <button onClick={() => moveItem(marqueeItems, setMarqueeItems, idx, "UP")} disabled={idx === 0} className="p-0.5 bg-neutral-950 text-neutral-400 disabled:opacity-20"><ArrowUp className="w-3 h-3" /></button>
+                        <button onClick={() => moveItem(marqueeItems, setMarqueeItems, idx, "DOWN")} disabled={idx === marqueeItems.length - 1} className="p-0.5 bg-neutral-950 text-neutral-400 disabled:opacity-20"><ArrowDown className="w-3 h-3" /></button>
+                        <button onClick={() => deleteItem(marqueeItems, setMarqueeItems, idx)} className="p-0.5 text-neutral-500 hover:text-red-400"><Trash2 className="w-3.5 h-3.5" /></button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-2 border-t border-neutral-900">
+            <button onClick={triggerSaveHeader} disabled={loading} className="bg-maroonClr hover:bg-[#A30C4D] text-white px-6 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-2 shadow-lg shadow-maroonClr/20 disabled:opacity-50"><Save className="w-4 h-4" /> Save Header Layout</button>
+          </div>
+        </div>
+      )}
+
+      {/* ----------------------------------------------------
+          TAB 3: BANNERS (Hero slideshow)
           ---------------------------------------------------- */}
       {activeTab === "BANNERS" && (
         <div className="space-y-6">
@@ -450,11 +731,13 @@ export default function SettingsFormClient({ initialSettings, products = [], col
                 <h4 className="text-xs font-bold text-[#C9A84C] uppercase tracking-widest pb-1 border-b border-neutral-900">Slide #{index + 1}</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <div>
-                      <label className="block text-[9px] font-bold text-neutral-500 uppercase tracking-wider mb-1">Image URL / Path</label>
-                      <input type="text" value={slide.imageUrl} onChange={(e) => handleBannerChange(index, "imageUrl", e.target.value)} className="w-full bg-neutral-900 border border-neutral-800 rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-maroonClr font-mono" />
-                    </div>
-                    <div>
+                    <ImageOrVideoUploader
+                      label="Slide Banner Image"
+                      value={slide.imageUrl}
+                      onChange={(url) => handleBannerChange(index, "imageUrl", url)}
+                      accept="image/*"
+                    />
+                    <div className="pt-1.5">
                       <label className="block text-[9px] font-bold text-neutral-500 uppercase tracking-wider mb-1">Slide Title</label>
                       <input type="text" value={slide.title} onChange={(e) => handleBannerChange(index, "title", e.target.value)} className="w-full bg-neutral-900 border border-neutral-800 rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-maroonClr" />
                     </div>
@@ -485,7 +768,7 @@ export default function SettingsFormClient({ initialSettings, products = [], col
       )}
 
       {/* ----------------------------------------------------
-          TAB 3: HOMEPAGE CMS
+          TAB 4: HOMEPAGE CMS
           ---------------------------------------------------- */}
       {activeTab === "HOMEPAGE" && (
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
@@ -529,7 +812,7 @@ export default function SettingsFormClient({ initialSettings, products = [], col
           <div className="lg:col-span-3 bg-neutral-950 border border-neutral-800 rounded-xl p-6 space-y-6">
             
             {homeSuccess && (
-              <div className="p-3.5 bg-green-950/40 border border-green-900/50 text-green-400 text-xs rounded-lg flex items-center gap-2">
+              <div className="p-3.5 bg-green-955/40 border border-green-900/50 text-green-400 text-xs rounded-lg flex items-center gap-2">
                 <CheckCircle2 className="w-4.5 h-4.5" />
                 <span>{homeSuccess}</span>
               </div>
@@ -553,7 +836,15 @@ export default function SettingsFormClient({ initialSettings, products = [], col
                 {/* Add collection item */}
                 <div className="bg-neutral-900 p-4 rounded-lg border border-neutral-850 space-y-3">
                   <h4 className="text-[10px] font-bold text-white uppercase tracking-wider">Add Featured Collection Card</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  
+                  <ImageOrVideoUploader
+                    label="Custom Cover Image"
+                    value={lovedColImage}
+                    onChange={setLovedColImage}
+                    accept="image/*"
+                  />
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1.5">
                     <div>
                       <label className="block text-[8px] font-bold text-neutral-400 uppercase tracking-wider mb-0.5">Select Collection</label>
                       <select value={lovedColHandle} onChange={(e) => setLovedColHandle(e.target.value)} className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white focus:outline-none">
@@ -563,11 +854,7 @@ export default function SettingsFormClient({ initialSettings, products = [], col
                     </div>
                     <div>
                       <label className="block text-[8px] font-bold text-neutral-400 uppercase tracking-wider mb-0.5">Custom Title (Optional)</label>
-                      <input type="text" value={lovedColTitle} onChange={(e) => setLovedColTitle(e.target.value)} className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white focus:outline-none" />
-                    </div>
-                    <div>
-                      <label className="block text-[8px] font-bold text-neutral-400 uppercase tracking-wider mb-0.5">Custom Cover Image URL (Optional)</label>
-                      <input type="text" value={lovedColImage} onChange={(e) => setLovedColImage(e.target.value)} className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white focus:outline-none font-mono" />
+                      <input type="text" value={lovedColTitle} onChange={(e) => setLovedColTitle(e.target.value)} className="w-full bg-neutral-955 border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white focus:outline-none" />
                     </div>
                   </div>
                   <button type="button" onClick={addLovedCollection} className="bg-neutral-800 hover:bg-[#C9A84C] hover:text-black text-white px-3 py-1 text-[10px] font-bold uppercase rounded tracking-wider transition-colors flex items-center gap-1.5"><Plus className="w-3.5 h-3.5" /> Add Collection</button>
@@ -577,13 +864,16 @@ export default function SettingsFormClient({ initialSettings, products = [], col
                 <div className="space-y-2 max-h-[250px] overflow-y-auto pr-1 custom-scrollbar">
                   {lovedCollectionsItems.map((item, idx) => (
                     <div key={idx} className="flex justify-between items-center bg-neutral-900 border border-neutral-850 p-2.5 rounded-lg text-xs">
-                      <div>
-                        <span className="font-semibold text-white uppercase">{item.collectionHandle}</span>
-                        {item.customTitle && <span className="text-[10px] text-neutral-400 ml-2">({item.customTitle})</span>}
+                      <div className="flex items-center gap-3">
+                        {item.customImage && <img src={item.customImage} alt="" className="w-7 h-7 object-cover rounded border border-neutral-800" />}
+                        <div>
+                          <span className="font-semibold text-white uppercase">{item.collectionHandle}</span>
+                          {item.customTitle && <span className="text-[10px] text-neutral-400 ml-2">({item.customTitle})</span>}
+                        </div>
                       </div>
                       <div className="flex gap-1">
-                        <button onClick={() => moveItem(lovedCollectionsItems, setLovedCollectionsItems, idx, "UP")} disabled={idx === 0} className="p-1 bg-neutral-950 text-neutral-400 disabled:opacity-20"><ArrowUp className="w-3.5 h-3.5" /></button>
-                        <button onClick={() => moveItem(lovedCollectionsItems, setLovedCollectionsItems, idx, "DOWN")} disabled={idx === lovedCollectionsItems.length - 1} className="p-1 bg-neutral-950 text-neutral-400 disabled:opacity-20"><ArrowDown className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => moveItem(lovedCollectionsItems, setLovedCollectionsItems, idx, "UP")} disabled={idx === 0} className="p-1 bg-neutral-955 text-neutral-450 disabled:opacity-20"><ArrowUp className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => moveItem(lovedCollectionsItems, setLovedCollectionsItems, idx, "DOWN")} disabled={idx === lovedCollectionsItems.length - 1} className="p-1 bg-neutral-955 text-neutral-450 disabled:opacity-20"><ArrowDown className="w-3.5 h-3.5" /></button>
                         <button onClick={() => deleteItem(lovedCollectionsItems, setLovedCollectionsItems, idx)} className="p-1 bg-neutral-955 hover:text-red-400 text-neutral-500"><Trash2 className="w-3.5 h-3.5" /></button>
                       </div>
                     </div>
@@ -600,7 +890,7 @@ export default function SettingsFormClient({ initialSettings, products = [], col
                   <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Banner Text Headline</label>
                   <input type="text" value={patternBannerHeading} onChange={(e) => setPatternBannerHeading(e.target.value)} className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-maroonClr" />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Background Media Type</label>
                     <select value={patternBannerType} onChange={(e: any) => setPatternBannerType(e.target.value)} className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none">
@@ -608,10 +898,13 @@ export default function SettingsFormClient({ initialSettings, products = [], col
                       <option value="VIDEO">VIDEO BACKGROUND (MP4 LOOP)</option>
                     </select>
                   </div>
-                  <div>
-                    <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Media Path / Video URL</label>
-                    <input type="text" value={patternBannerMediaUrl} onChange={(e) => setPatternBannerMediaUrl(e.target.value)} placeholder="/images/pattern-bg.jpg" className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none font-mono" />
-                  </div>
+                  
+                  <ImageOrVideoUploader
+                    label="Background Media File"
+                    value={patternBannerMediaUrl}
+                    onChange={setPatternBannerMediaUrl}
+                    accept={patternBannerType === "VIDEO" ? "video/*" : "image/*"}
+                  />
                 </div>
               </div>
             )}
@@ -623,11 +916,11 @@ export default function SettingsFormClient({ initialSettings, products = [], col
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Section Title</label>
-                    <input type="text" value={trendingTitle} onChange={(e) => setTrendingTitle(e.target.value)} className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-maroonClr" />
+                    <input type="text" value={trendingTitle} onChange={(e) => setTrendingTitle(e.target.value)} className="w-full bg-neutral-900 border border-neutral-855 rounded px-3 py-2 text-xs text-white focus:outline-none" />
                   </div>
                   <div>
                     <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Section Subtitle</label>
-                    <input type="text" value={trendingSubtitle} onChange={(e) => setTrendingSubtitle(e.target.value)} className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-maroonClr" />
+                    <input type="text" value={trendingSubtitle} onChange={(e) => setTrendingSubtitle(e.target.value)} className="w-full bg-neutral-900 border border-neutral-855 rounded px-3 py-2 text-xs text-white focus:outline-none" />
                   </div>
                 </div>
 
@@ -680,7 +973,15 @@ export default function SettingsFormClient({ initialSettings, products = [], col
                 {/* Add Tab form */}
                 <div className="bg-neutral-900 p-4 rounded-lg border border-neutral-850 space-y-3">
                   <h4 className="text-[10px] font-bold text-white uppercase tracking-wider">Add Category Tab</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  
+                  <ImageOrVideoUploader
+                    label="Tab Icon/Cover"
+                    value={sareeTabImage}
+                    onChange={setSareeTabImage}
+                    accept="image/*"
+                  />
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1.5">
                     <div>
                       <label className="block text-[8px] font-bold text-neutral-400 uppercase tracking-wider mb-0.5">Select Collection</label>
                       <select value={sareeTabColHandle} onChange={(e) => setSareeTabColHandle(e.target.value)} className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white focus:outline-none">
@@ -690,11 +991,7 @@ export default function SettingsFormClient({ initialSettings, products = [], col
                     </div>
                     <div>
                       <label className="block text-[8px] font-bold text-neutral-400 uppercase tracking-wider mb-0.5">Tab Label Name</label>
-                      <input type="text" value={sareeTabLabel} onChange={(e) => setSareeTabLabel(e.target.value)} className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white focus:outline-none" />
-                    </div>
-                    <div>
-                      <label className="block text-[8px] font-bold text-neutral-400 uppercase tracking-wider mb-0.5">Tab Icon URL / Path (Optional)</label>
-                      <input type="text" value={sareeTabImage} onChange={(e) => setSareeTabImage(e.target.value)} className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white focus:outline-none font-mono" />
+                      <input type="text" value={sareeTabLabel} onChange={(e) => setSareeTabLabel(e.target.value)} className="w-full bg-neutral-955 border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white focus:outline-none" />
                     </div>
                   </div>
                   <button type="button" onClick={addSareeTab} className="bg-neutral-800 hover:bg-[#C9A84C] hover:text-black text-white px-3 py-1 text-[10px] font-bold uppercase rounded tracking-wider transition-colors flex items-center gap-1.5"><Plus className="w-3.5 h-3.5" /> Add Tab</button>
@@ -704,9 +1001,12 @@ export default function SettingsFormClient({ initialSettings, products = [], col
                 <div className="space-y-2 max-h-[250px] overflow-y-auto pr-1 custom-scrollbar">
                   {perfectSareeTabs.map((item, idx) => (
                     <div key={idx} className="flex justify-between items-center bg-neutral-900 border border-neutral-850 p-2.5 rounded-lg text-xs">
-                      <div>
-                        <span className="font-semibold text-white uppercase">{item.label}</span>
-                        <span className="text-[10px] text-neutral-400 ml-2">({item.collectionHandle})</span>
+                      <div className="flex items-center gap-3">
+                        {item.image && <img src={item.image} alt="" className="w-7 h-7 object-cover rounded border border-neutral-800" />}
+                        <div>
+                          <span className="font-semibold text-white uppercase">{item.label}</span>
+                          <span className="text-[10px] text-neutral-400 ml-2">({item.collectionHandle})</span>
+                        </div>
                       </div>
                       <div className="flex gap-1">
                         <button onClick={() => moveItem(perfectSareeTabs, setPerfectSareeTabs, idx, "UP")} disabled={idx === 0} className="p-1 bg-neutral-955 text-neutral-400 disabled:opacity-20"><ArrowUp className="w-3.5 h-3.5" /></button>
@@ -737,7 +1037,15 @@ export default function SettingsFormClient({ initialSettings, products = [], col
                 {/* Add category box */}
                 <div className="bg-neutral-900 p-4 rounded-lg border border-neutral-850 space-y-3">
                   <h4 className="text-[10px] font-bold text-white uppercase tracking-wider">Add Category Grid Box</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  
+                  <ImageOrVideoUploader
+                    label="Grid Box Cover Image"
+                    value={bestCatImage}
+                    onChange={setBestCatImage}
+                    accept="image/*"
+                  />
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1.5">
                     <div>
                       <label className="block text-[8px] font-bold text-neutral-400 uppercase tracking-wider mb-0.5">Select Collection</label>
                       <select value={bestCatColHandle} onChange={(e) => setBestCatColHandle(e.target.value)} className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white focus:outline-none">
@@ -747,11 +1055,7 @@ export default function SettingsFormClient({ initialSettings, products = [], col
                     </div>
                     <div>
                       <label className="block text-[8px] font-bold text-neutral-400 uppercase tracking-wider mb-0.5">Grid Headline Label (Optional)</label>
-                      <input type="text" value={bestCatTitle} onChange={(e) => setBestCatTitle(e.target.value)} className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white focus:outline-none" />
-                    </div>
-                    <div>
-                      <label className="block text-[8px] font-bold text-neutral-400 uppercase tracking-wider mb-0.5">Custom Cover URL (Optional)</label>
-                      <input type="text" value={bestCatImage} onChange={(e) => setBestCatImage(e.target.value)} className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white focus:outline-none font-mono" />
+                      <input type="text" value={bestCatTitle} onChange={(e) => setBestCatTitle(e.target.value)} className="w-full bg-neutral-955 border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white focus:outline-none" />
                     </div>
                   </div>
                   <button type="button" onClick={addBestCategory} className="bg-neutral-800 hover:bg-[#C9A84C] hover:text-black text-white px-3 py-1 text-[10px] font-bold uppercase rounded tracking-wider transition-colors flex items-center gap-1.5"><Plus className="w-3.5 h-3.5" /> Add Grid Item</button>
@@ -760,14 +1064,17 @@ export default function SettingsFormClient({ initialSettings, products = [], col
                 {/* Items list */}
                 <div className="space-y-2 max-h-[250px] overflow-y-auto pr-1 custom-scrollbar">
                   {categoriesItems.map((item, idx) => (
-                    <div key={idx} className="flex justify-between items-center bg-neutral-900 border border-neutral-850 p-2.5 rounded-lg text-xs">
-                      <div>
-                        <span className="font-semibold text-white uppercase">{item.collectionHandle}</span>
-                        {item.customTitle && <span className="text-[10px] text-neutral-400 ml-2">({item.customTitle})</span>}
+                    <div key={idx} className="flex justify-between items-center bg-neutral-900 border border-neutral-855 p-2.5 rounded-lg text-xs">
+                      <div className="flex items-center gap-3">
+                        {item.customImage && <img src={item.customImage} alt="" className="w-7 h-7 object-cover rounded border border-neutral-800" />}
+                        <div>
+                          <span className="font-semibold text-white uppercase">{item.collectionHandle}</span>
+                          {item.customTitle && <span className="text-[10px] text-neutral-400 ml-2">({item.customTitle})</span>}
+                        </div>
                       </div>
                       <div className="flex gap-1">
-                        <button onClick={() => moveItem(categoriesItems, setCategoriesItems, idx, "UP")} disabled={idx === 0} className="p-1 bg-neutral-955 text-neutral-400 disabled:opacity-20"><ArrowUp className="w-3.5 h-3.5" /></button>
-                        <button onClick={() => moveItem(categoriesItems, setCategoriesItems, idx, "DOWN")} disabled={idx === categoriesItems.length - 1} className="p-1 bg-neutral-955 text-neutral-400 disabled:opacity-20"><ArrowDown className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => moveItem(categoriesItems, setCategoriesItems, idx, "UP")} disabled={idx === 0} className="p-1 bg-neutral-955 text-neutral-450 disabled:opacity-20"><ArrowUp className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => moveItem(categoriesItems, setCategoriesItems, idx, "DOWN")} disabled={idx === categoriesItems.length - 1} className="p-1 bg-neutral-955 text-neutral-450 disabled:opacity-20"><ArrowDown className="w-3.5 h-3.5" /></button>
                         <button onClick={() => deleteItem(categoriesItems, setCategoriesItems, idx)} className="p-1 bg-neutral-955 hover:text-red-400 text-neutral-500"><Trash2 className="w-3.5 h-3.5" /></button>
                       </div>
                     </div>
@@ -795,15 +1102,17 @@ export default function SettingsFormClient({ initialSettings, products = [], col
                   {features.map((feat, idx) => (
                     <div key={idx} className="bg-neutral-900 p-4 rounded-lg border border-neutral-850 space-y-3">
                       <p className="text-[10px] font-bold text-[#C9A84C] uppercase">Feature Card #{idx + 1}</p>
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-[8px] font-bold text-neutral-500 uppercase mb-0.5">Card Title</label>
+                          <label className="block text-[8px] font-bold text-neutral-500 uppercase mb-1">Card Title</label>
                           <input type="text" value={feat.title} onChange={(e) => handleFeatureChange(idx, "title", e.target.value)} className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white" />
                         </div>
-                        <div>
-                          <label className="block text-[8px] font-bold text-neutral-500 uppercase mb-0.5">Image Path / Icon</label>
-                          <input type="text" value={feat.image} onChange={(e) => handleFeatureChange(idx, "image", e.target.value)} className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white font-mono" />
-                        </div>
+                        <ImageOrVideoUploader
+                          label="Card Icon/Image"
+                          value={feat.image}
+                          onChange={(url) => handleFeatureChange(idx, "image", url)}
+                          accept="image/*"
+                        />
                       </div>
                       <div>
                         <label className="block text-[8px] font-bold text-neutral-500 uppercase mb-0.5">Card Description Text</label>
@@ -821,13 +1130,21 @@ export default function SettingsFormClient({ initialSettings, products = [], col
                 <h3 className="text-xs font-bold text-[#C9A84C] uppercase tracking-widest pb-1 border-b border-neutral-900">7. What Our Customers Say (Testimonials slider)</h3>
                 <div>
                   <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Section Title</label>
-                  <input type="text" value={testimonialsTitle} onChange={(e) => setTestimonialsTitle(e.target.value)} className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none" />
+                  <input type="text" value={testimonialsTitle} onChange={(e) => setTestimonialsTitle(e.target.value)} className="w-full bg-neutral-900 border border-neutral-855 rounded px-3 py-2 text-xs text-white focus:outline-none" />
                 </div>
 
                 {/* Add Testimonial */}
                 <div className="bg-neutral-900 p-4 rounded-lg border border-neutral-850 space-y-3">
                   <h4 className="text-[10px] font-bold text-white uppercase tracking-wider">Add Custom Review Card</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  
+                  <ImageOrVideoUploader
+                    label="Customer Profile Avatar"
+                    value={testImage}
+                    onChange={setTestImage}
+                    accept="image/*"
+                  />
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1.5">
                     <div>
                       <label className="block text-[8px] font-bold text-neutral-400 uppercase tracking-wider mb-0.5">Customer Name</label>
                       <input type="text" value={testName} onChange={(e) => setTestName(e.target.value)} placeholder="Prisha V." className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white" />
@@ -839,10 +1156,6 @@ export default function SettingsFormClient({ initialSettings, products = [], col
                         <option value="4">4 Stars</option>
                         <option value="3">3 Stars</option>
                       </select>
-                    </div>
-                    <div>
-                      <label className="block text-[8px] font-bold text-neutral-400 uppercase tracking-wider mb-0.5">Customer Avatar Path (Optional)</label>
-                      <input type="text" value={testImage} onChange={(e) => setTestImage(e.target.value)} placeholder="/images/woman-2.jpg" className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white font-mono" />
                     </div>
                   </div>
                   <div>
@@ -857,9 +1170,12 @@ export default function SettingsFormClient({ initialSettings, products = [], col
                   {testimonials.map((test, idx) => (
                     <div key={test.id} className="bg-neutral-900 border border-neutral-850 p-3 rounded-lg text-xs relative space-y-2">
                       <button onClick={() => deleteItem(testimonials, setTestimonials, idx)} className="absolute right-2 top-2 text-neutral-500 hover:text-red-400"><Trash2 className="w-3.5 h-3.5" /></button>
-                      <div className="flex justify-between w-[90%] items-center">
-                        <span className="font-semibold text-white">{test.name}</span>
-                        <span className="flex text-[#C9A84C] gap-0.5 font-bold text-[9px] uppercase"><Star className="w-3 h-3 fill-current" /> {test.rating} stars</span>
+                      <div className="flex gap-2.5 items-center">
+                        {test.image && <img src={test.image} alt="" className="w-8 h-8 object-cover rounded-full border border-neutral-800" />}
+                        <div className="flex-1">
+                          <span className="font-semibold text-white block">{test.name}</span>
+                          <span className="flex text-[#C9A84C] gap-0.5 font-bold text-[9px] uppercase"><Star className="w-2.5 h-2.5 fill-current" /> {test.rating} stars</span>
+                        </div>
                       </div>
                       <p className="text-neutral-400 italic leading-relaxed">&quot;{test.comment}&quot;</p>
                     </div>
@@ -872,19 +1188,25 @@ export default function SettingsFormClient({ initialSettings, products = [], col
             {activeSubSection === "faqs" && (
               <div className="space-y-4">
                 <h3 className="text-xs font-bold text-[#C9A84C] uppercase tracking-widest pb-1 border-b border-neutral-900">8. Frequently Asked Questions Accordion</h3>
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="col-span-1">
-                    <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">FAQ Header Title</label>
-                    <input type="text" value={faqTitle} onChange={(e) => setFaqTitle(e.target.value)} className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none" />
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">FAQ Header Title</label>
+                      <input type="text" value={faqTitle} onChange={(e) => setFaqTitle(e.target.value)} className="w-full bg-neutral-900 border border-neutral-855 rounded px-3 py-2 text-xs text-white focus:outline-none" />
+                    </div>
+                    <div>
+                      <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">FAQ Subheading Text</label>
+                      <textarea rows={2} value={faqSubtitle} onChange={(e) => setFaqSubtitle(e.target.value)} className="w-full bg-neutral-900 border border-neutral-855 rounded px-3 py-2 text-xs text-white focus:outline-none leading-relaxed" />
+                    </div>
                   </div>
-                  <div className="col-span-2">
-                    <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">FAQ Cover Image Path</label>
-                    <input type="text" value={faqImage} onChange={(e) => setFaqImage(e.target.value)} className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none font-mono" />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">FAQ Subheading Text</label>
-                  <textarea rows={2} value={faqSubtitle} onChange={(e) => setFaqSubtitle(e.target.value)} className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none leading-relaxed" />
+                  
+                  <ImageOrVideoUploader
+                    label="FAQ Side Image"
+                    value={faqImage}
+                    onChange={setFaqImage}
+                    accept="image/*"
+                  />
                 </div>
 
                 {/* Add FAQ form */}
@@ -896,18 +1218,47 @@ export default function SettingsFormClient({ initialSettings, products = [], col
                   </div>
                   <div>
                     <label className="block text-[8px] font-bold text-neutral-400 uppercase tracking-wider mb-0.5">Answer Text</label>
-                    <textarea rows={2} value={faqA} onChange={(e) => setFaqA(e.target.value)} className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1 text-xs text-white" />
+                    <textarea rows={2} value={faqA} onChange={(e) => setFaqA(e.target.value)} className="w-full bg-neutral-955 border border-neutral-800 rounded px-2.5 py-1 text-xs text-white" />
                   </div>
                   <button type="button" onClick={addFaq} className="bg-neutral-800 hover:bg-[#C9A84C] hover:text-black text-white px-3 py-1 text-[10px] font-bold uppercase rounded tracking-wider transition-colors flex items-center gap-1.5"><Plus className="w-3.5 h-3.5" /> Add Q&A</button>
                 </div>
 
-                {/* FAQs list */}
-                <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
+                {/* Editable FAQs list - users can edit directly after saving */}
+                <div className="space-y-4 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
                   {faqs.map((faq, idx) => (
-                    <div key={idx} className="bg-neutral-900 border border-neutral-850 p-3 rounded-lg text-xs relative space-y-2">
-                      <button onClick={() => deleteItem(faqs, setFaqs, idx)} className="absolute right-2 top-2 text-neutral-500 hover:text-red-400"><Trash2 className="w-3.5 h-3.5" /></button>
-                      <p className="font-semibold text-white w-[90%]">Q: {faq.question}</p>
-                      <p className="text-neutral-400 leading-relaxed">A: {faq.answer}</p>
+                    <div key={idx} className="bg-neutral-900 border border-neutral-850 p-4 rounded-lg space-y-3">
+                      <p className="text-[10px] font-bold text-[#C9A84C] uppercase">Saved FAQ #{idx + 1}</p>
+                      <div>
+                        <label className="block text-[8px] font-bold text-neutral-500 uppercase mb-0.5">Question Text</label>
+                        <input
+                          type="text"
+                          value={faq.question}
+                          onChange={(e) => {
+                            const updated = [...faqs];
+                            updated[idx].question = e.target.value;
+                            setFaqs(updated);
+                          }}
+                          className="w-full bg-neutral-955 border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[8px] font-bold text-neutral-500 uppercase mb-0.5">Answer Text</label>
+                        <textarea
+                          rows={2}
+                          value={faq.answer}
+                          onChange={(e) => {
+                            const updated = [...faqs];
+                            updated[idx].answer = e.target.value;
+                            setFaqs(updated);
+                          }}
+                          className="w-full bg-neutral-955 border border-neutral-800 rounded px-2.5 py-1 text-xs text-white focus:outline-none"
+                        />
+                      </div>
+                      <div className="flex justify-end gap-1 pt-1.5 border-t border-neutral-950">
+                        <button onClick={() => moveItem(faqs, setFaqs, idx, "UP")} disabled={idx === 0} className="p-1 bg-neutral-950 text-neutral-400 disabled:opacity-20"><ArrowUp className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => moveItem(faqs, setFaqs, idx, "DOWN")} disabled={idx === faqs.length - 1} className="p-1 bg-neutral-950 text-neutral-400 disabled:opacity-20"><ArrowDown className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => deleteItem(faqs, setFaqs, idx)} className="p-1 bg-neutral-950 hover:text-red-400 text-neutral-500"><Trash2 className="w-3.5 h-3.5" /></button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -923,7 +1274,7 @@ export default function SettingsFormClient({ initialSettings, products = [], col
       )}
 
       {/* ----------------------------------------------------
-          TAB 4: FOOTER CUSTOMIZER
+          TAB 5: FOOTER CUSTOMIZER
           ---------------------------------------------------- */}
       {activeTab === "FOOTER" && (
         <div className="bg-neutral-950 border border-neutral-800 rounded-xl p-6 md:p-8 shadow-sm space-y-6">
@@ -952,39 +1303,41 @@ export default function SettingsFormClient({ initialSettings, products = [], col
             <div className="space-y-4">
               <h4 className="text-xs font-bold text-[#C9A84C] uppercase tracking-widest pb-1 border-b border-neutral-900">1. Contact & Brand Profile</h4>
               
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Footer Brand Logo Path</label>
-                  <input type="text" value={footerLogoUrl} onChange={(e) => setFooterLogoUrl(e.target.value)} className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none font-mono" />
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <ImageOrVideoUploader
+                  label="Footer Brand Logo"
+                  value={footerLogoUrl}
+                  onChange={setFooterLogoUrl}
+                  accept="image/*"
+                />
                 <div>
                   <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Copyright Footer Line</label>
-                  <input type="text" value={footerCopyright} onChange={(e) => setFooterCopyright(e.target.value)} className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none" />
+                  <input type="text" value={footerCopyright} onChange={(e) => setFooterCopyright(e.target.value)} className="w-full bg-neutral-900 border border-neutral-855 rounded px-3 py-2 text-xs text-white focus:outline-none" />
                 </div>
               </div>
 
               <div>
                 <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Footer Brand Description</label>
-                <textarea rows={3} value={footerDescription} onChange={(e) => setFooterDescription(e.target.value)} className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none leading-relaxed" />
+                <textarea rows={3} value={footerDescription} onChange={(e) => setFooterDescription(e.target.value)} className="w-full bg-neutral-900 border border-neutral-855 rounded px-3 py-2 text-xs text-white focus:outline-none leading-relaxed" />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1"><Mail className="w-3.5 h-3.5 inline mr-1 text-[#C9A84C]" /> Contact Email Address</label>
-                  <input type="email" value={footerEmail} onChange={(e) => setFooterEmail(e.target.value)} className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none" />
+                  <input type="email" value={footerEmail} onChange={(e) => setFooterEmail(e.target.value)} className="w-full bg-neutral-900 border border-neutral-855 rounded px-3 py-2 text-xs text-white focus:outline-none" />
                 </div>
                 <div>
                   <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1"><Phone className="w-3.5 h-3.5 inline mr-1 text-[#C9A84C]" /> Contact Phone Number</label>
-                  <input type="text" value={footerPhone} onChange={(e) => setFooterPhone(e.target.value)} className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none" />
+                  <input type="text" value={footerPhone} onChange={(e) => setFooterPhone(e.target.value)} className="w-full bg-neutral-900 border border-neutral-855 rounded px-3 py-2 text-xs text-white focus:outline-none" />
                 </div>
               </div>
 
               <div className="space-y-2 pt-2">
                 <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Social Media Links</p>
                 <div className="grid grid-cols-3 gap-2">
-                  <input type="text" placeholder="Facebook Link" value={facebookUrl} onChange={(e) => setFacebookUrl(e.target.value)} className="bg-neutral-905 border border-neutral-850 rounded px-2.5 py-1.5 text-xs text-white font-mono" />
-                  <input type="text" placeholder="Instagram Link" value={instagramUrl} onChange={(e) => setInstagramUrl(e.target.value)} className="bg-neutral-905 border border-neutral-850 rounded px-2.5 py-1.5 text-xs text-white font-mono" />
-                  <input type="text" placeholder="Pinterest Link" value={pinterestUrl} onChange={(e) => setPinterestUrl(e.target.value)} className="bg-neutral-905 border border-neutral-850 rounded px-2.5 py-1.5 text-xs text-white font-mono" />
+                  <input type="text" placeholder="Facebook Link" value={facebookUrl} onChange={(e) => setFacebookUrl(e.target.value)} className="bg-neutral-900 border border-neutral-850 rounded px-2.5 py-1.5 text-xs text-white font-mono" />
+                  <input type="text" placeholder="Instagram Link" value={instagramUrl} onChange={(e) => setInstagramUrl(e.target.value)} className="bg-neutral-900 border border-neutral-850 rounded px-2.5 py-1.5 text-xs text-white font-mono" />
+                  <input type="text" placeholder="Pinterest Link" value={pinterestUrl} onChange={(e) => setPinterestUrl(e.target.value)} className="bg-neutral-900 border border-neutral-850 rounded px-2.5 py-1.5 text-xs text-white font-mono" />
                 </div>
               </div>
             </div>
@@ -994,7 +1347,7 @@ export default function SettingsFormClient({ initialSettings, products = [], col
               <h4 className="text-xs font-bold text-[#C9A84C] uppercase tracking-widest pb-1 border-b border-neutral-900">2. Quick Navigation Links</h4>
 
               {/* Add link form */}
-              <div className="bg-neutral-905 border border-neutral-850 p-4 rounded-lg space-y-3">
+              <div className="bg-neutral-900 border border-neutral-850 p-4 rounded-lg space-y-3">
                 <h4 className="text-[10px] font-bold text-white uppercase tracking-wider">Add Custom Menu Link</h4>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
@@ -1012,15 +1365,15 @@ export default function SettingsFormClient({ initialSettings, products = [], col
               {/* List */}
               <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
                 {footerLinks.map((link, idx) => (
-                  <div key={idx} className="flex justify-between items-center bg-neutral-905 border border-neutral-850 p-2.5 rounded-lg text-xs">
+                  <div key={idx} className="flex justify-between items-center bg-neutral-900 border border-neutral-850 p-2.5 rounded-lg text-xs">
                     <div>
                       <span className="font-semibold text-white">{link.label}</span>
                       <span className="text-[10px] text-neutral-400 ml-2">({link.url})</span>
                     </div>
                     <div className="flex gap-1">
                       <button onClick={() => moveItem(footerLinks, setFooterLinks, idx, "UP")} disabled={idx === 0} className="p-1 bg-neutral-950 text-neutral-400 disabled:opacity-20"><ArrowUp className="w-3.5 h-3.5" /></button>
-                      <button onClick={() => moveItem(footerLinks, setFooterLinks, idx, "DOWN")} disabled={idx === footerLinks.length - 1} className="p-1 bg-neutral-950 text-neutral-400 disabled:opacity-20"><ArrowDown className="w-3.5 h-3.5" /></button>
-                      <button onClick={() => deleteItem(footerLinks, setFooterLinks, idx)} className="p-1 bg-neutral-950 hover:text-red-400 text-neutral-550"><Trash2 className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => moveItem(footerLinks, setFooterLinks, idx, "DOWN")} disabled={idx === footerLinks.length - 1} className="p-1 bg-neutral-955 text-neutral-400 disabled:opacity-20"><ArrowDown className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => deleteItem(footerLinks, setFooterLinks, idx)} className="p-1 bg-neutral-955 hover:text-red-400 text-neutral-500"><Trash2 className="w-3.5 h-3.5" /></button>
                     </div>
                   </div>
                 ))}
