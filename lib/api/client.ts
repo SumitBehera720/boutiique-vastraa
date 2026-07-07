@@ -10,11 +10,15 @@ export class ApiError extends Error {
 }
 
 function buildUrl(endpoint: string, params?: Record<string, string>): string {
-  const url = new URL(`/api${endpoint}`, "http://n");
+  const isServer = typeof window === "undefined";
+  const base = isServer
+    ? (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000")
+    : "http://n";
+  const url = new URL(`/api${endpoint}`, base);
   if (params) {
     Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
   }
-  return url.pathname + url.search;
+  return isServer ? url.href : url.pathname + url.search;
 }
 
 export async function apiFetch<T>(
