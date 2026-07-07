@@ -6,6 +6,9 @@ import { dbAvailable, query, getOne, insert, update, upsert, remove, replaceAll,
 const DATA_DIR = path.join(process.cwd(), "data");
 const CACHE_TTL = 1500;
 const USE_DB = dbAvailable();
+let DB_READY = false;
+
+function db() { return DB_READY && USE_DB; }
 
 // ─── Simple TTL cache (only used in JSON mode) ─────────────────────────────
 const cache = new Map<string, { data: any; expiresAt: number }>();
@@ -48,28 +51,28 @@ function writeJson<T>(name: string, data: T): void {
 
 export const users = {
   all: async () => {
-    if (USE_DB) {
+    if (db()) {
       const rows = await query<any[]>("SELECT * FROM users");
       return rows.map(mapUserFromDb);
     }
     return cachedRead<any[]>("users");
   },
   findByEmail: async (email: string) => {
-    if (USE_DB) {
+    if (db()) {
       const row = await getOne<any>("SELECT * FROM users WHERE email = ?", [email]);
       return row ? mapUserFromDb(row) : null;
     }
     return cachedRead<any[]>("users").find((u: any) => u.email.toLowerCase() === email.toLowerCase()) || null;
   },
   findById: async (id: string) => {
-    if (USE_DB) {
+    if (db()) {
       const row = await getOne<any>("SELECT * FROM users WHERE id = ?", [id]);
       return row ? mapUserFromDb(row) : null;
     }
     return cachedRead<any[]>("users").find((u: any) => u.id === id) || null;
   },
   create: async (user: any) => {
-    if (USE_DB) {
+    if (db()) {
       await insert("users", {
         id: user.id, first_name: user.firstName || "", last_name: user.lastName || "",
         email: user.email, phone: user.phone || "", password: user.password || "",
@@ -100,13 +103,13 @@ function mapUserFromDb(row: any): any {
 
 export const admins = {
   all: async () => {
-    if (USE_DB) {
+    if (db()) {
       return await query<any[]>("SELECT * FROM admin");
     }
     return cachedRead<any[]>("admin");
   },
   findByUsername: async (username: string) => {
-    if (USE_DB) {
+    if (db()) {
       return await getOne<any>("SELECT * FROM admin WHERE username = ?", [username]);
     }
     return cachedRead<any[]>("admin").find((a: any) => a.username === username) || null;
@@ -117,28 +120,28 @@ export const admins = {
 
 export const products = {
   all: async () => {
-    if (USE_DB) {
+    if (db()) {
       const rows = await query<any[]>("SELECT * FROM products ORDER BY created_at DESC");
       return rows.map(mapProductFromDb);
     }
     return cachedRead<any[]>("products");
   },
   findByHandle: async (handle: string) => {
-    if (USE_DB) {
+    if (db()) {
       const row = await getOne<any>("SELECT * FROM products WHERE handle = ?", [handle]);
       return row ? mapProductFromDb(row) : null;
     }
     return cachedRead<any[]>("products").find((p: any) => p.handle === handle) || null;
   },
   findById: async (id: string) => {
-    if (USE_DB) {
+    if (db()) {
       const row = await getOne<any>("SELECT * FROM products WHERE id = ?", [id]);
       return row ? mapProductFromDb(row) : null;
     }
     return cachedRead<any[]>("products").find((p: any) => p.id === id) || null;
   },
   save: async (items: any[]) => {
-    if (USE_DB) {
+    if (db()) {
       const mapped = items.map(mapProductToDb);
       await replaceAll("products", mapped);
       return;
@@ -182,21 +185,21 @@ function mapProductToDb(p: any): any {
 
 export const collections = {
   all: async () => {
-    if (USE_DB) {
+    if (db()) {
       const rows = await query<any[]>("SELECT * FROM collections ORDER BY created_at DESC");
       return rows.map(mapCollectionFromDb);
     }
     return cachedRead<any[]>("collections");
   },
   findByHandle: async (handle: string) => {
-    if (USE_DB) {
+    if (db()) {
       const row = await getOne<any>("SELECT * FROM collections WHERE handle = ?", [handle]);
       return row ? mapCollectionFromDb(row) : null;
     }
     return cachedRead<any[]>("collections").find((c: any) => c.handle === handle) || null;
   },
   save: async (items: any[]) => {
-    if (USE_DB) {
+    if (db()) {
       const mapped = items.map(mapCollectionToDb);
       await replaceAll("collections", mapped);
       return;
@@ -229,21 +232,21 @@ function mapCollectionToDb(c: any): any {
 
 export const coupons = {
   all: async () => {
-    if (USE_DB) {
+    if (db()) {
       const rows = await query<any[]>("SELECT * FROM coupons ORDER BY created_at DESC");
       return rows.map(mapCouponFromDb);
     }
     return cachedRead<any[]>("coupons");
   },
   findByCode: async (code: string) => {
-    if (USE_DB) {
+    if (db()) {
       const row = await getOne<any>("SELECT * FROM coupons WHERE code = ?", [code]);
       return row ? mapCouponFromDb(row) : null;
     }
     return cachedRead<any[]>("coupons").find((c: any) => c.code?.toLowerCase() === code.toLowerCase()) || null;
   },
   save: async (items: any[]) => {
-    if (USE_DB) {
+    if (db()) {
       const mapped = items.map(mapCouponToDb);
       await replaceAll("coupons", mapped);
       return;
@@ -284,14 +287,14 @@ function mapCouponToDb(c: any): any {
 
 export const reviews = {
   all: async () => {
-    if (USE_DB) {
+    if (db()) {
       const rows = await query<any[]>("SELECT * FROM reviews ORDER BY created_at DESC");
       return rows.map(mapReviewFromDb);
     }
     return cachedRead<any[]>("reviews");
   },
   save: async (items: any[]) => {
-    if (USE_DB) {
+    if (db()) {
       const mapped = items.map(mapReviewToDb);
       await replaceAll("reviews", mapped);
       return;
@@ -327,14 +330,14 @@ function mapReviewToDb(r: any): any {
 
 export const orders = {
   all: async () => {
-    if (USE_DB) {
+    if (db()) {
       const rows = await query<any[]>("SELECT * FROM orders ORDER BY created_at DESC");
       return rows.map(mapOrderFromDb);
     }
     return cachedRead<any[]>("orders");
   },
   save: async (items: any[]) => {
-    if (USE_DB) {
+    if (db()) {
       const mapped = items.map(mapOrderToDb);
       await replaceAll("orders", mapped);
       return;
@@ -377,7 +380,7 @@ function mapOrderToDb(o: any): any {
 
 export const settings = {
   get: async () => {
-    if (USE_DB) {
+    if (db()) {
       const row = await getOne<any>("SELECT data FROM settings WHERE id = 1");
       if (row) return typeof row.data === "string" ? JSON.parse(row.data) : row.data;
       return {};
@@ -385,7 +388,7 @@ export const settings = {
     return cachedRead<any>("settings");
   },
   save: async (data: any) => {
-    if (USE_DB) {
+    if (db()) {
       await upsert("settings", "id", { id: 1, data: JSON.stringify(data) });
       return;
     }
@@ -397,7 +400,7 @@ export const settings = {
 
 export const carts = {
   get: async (id: string) => {
-    if (USE_DB) {
+    if (db()) {
       const row = await getOne<any>("SELECT data FROM carts WHERE cart_id = ?", [id]);
       if (row) return typeof row.data === "string" ? JSON.parse(row.data) : row.data;
       return null;
@@ -406,7 +409,7 @@ export const carts = {
     return all[id] || null;
   },
   save: async (id: string, data: any) => {
-    if (USE_DB) {
+    if (db()) {
       await upsert("carts", "cart_id", { cart_id: id, data: JSON.stringify(data) });
       return;
     }
@@ -415,7 +418,7 @@ export const carts = {
     writeJson("carts", all);
   },
   remove: async (id: string) => {
-    if (USE_DB) {
+    if (db()) {
       await remove("carts", "cart_id", id);
       return;
     }
@@ -443,7 +446,7 @@ function writeSessionsRaw(s: Record<string, string>) {
 export const sessions = {
   create: async (userId: string): Promise<string> => {
     const token = crypto.randomBytes(32).toString("hex");
-    if (USE_DB) {
+    if (db()) {
       await insert("sessions", { token, user_id: userId });
       return token;
     }
@@ -453,7 +456,7 @@ export const sessions = {
     return token;
   },
   getUserId: async (token: string): Promise<string | null> => {
-    if (USE_DB) {
+    if (db()) {
       const row = await getOne<any>("SELECT user_id FROM sessions WHERE token = ?", [token]);
       return row?.user_id || null;
     }
@@ -461,7 +464,7 @@ export const sessions = {
     return all[token] || null;
   },
   delete: async (token: string) => {
-    if (USE_DB) {
+    if (db()) {
       await remove("sessions", "token", token);
       return;
     }
@@ -505,13 +508,13 @@ export async function initDataStore(): Promise<void> {
       await initDatabase();
       await seedIfEmpty();
       await runDbHousekeeping();
+      DB_READY = true;
       console.log("[DataStore] MySQL ready");
     } catch (err) {
       console.error("[DataStore] MySQL init failed, falling back to JSON files:", err);
     }
   }
-  // housekeeping for JSON mode (hourly)
-  if (!USE_DB) {
+  if (!db()) {
     runJsonHousekeeping();
     setInterval(runJsonHousekeeping, 60 * 60 * 1000);
   }
