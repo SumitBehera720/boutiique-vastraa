@@ -50,8 +50,7 @@ export default function OrderHistory({ orders }: { orders: any[] }) {
 
           <div className="p-6">
             <div className="space-y-4">
-              {order.lineItems.edges.map((edge: any, index: number) => {
-                const item = edge.node;
+              {(order.lineItems?.edges ? order.lineItems.edges.map((edge: any) => edge.node) : order.lineItems || []).map((item: any, index: number) => {
                 return (
                   <div key={index} className="flex gap-4 items-center">
                     <div className="relative w-16 h-20 bg-gray-100 rounded border border-gray-200 overflow-hidden flex-shrink-0">
