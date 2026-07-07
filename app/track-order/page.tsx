@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { trackOrderAction } from "@/app/actions/checkout";
+import { trackOrder } from "@/lib/api/checkout-client";
 import { Search, MapPin, Package, Calendar, Truck, ArrowLeft, AlertCircle, CheckCircle2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -25,7 +25,7 @@ export default function TrackOrderPage() {
     setOrder(null);
 
     try {
-      const res = await trackOrderAction(orderNumber, email);
+      const res = await trackOrder(orderNumber, email);
       if (res.success && res.order) {
         setOrder(res.order);
       } else {

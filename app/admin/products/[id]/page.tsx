@@ -1,6 +1,6 @@
 import { verifyAdminSession } from "@/app/actions/adminAuth";
 import { redirect, notFound } from "next/navigation";
-import { jsonDb } from "@/lib/db/jsonDb";
+import { apiGet } from "@/lib/api/client";
 import ProductFormClient from "@/components/admin/ProductFormClient";
 import { Metadata } from "next";
 
@@ -23,7 +23,7 @@ export default async function AdminEditProductPage({
   const id = resolvedParams.id;
 
   // Search by exact ID or Shopify GID
-  const products = jsonDb.getProducts();
+  const products = await apiGet<any[]>("/admin/products");
   const product = products.find(
     p => p.id === id || p.id === `gid://shopify/Product/${id}`
   );
@@ -32,7 +32,7 @@ export default async function AdminEditProductPage({
     notFound();
   }
 
-  const collections = jsonDb.getCollections();
+  const collections = await apiGet<any[]>("/admin/collections");
 
   return (
     <ProductFormClient 

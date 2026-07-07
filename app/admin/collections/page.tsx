@@ -1,6 +1,6 @@
 import { verifyAdminSession } from "@/app/actions/adminAuth";
 import { redirect } from "next/navigation";
-import { jsonDb } from "@/lib/db/jsonDb";
+import { apiGet } from "@/lib/api/client";
 import CollectionsListClient from "@/components/admin/CollectionsListClient";
 import { Metadata } from "next";
 
@@ -15,7 +15,7 @@ export default async function AdminCollectionsPage() {
     redirect("/account/login");
   }
 
-  const collections = jsonDb.getCollections();
+  const collections = await apiGet<any[]>("/admin/collections");
 
   return (
     <CollectionsListClient 

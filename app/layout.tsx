@@ -29,10 +29,10 @@ const kalnia = Kalnia({
   variable: "--font-kalnia",
 });
 
-import { jsonDb } from "@/lib/db/jsonDb";
+import { apiGet } from "@/lib/api/client";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = jsonDb.getSettings();
+  const settings = await apiGet<any>("/settings");
   return {
     title: {
       template: settings.seo.titleTemplate || "%s | Boutiique Vastraa",
@@ -54,7 +54,7 @@ export default async function RootLayout({
   const token = await getCustomerToken();
   const isLoggedIn = !!token;
 
-  const settings = jsonDb.getSettings();
+  const settings = await apiGet<any>("/settings");
   const footerSettings = settings.footer || {};
   const headerSettings = settings.header || {};
 

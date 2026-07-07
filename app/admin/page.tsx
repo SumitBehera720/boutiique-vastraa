@@ -1,6 +1,6 @@
 import { verifyAdminSession } from "@/app/actions/adminAuth";
 import { redirect } from "next/navigation";
-import { jsonDb } from "@/lib/db/jsonDb";
+import { apiGet } from "@/lib/api/client";
 import { IndianRupee, ShoppingBag, Package, Users, AlertTriangle, ArrowRight, Sparkles, TrendingUp } from "lucide-react";
 import Link from "next/link";
 
@@ -12,10 +12,10 @@ export default async function AdminDashboardPage() {
   }
 
   // Load database entities
-  const products = jsonDb.getProducts();
-  const collections = jsonDb.getCollections();
-  const orders = jsonDb.getOrders();
-  const customers = jsonDb.getCustomers();
+  const products = await apiGet<any[]>("/admin/products");
+  const collections = await apiGet<any[]>("/admin/collections");
+  const orders = await apiGet<any[]>("/admin/orders");
+  const customers = await apiGet<any[]>("/admin/customers");
 
   // Calculations
   const nonCancelledOrders = orders.filter(o => o.fulfillmentStatus !== "CANCELLED");
@@ -220,7 +220,7 @@ export default async function AdminDashboardPage() {
               {Object.keys(statusCounts).length === 0 ? (
                 <p className="text-neutral-600 text-sm font-medium py-4 text-center">No order metrics available.</p>
               ) : (
-                Object.entries(statusCounts).map(([status, count]) => {
+                (Object.entries(statusCounts) as [string, number][]).map(([status, count]) => {
                   const pct = Math.round((count / orders.length) * 100);
                   
                   return (

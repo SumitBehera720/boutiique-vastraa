@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import WishlistButton from "@/components/wishlist/WishlistButton";
 import { useCartStore } from "@/store/cartStore";
-import { addCartItemAction } from "@/app/actions/cart";
+import * as cartClient from "@/lib/api/cart-client";
 
 interface Product {
   id: string;
@@ -50,11 +50,11 @@ export default function ProductCard({ product }: { product: Product }) {
     if (!firstVariantId || isAdding) return;
     setIsAdding(true);
     try {
-      const result = await addCartItemAction(cartId, firstVariantId, 1);
-      if (result.success && result.cart) {
-        setCart(result.cart);
-        openCart();
-      }
+      const cart = cartId
+        ? await cartClient.addToCart(cartId, [{ merchandiseId: firstVariantId, quantity: 1 }])
+        : await cartClient.createCart([{ merchandiseId: firstVariantId, quantity: 1 }]);
+      setCart(cart);
+      openCart();
     } catch (e) {
       console.error("Failed to add to cart:", e);
     } finally {

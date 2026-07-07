@@ -9,10 +9,10 @@ import FeaturesGrid from "@/components/home/FeaturesGrid";
 import TestimonialsSection from "@/components/home/TestimonialsSection";
 import FaqAccordion from "@/components/home/FaqAccordion";
 import HeroBanner from "@/components/home/HeroBanner";
-import { jsonDb } from "@/lib/db/jsonDb";
+import { apiGet } from "@/lib/api/client";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = jsonDb.getSettings();
+  const settings = await apiGet<any>("/settings");
   const cleanTitle = settings.seo.titleTemplate
     ? settings.seo.titleTemplate.replace("%s | ", "")
     : "Boutiique Vastraa";
@@ -31,12 +31,12 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function Home() {
   // Load settings for homepage hero slideshow
-  const settings = jsonDb.getSettings();
+  const settings = await apiGet<any>("/settings");
   const homeSettings = settings.homepage || {};
   const bannerSlides = settings.banners || [];
 
   // Load verified testimonials
-  const dbReviews = jsonDb.getGlobalReviews();
+  const dbReviews = await apiGet<any[]>("/reviews/global");
   
   // Custom Testimonials mapping
   let customTestimonials = [];

@@ -1,6 +1,6 @@
 import { verifyAdminSession } from "@/app/actions/adminAuth";
 import { redirect } from "next/navigation";
-import { jsonDb } from "@/lib/db/jsonDb";
+import { apiGet } from "@/lib/api/client";
 import ProductsListClient from "@/components/admin/ProductsListClient";
 import { Metadata } from "next";
 
@@ -15,8 +15,8 @@ export default async function AdminProductsPage() {
     redirect("/account/login");
   }
 
-  const products = jsonDb.getProducts();
-  const collections = jsonDb.getCollections();
+  const products = await apiGet<any[]>("/admin/products");
+  const collections = await apiGet<any[]>("/admin/collections");
 
   return (
     <ProductsListClient 

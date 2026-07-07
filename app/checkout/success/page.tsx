@@ -1,4 +1,4 @@
-import { jsonDb } from "@/lib/db/jsonDb";
+import { apiGet } from "@/lib/api/client";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -19,7 +19,7 @@ export default async function SuccessPage({
   const orderId = resolvedSearchParams.orderId || "";
 
   // Fetch order
-  const orders = jsonDb.getOrders();
+  const orders = await apiGet<any[]>("/admin/orders");
   const order = orders.find(o => o.id === orderId);
 
   if (!order) {
@@ -78,7 +78,7 @@ export default async function SuccessPage({
           <div>
             <h3 className="text-sm font-bold text-gray-800 uppercase tracking-widest mb-4">Items Ordered</h3>
             <div className="space-y-4">
-              {order.lineItems.map((item, index) => (
+              {(order.lineItems as any[]).map((item: any, index: number) => (
                 <div key={index} className="flex gap-4 items-center">
                   <div className="w-12 h-16 bg-gray-50 relative rounded overflow-hidden border border-gray-100 flex-shrink-0">
                     {item.image ? (

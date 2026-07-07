@@ -1,6 +1,6 @@
 import { verifyAdminSession } from "@/app/actions/adminAuth";
 import { redirect } from "next/navigation";
-import { jsonDb } from "@/lib/db/jsonDb";
+import { apiGet } from "@/lib/api/client";
 import SettingsFormClient from "@/components/admin/SettingsFormClient";
 import { getProducts, getCollections } from "@/lib/shopify/queries";
 import { Metadata } from "next";
@@ -16,7 +16,7 @@ export default async function AdminSettingsPage() {
     redirect("/account/login");
   }
 
-  const settings = jsonDb.getSettings();
+  const settings = await apiGet<any>("/settings");
   const products = await getProducts(100);
   const collections = await getCollections(100);
 

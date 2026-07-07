@@ -1,6 +1,6 @@
 import { verifyAdminSession } from "@/app/actions/adminAuth";
 import { redirect } from "next/navigation";
-import { jsonDb } from "@/lib/db/jsonDb";
+import { apiGet } from "@/lib/api/client";
 import ReviewsListClient from "@/components/admin/ReviewsListClient";
 import { Metadata } from "next";
 
@@ -15,7 +15,7 @@ export default async function AdminReviewsPage() {
     redirect("/account/login");
   }
 
-  const reviews = jsonDb.getReviews();
+  const reviews = await apiGet<any[]>("/admin/reviews");
 
   return (
     <ReviewsListClient 

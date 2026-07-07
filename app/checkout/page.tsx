@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { jsonDb } from "@/lib/db/jsonDb";
+import { apiGet } from "@/lib/api/client";
 import CheckoutForm from "@/components/checkout/CheckoutForm";
 import { Metadata } from "next";
 
@@ -22,17 +22,21 @@ export default async function CheckoutPage({
   
   let customer = null;
   if (customerToken) {
-    const rawCustomer = jsonDb.getCustomerById(customerToken);
-    if (rawCustomer) {
-      // Exclude passwordHash from client
-      customer = {
-        id: rawCustomer.id,
-        firstName: rawCustomer.firstName,
-        lastName: rawCustomer.lastName,
-        email: rawCustomer.email,
-        phone: rawCustomer.phone || "",
-        defaultAddress: rawCustomer.defaultAddress || null
-      };
+    try {
+      const rawCustomer = await apiGet<any>("/auth/me");
+      if (rawCustomer) {
+        // Exclude passwordHash from client
+        customer = {
+          id: rawCustomer.id,
+          firstName: rawCustomer.firstName,
+          lastName: rawCustomer.lastName,
+          email: rawCustomer.email,
+          phone: rawCustomer.phone || "",
+          defaultAddress: rawCustomer.defaultAddress || null
+        };
+      }
+    } catch {
+      // Not authenticated
     }
   }
 

@@ -1,6 +1,6 @@
 import { verifyAdminSession } from "@/app/actions/adminAuth";
 import { redirect } from "next/navigation";
-import { jsonDb } from "@/lib/db/jsonDb";
+import { apiGet } from "@/lib/api/client";
 import OrdersListClient from "@/components/admin/OrdersListClient";
 import { Metadata } from "next";
 
@@ -15,7 +15,7 @@ export default async function AdminOrdersPage() {
     redirect("/account/login");
   }
 
-  const orders = jsonDb.getOrders();
+  const orders = await apiGet<any[]>("/admin/orders");
 
   return (
     <OrdersListClient 

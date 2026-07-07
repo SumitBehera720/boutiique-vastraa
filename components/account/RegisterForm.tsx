@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { registerAction } from "@/app/actions/auth";
+import { register, login } from "@/lib/api/auth-client";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Eye, EyeOff } from "lucide-react";
@@ -17,14 +17,21 @@ export default function RegisterForm({ onToggleView }: { onToggleView: () => voi
     setLoading(true);
     setError(null);
     
-    const formData = new FormData(e.currentTarget);
-    const result = await registerAction(formData);
-    
-    if (result.success) {
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    const input = {
+      firstName: formData.get("firstName") as string,
+      lastName: formData.get("lastName") as string,
+      email: formData.get("email") as string,
+      password: formData.get("password") as string,
+    };
+
+    try {
+      await register(input);
       router.push("/account");
       router.refresh();
-    } else {
-      setError(result.error || "An error occurred");
+    } catch (err: any) {
+      setError(err.message || "Registration failed");
       setLoading(false);
     }
   };

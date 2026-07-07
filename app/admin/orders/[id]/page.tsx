@@ -1,6 +1,6 @@
 import { verifyAdminSession } from "@/app/actions/adminAuth";
 import { redirect, notFound } from "next/navigation";
-import { jsonDb } from "@/lib/db/jsonDb";
+import { apiGet } from "@/lib/api/client";
 import OrderDetailClient from "@/components/admin/OrderDetailClient";
 import { Metadata } from "next";
 
@@ -22,7 +22,7 @@ export default async function AdminOrderDetailPage({
   const resolvedParams = await params;
   const id = resolvedParams.id;
 
-  const orders = jsonDb.getOrders();
+  const orders = await apiGet<any[]>("/admin/orders");
   const order = orders.find(o => o.id === id);
 
   if (!order) {

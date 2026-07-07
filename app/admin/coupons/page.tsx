@@ -1,6 +1,6 @@
 import { verifyAdminSession } from "@/app/actions/adminAuth";
 import { redirect } from "next/navigation";
-import { jsonDb } from "@/lib/db/jsonDb";
+import { apiGet } from "@/lib/api/client";
 import CouponsListClient from "@/components/admin/CouponsListClient";
 import { Metadata } from "next";
 
@@ -15,7 +15,7 @@ export default async function AdminCouponsPage() {
     redirect("/account/login");
   }
 
-  const coupons = jsonDb.getCoupons();
+  const coupons = await apiGet<any[]>("/admin/coupons");
 
   return (
     <CouponsListClient 

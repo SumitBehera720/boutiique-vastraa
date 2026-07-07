@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { getCartForCheckoutAction, submitOrderAction } from "@/app/actions/checkout";
-import { applyPromoCodeAction } from "@/app/actions/adminCoupons";
+import { getCartForCheckout, submitOrder } from "@/lib/api/checkout-client";
+import { applyPromoCode } from "@/lib/api/promo-client";
 import { useCartStore } from "@/store/cartStore";
 import { ArrowLeft, CreditCard, Shield, Truck, AlertCircle, Sparkles, Tag, X } from "lucide-react";
 import Link from "next/link";
@@ -54,7 +54,7 @@ export default function CheckoutForm({ cartId, initialCustomer }: CheckoutFormPr
         setLoading(false);
         return;
       }
-      const res = await getCartForCheckoutAction(cartId);
+      const res = await getCartForCheckout(cartId);
       if (res.success && res.cart) {
         setCartData(res.cart);
       } else {
@@ -72,7 +72,7 @@ export default function CheckoutForm({ cartId, initialCustomer }: CheckoutFormPr
     setPromoSuccess("");
 
     try {
-      const res = await applyPromoCodeAction(promoCode, parseFloat(cart.subtotal));
+      const res = await applyPromoCode(promoCode, parseFloat(cart.subtotal));
       if (res.success && res.discountAmount !== undefined) {
         setDiscount(res.discountAmount);
         setAppliedCode(res.code || promoCode.toUpperCase().trim());
@@ -116,7 +116,7 @@ export default function CheckoutForm({ cartId, initialCustomer }: CheckoutFormPr
     }
 
     try {
-      const res = await submitOrderAction({
+      const res = await submitOrder({
         cartId,
         firstName,
         lastName,

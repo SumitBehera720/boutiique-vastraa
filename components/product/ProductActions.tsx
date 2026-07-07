@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { addCartItemAction, createCheckoutDirectlyAction } from "@/app/actions/cart";
+import * as cartClient from "@/lib/api/cart-client";
 import { useCartStore } from "@/store/cartStore";
 import { ShoppingBag, CreditCard } from "lucide-react";
 
@@ -23,15 +23,13 @@ export default function ProductActions({
     setIsAdding(true);
     
     try {
-      const res = await addCartItemAction(cartId, variantId, quantity);
-      if (res.success && res.cart) {
-        setCart(res.cart);
-        openCart(); // Slide out the drawer
-      } else {
-        alert(res.error || "Failed to add to cart");
-      }
-    } catch (e) {
-      alert("Error adding to cart");
+      const cart = cartId
+        ? await cartClient.addToCart(cartId, [{ merchandiseId: variantId, quantity }])
+        : await cartClient.createCart([{ merchandiseId: variantId, quantity }]);
+      setCart(cart);
+      openCart();
+    } catch (e: any) {
+      alert(e.message || "Failed to add to cart");
     } finally {
       setIsAdding(false);
     }
@@ -42,14 +40,10 @@ export default function ProductActions({
     setIsBuying(true);
     
     try {
-      const res = await createCheckoutDirectlyAction(variantId, quantity);
-      if (res.success && res.checkoutUrl) {
-        window.location.href = res.checkoutUrl;
-      } else {
-        alert(res.error || "Failed to initiate checkout");
-      }
-    } catch (e) {
-      alert("Error initiating checkout");
+      const cart = await cartClient.createCart([{ merchandiseId: variantId, quantity }]);
+      window.location.href = `/checkout?cartId=${cart.id}`;
+    } catch (e: any) {
+      alert(e.message || "Failed to initiate checkout");
     } finally {
       setIsBuying(false);
     }

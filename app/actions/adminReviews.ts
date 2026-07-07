@@ -1,34 +1,26 @@
 "use server";
 
-import { jsonDb, Review } from "@/lib/db/jsonDb";
 import { verifyAdminSession } from "./adminAuth";
 import { revalidatePath } from "next/cache";
+import { apiGet, apiPatch, apiDelete, apiPost } from "@/lib/api/client";
 
 async function requireAuth() {
   const isLogged = await verifyAdminSession();
-  if (!isLogged) {
-    throw new Error("Unauthorized access.");
-  }
+  if (!isLogged) throw new Error("Unauthorized access.");
 }
 
 export async function getReviewsAction() {
   await requireAuth();
-  return jsonDb.getReviews();
+  return apiGet<any[]>("/admin/reviews");
 }
 
 export async function toggleReviewApprovalAction(reviewId: string) {
   try {
     await requireAuth();
-    const reviews = jsonDb.getReviews();
-    const review = reviews.find((r) => r.id === reviewId);
-    if (review) {
-      review.approved = !review.approved;
-      jsonDb.saveReviews(reviews);
-      revalidatePath("/admin/reviews");
-      revalidatePath("/");
-      return { success: true, approved: review.approved };
-    }
-    return { success: false, error: "Review not found" };
+    const res = await apiPatch<any>(`/admin/reviews/${encodeURIComponent(reviewId)}/toggle-approval`);
+    revalidatePath("/admin/reviews");
+    revalidatePath("/");
+    return { success: true, approved: res.approved };
   } catch (error: any) {
     return { success: false, error: error.message || "Failed to toggle review approval." };
   }
@@ -37,9 +29,7 @@ export async function toggleReviewApprovalAction(reviewId: string) {
 export async function deleteReviewAction(reviewId: string) {
   try {
     await requireAuth();
-    const reviews = jsonDb.getReviews();
-    const filtered = reviews.filter((r) => r.id !== reviewId);
-    jsonDb.saveReviews(filtered);
+    await apiDelete(`/admin/reviews/${encodeURIComponent(reviewId)}`);
     revalidatePath("/admin/reviews");
     revalidatePath("/");
     return { success: true };
@@ -48,7 +38,6 @@ export async function deleteReviewAction(reviewId: string) {
   }
 }
 
-// Storefront action: Submitting review from Product Details page
 export async function submitProductReviewAction(formData: {
   productHandle: string;
   author: string;
@@ -56,26 +45,17 @@ export async function submitProductReviewAction(formData: {
   comment: string;
 }) {
   try {
-    const reviews = jsonDb.getReviews();
-    const newReview: Review = {
-      id: `review_${Date.now()}`,
-      productHandle: formData.productHandle,
-      author: formData.author.trim(),
-      rating: Number(formData.rating),
-      comment: formData.comment.trim(),
-      approved: false, // Moderated by default!
-      createdAt: new Date().toISOString(),
-    };
-
-    reviews.push(newReview);
-    jsonDb.saveReviews(reviews);
-    
-    return { 
-      success: true, 
-      message: "Thank you! Your review has been submitted and is pending moderation." 
+    await apiPost("/reviews", {
+      product_id: formData.productHandle,
+      reviewer_name: formData.author,
+      rating: formData.rating,
+      comment: formData.comment,
+    });
+    return {
+      success: true,
+      message: "Thank you! Your review has been submitted and is pending moderation.",
     };
   } catch (error: any) {
-    console.error("Submit Review Error:", error);
     return { success: false, error: "Failed to submit review. Please try again." };
   }
 }

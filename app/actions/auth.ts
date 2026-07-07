@@ -16,7 +16,7 @@ export async function loginAction(formData: FormData) {
 
   try {
     const data = await createCustomerAccessToken({ email, password });
-    
+
     if (data?.customerUserErrors?.length > 0) {
       return { success: false, error: data.customerUserErrors[0].message };
     }
@@ -25,14 +25,13 @@ export async function loginAction(formData: FormData) {
     const expiresAt = data?.customerAccessToken?.expiresAt;
 
     if (token) {
-      // Set secure HTTP-only cookie
       const cookieStore = await cookies();
       cookieStore.set(COOKIE_NAME, token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
         path: "/",
-        expires: expiresAt ? new Date(expiresAt) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+        expires: expiresAt ? new Date(expiresAt) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       });
       return { success: true };
     }
@@ -61,7 +60,6 @@ export async function registerAction(formData: FormData) {
       return { success: false, error: data.customerUserErrors[0].message };
     }
 
-    // Immediately log them in
     return await loginAction(formData);
   } catch (error) {
     console.error("Register Action Error:", error);
@@ -70,6 +68,10 @@ export async function registerAction(formData: FormData) {
 }
 
 export async function logoutAction() {
+  try {
+    const { apiPost } = await import("@/lib/api/client");
+    await apiPost("/auth/logout").catch(() => {});
+  } catch {}
   const cookieStore = await cookies();
   cookieStore.delete(COOKIE_NAME);
   redirect("/account/login");

@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { updateCartItemAction, removeCartItemAction } from "@/app/actions/cart";
+import * as cartClient from "@/lib/api/cart-client";
 import { useCartStore } from "@/store/cartStore";
 
 export default function CartItem({ item }: { item: any }) {
@@ -14,18 +14,22 @@ export default function CartItem({ item }: { item: any }) {
   const handleUpdateQuantity = async (newQuantity: number) => {
     if (newQuantity < 1) return;
     setIsUpdating(true);
-    const res = await updateCartItemAction(cartId!, item.id, newQuantity);
-    if (res.success && res.cart) {
-      setCart(res.cart);
+    try {
+      const cart = await cartClient.updateCartLines(cartId!, [{ id: item.id, quantity: newQuantity }]);
+      setCart(cart);
+    } catch (e) {
+      console.error("Failed to update quantity:", e);
     }
     setIsUpdating(false);
   };
 
   const handleRemove = async () => {
     setIsUpdating(true);
-    const res = await removeCartItemAction(cartId!, item.id);
-    if (res.success && res.cart) {
-      setCart(res.cart);
+    try {
+      const cart = await cartClient.removeFromCart(cartId!, [item.id]);
+      setCart(cart);
+    } catch (e) {
+      console.error("Failed to remove item:", e);
     }
     setIsUpdating(false);
   };

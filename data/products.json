@@ -96,7 +96,8 @@
     "collectionHandles": [
       "frontpage",
       "saree"
-    ]
+    ],
+    "inventory": 10
   },
   {
     "id": "gid://shopify/Product/15158668525932",
@@ -187,7 +188,8 @@
     },
     "collectionHandles": [
       "kurti"
-    ]
+    ],
+    "inventory": 10
   },
   {
     "id": "gid://shopify/Product/15158668689772",
@@ -278,7 +280,8 @@
     },
     "collectionHandles": [
       "one-peace"
-    ]
+    ],
+    "inventory": 10
   },
   {
     "id": "gid://shopify/Product/15158668919148",
@@ -369,7 +372,8 @@
     },
     "collectionHandles": [
       "two-peace"
-    ]
+    ],
+    "inventory": 10
   },
   {
     "id": "gid://shopify/Product/15158669050220",
@@ -460,7 +464,8 @@
     },
     "collectionHandles": [
       "co-ords"
-    ]
+    ],
+    "inventory": 10
   },
   {
     "id": "gid://shopify/Product/15158669246828",
@@ -551,7 +556,8 @@
     },
     "collectionHandles": [
       "lehenga"
-    ]
+    ],
+    "inventory": 10
   },
   {
     "id": "gid://shopify/Product/15158669771116",
@@ -642,7 +648,8 @@
     },
     "collectionHandles": [
       "jewellery"
-    ]
+    ],
+    "inventory": 10
   },
   {
     "id": "gid://shopify/Product/15158670033260",
@@ -733,6 +740,127 @@
     },
     "collectionHandles": [
       "jewellery"
-    ]
+    ],
+    "inventory": 10
+  },
+  {
+    "id": "gid://shopify/Product/1783275892432",
+    "title": "Test API Product",
+    "handle": "test-api-product",
+    "description": "Test description",
+    "descriptionHtml": "<p>Test description</p>",
+    "availableForSale": true,
+    "priceRange": {
+      "minVariantPrice": {
+        "amount": "999.00",
+        "currencyCode": "INR"
+      }
+    },
+    "compareAtPriceRange": {
+      "minVariantPrice": {
+        "amount": "999.00",
+        "currencyCode": "INR"
+      }
+    },
+    "images": {
+      "edges": []
+    },
+    "options": [
+      {
+        "name": "Size",
+        "values": [
+          "S",
+          "M"
+        ]
+      }
+    ],
+    "variants": {
+      "edges": [
+        {
+          "node": {
+            "id": "gid://shopify/Product/1783275892432-variant-0",
+            "title": "Default Title",
+            "availableForSale": true,
+            "price": {
+              "amount": "999.00",
+              "currencyCode": "INR"
+            },
+            "compareAtPrice": null,
+            "selectedOptions": [
+              {
+                "name": "Standard",
+                "value": "Default Title"
+              }
+            ],
+            "image": null
+          }
+        }
+      ]
+    },
+    "tags": [
+      "test"
+    ],
+    "collectionHandles": [],
+    "inventory": 10
+  },
+  {
+    "id": "gid://shopify/Product/1783276008924",
+    "title": "Test API Product 1783276006",
+    "handle": "test-api-product-1783276006",
+    "description": "Test description",
+    "descriptionHtml": "<p>Test description</p>",
+    "availableForSale": true,
+    "priceRange": {
+      "minVariantPrice": {
+        "amount": "999.00",
+        "currencyCode": "INR"
+      }
+    },
+    "compareAtPriceRange": {
+      "minVariantPrice": {
+        "amount": "999.00",
+        "currencyCode": "INR"
+      }
+    },
+    "images": {
+      "edges": []
+    },
+    "options": [
+      {
+        "name": "Size",
+        "values": [
+          "S",
+          "M"
+        ]
+      }
+    ],
+    "variants": {
+      "edges": [
+        {
+          "node": {
+            "id": "gid://shopify/Product/1783276008924-variant-0",
+            "title": "Default Title",
+            "availableForSale": true,
+            "price": {
+              "amount": "999.00",
+              "currencyCode": "INR"
+            },
+            "compareAtPrice": null,
+            "selectedOptions": [
+              {
+                "name": "Standard",
+                "value": "Default Title"
+              }
+            ],
+            "image": null
+          }
+        }
+      ]
+    },
+    "tags": [
+      "test"
+    ],
+    "collectionHandles": [],
+    "inventory": 10
   }
 ]

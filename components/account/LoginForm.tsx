@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { loginAction } from "@/app/actions/auth";
+import { login } from "@/lib/api/auth-client";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Eye, EyeOff } from "lucide-react";
@@ -17,14 +17,19 @@ export default function LoginForm({ onToggleView }: { onToggleView: () => void }
     setLoading(true);
     setError(null);
     
-    const formData = new FormData(e.currentTarget);
-    const result = await loginAction(formData);
-    
-    if (result.success) {
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    const input = {
+      email: formData.get("email") as string,
+      password: formData.get("password") as string,
+    };
+
+    try {
+      await login(input);
       router.push("/account");
       router.refresh();
-    } else {
-      setError(result.error || "An error occurred");
+    } catch (err: any) {
+      setError(err.message || "Login failed");
       setLoading(false);
     }
   };
