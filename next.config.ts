@@ -5,13 +5,6 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ["mysql2"],
   images: {
     unoptimized: true,
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "cdn.shopify.com",
-        pathname: "/**",
-      },
-    ],
   },
 };
 

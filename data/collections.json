@@ -12,7 +12,7 @@
     "handle": "saree",
     "description": "Saree Collection",
     "image": {
-      "url": "https://cdn.shopify.com/s/files/1/0996/4489/9692/collections/image_1.png?v=1781099844",
+      "url": "/images/products/col-image_1.png",
       "altText": null
     }
   },
@@ -22,7 +22,7 @@
     "handle": "kurti",
     "description": "Kurti Collection",
     "image": {
-      "url": "https://cdn.shopify.com/s/files/1/0996/4489/9692/collections/kurti2.webp?v=1780666195",
+      "url": "/images/products/col-kurti2.webp",
       "altText": null
     }
   },
@@ -32,7 +32,7 @@
     "handle": "one-peace",
     "description": "One peace Collection",
     "image": {
-      "url": "https://cdn.shopify.com/s/files/1/0996/4489/9692/collections/1pice3.webp?v=1780666423",
+      "url": "/images/products/col-1pice3.webp",
       "altText": null
     }
   },
@@ -42,7 +42,7 @@
     "handle": "two-peace",
     "description": "Two Peace Collection",
     "image": {
-      "url": "https://cdn.shopify.com/s/files/1/0996/4489/9692/collections/2pice3_1a9de0e0-fada-4842-a9bc-82b5719009b1.webp?v=1780666592",
+      "url": "/images/products/col-2pice3_1a9de0e0-fada-4842-a9bc-82b5719009b1.webp",
       "altText": null
     }
   },
@@ -52,7 +52,7 @@
     "handle": "co-ords",
     "description": "Co-ords Collection",
     "image": {
-      "url": "https://cdn.shopify.com/s/files/1/0996/4489/9692/collections/cord3.webp?v=1780666794",
+      "url": "/images/products/col-cord3.webp",
       "altText": null
     }
   },
@@ -62,7 +62,7 @@
     "handle": "lehenga",
     "description": "Lehenga Collection",
     "image": {
-      "url": "https://cdn.shopify.com/s/files/1/0996/4489/9692/collections/Lehenga1_0439b151-c000-4932-ab9a-63a70650969b.webp?v=1780666975",
+      "url": "/images/products/col-Lehenga1_0439b151-c000-4932-ab9a-63a70650969b.webp",
       "altText": null
     }
   },
@@ -72,7 +72,7 @@
     "handle": "jewellery",
     "description": "Jewellery Collection",
     "image": {
-      "url": "https://cdn.shopify.com/s/files/1/0996/4489/9692/collections/Jewellery3_f055e8b1-719a-45ea-812a-9518569e5193.webp?v=1780667437",
+      "url": "/images/products/col-Jewellery3_f055e8b1-719a-45ea-812a-9518569e5193.webp",
       "altText": null
     }
   },

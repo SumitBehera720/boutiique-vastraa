@@ -22,19 +22,19 @@
       "edges": [
         {
           "node": {
-            "url": "https://cdn.shopify.com/s/files/1/0996/4489/9692/files/saree3.webp?v=1780665793",
+            "url": "/images/products/saree3.webp",
             "altText": null
           }
         },
         {
           "node": {
-            "url": "https://cdn.shopify.com/s/files/1/0996/4489/9692/files/saree2.webp?v=1780665793",
+            "url": "/images/products/saree2.webp",
             "altText": null
           }
         },
         {
           "node": {
-            "url": "https://cdn.shopify.com/s/files/1/0996/4489/9692/files/saree1.webp?v=1780665793",
+            "url": "/images/products/saree1.webp",
             "altText": null
           }
         }
@@ -70,7 +70,7 @@
               }
             ],
             "image": {
-              "url": "https://cdn.shopify.com/s/files/1/0996/4489/9692/files/saree3.webp?v=1780665793"
+              "url": "/images/products/saree3.webp"
             }
           }
         }
@@ -122,19 +122,19 @@
       "edges": [
         {
           "node": {
-            "url": "https://cdn.shopify.com/s/files/1/0996/4489/9692/files/kurti3.webp?v=1780666033",
+            "url": "/images/products/kurti3.webp",
             "altText": null
           }
         },
         {
           "node": {
-            "url": "https://cdn.shopify.com/s/files/1/0996/4489/9692/files/kurti1.webp?v=1780666033",
+            "url": "/images/products/kurti1.webp",
             "altText": null
           }
         },
         {
           "node": {
-            "url": "https://cdn.shopify.com/s/files/1/0996/4489/9692/files/kurti2.webp?v=1780666047",
+            "url": "/images/products/kurti2.webp",
             "altText": null
           }
         }
@@ -170,7 +170,7 @@
               }
             ],
             "image": {
-              "url": "https://cdn.shopify.com/s/files/1/0996/4489/9692/files/kurti3.webp?v=1780666033"
+              "url": "/images/products/kurti3.webp"
             }
           }
         }
@@ -214,19 +214,19 @@
       "edges": [
         {
           "node": {
-            "url": "https://cdn.shopify.com/s/files/1/0996/4489/9692/files/1pice3.webp?v=1780666225",
+            "url": "/images/products/1pice3.webp",
             "altText": null
           }
         },
         {
           "node": {
-            "url": "https://cdn.shopify.com/s/files/1/0996/4489/9692/files/1pice2.webp?v=1780666225",
+            "url": "/images/products/1pice2.webp",
             "altText": null
           }
         },
         {
           "node": {
-            "url": "https://cdn.shopify.com/s/files/1/0996/4489/9692/files/1pice.webp?v=1780666225",
+            "url": "/images/products/1pice.webp",
             "altText": null
           }
         }
@@ -262,7 +262,7 @@
               }
             ],
             "image": {
-              "url": "https://cdn.shopify.com/s/files/1/0996/4489/9692/files/1pice3.webp?v=1780666225"
+              "url": "/images/products/1pice3.webp"
             }
           }
         }
@@ -306,19 +306,19 @@
       "edges": [
         {
           "node": {
-            "url": "https://cdn.shopify.com/s/files/1/0996/4489/9692/files/2pice3.webp?v=1780666476",
+            "url": "/images/products/2pice3.webp",
             "altText": null
           }
         },
         {
           "node": {
-            "url": "https://cdn.shopify.com/s/files/1/0996/4489/9692/files/2pice2.webp?v=1780666476",
+            "url": "/images/products/2pice2.webp",
             "altText": null
           }
         },
         {
           "node": {
-            "url": "https://cdn.shopify.com/s/files/1/0996/4489/9692/files/2pice.webp?v=1780666476",
+            "url": "/images/products/2pice.webp",
             "altText": null
           }
         }
@@ -354,7 +354,7 @@
               }
             ],
             "image": {
-              "url": "https://cdn.shopify.com/s/files/1/0996/4489/9692/files/2pice3.webp?v=1780666476"
+              "url": "/images/products/2pice3.webp"
             }
           }
         }
@@ -398,19 +398,19 @@
       "edges": [
         {
           "node": {
-            "url": "https://cdn.shopify.com/s/files/1/0996/4489/9692/files/cord2.webp?v=1780666627",
+            "url": "/images/products/cord2.webp",
             "altText": null
           }
         },
         {
           "node": {
-            "url": "https://cdn.shopify.com/s/files/1/0996/4489/9692/files/cord1.webp?v=1780666627",
+            "url": "/images/products/cord1.webp",
             "altText": null
           }
         },
         {
           "node": {
-            "url": "https://cdn.shopify.com/s/files/1/0996/4489/9692/files/cord3.webp?v=1780666634",
+            "url": "/images/products/cord3.webp",
             "altText": null
           }
         }
@@ -446,7 +446,7 @@
               }
             ],
             "image": {
-              "url": "https://cdn.shopify.com/s/files/1/0996/4489/9692/files/cord2.webp?v=1780666627"
+              "url": "/images/products/cord2.webp"
             }
           }
         }
@@ -490,19 +490,19 @@
       "edges": [
         {
           "node": {
-            "url": "https://cdn.shopify.com/s/files/1/0996/4489/9692/files/Lehenga3.webp?v=1780666828",
+            "url": "/images/products/Lehenga3.webp",
             "altText": null
           }
         },
         {
           "node": {
-            "url": "https://cdn.shopify.com/s/files/1/0996/4489/9692/files/Lehenga2.webp?v=1780666827",
+            "url": "/images/products/Lehenga2.webp",
             "altText": null
           }
         },
         {
           "node": {
-            "url": "https://cdn.shopify.com/s/files/1/0996/4489/9692/files/Lehenga1.webp?v=1780666828",
+            "url": "/images/products/Lehenga1.webp",
             "altText": null
           }
         }
@@ -538,7 +538,7 @@
               }
             ],
             "image": {
-              "url": "https://cdn.shopify.com/s/files/1/0996/4489/9692/files/Lehenga3.webp?v=1780666828"
+              "url": "/images/products/Lehenga3.webp"
             }
           }
         }
@@ -582,19 +582,19 @@
       "edges": [
         {
           "node": {
-            "url": "https://cdn.shopify.com/s/files/1/0996/4489/9692/files/Jewellery2.webp?v=1780667013",
+            "url": "/images/products/Jewellery2.webp",
             "altText": null
           }
         },
         {
           "node": {
-            "url": "https://cdn.shopify.com/s/files/1/0996/4489/9692/files/Jewellery3.webp?v=1780667013",
+            "url": "/images/products/Jewellery3.webp",
             "altText": null
           }
         },
         {
           "node": {
-            "url": "https://cdn.shopify.com/s/files/1/0996/4489/9692/files/Jewellery1.webp?v=1780667029",
+            "url": "/images/products/Jewellery1.webp",
             "altText": null
           }
         }
@@ -630,7 +630,7 @@
               }
             ],
             "image": {
-              "url": "https://cdn.shopify.com/s/files/1/0996/4489/9692/files/Jewellery2.webp?v=1780667013"
+              "url": "/images/products/Jewellery2.webp"
             }
           }
         }
@@ -674,19 +674,19 @@
       "edges": [
         {
           "node": {
-            "url": "https://cdn.shopify.com/s/files/1/0996/4489/9692/files/Jewellery6.webp?v=1780667363",
+            "url": "/images/products/Jewellery6.webp",
             "altText": null
           }
         },
         {
           "node": {
-            "url": "https://cdn.shopify.com/s/files/1/0996/4489/9692/files/Jewellery5.webp?v=1780667364",
+            "url": "/images/products/Jewellery5.webp",
             "altText": null
           }
         },
         {
           "node": {
-            "url": "https://cdn.shopify.com/s/files/1/0996/4489/9692/files/Jewellery4.webp?v=1780667363",
+            "url": "/images/products/Jewellery4.webp",
             "altText": null
           }
         }
@@ -722,7 +722,7 @@
               }
             ],
             "image": {
-              "url": "https://cdn.shopify.com/s/files/1/0996/4489/9692/files/Jewellery6.webp?v=1780667363"
+              "url": "/images/products/Jewellery6.webp"
             }
           }
         }
