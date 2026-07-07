@@ -189,7 +189,7 @@ async function handleCollections(path: string[], req: NextRequest) {
     const first = parseInt(url.searchParams.get("first") || "24");
     const all = await products.all();
     const filtered = all.filter((p: any) =>
-      p.collections?.some((c: any) => c.handle === path[1])
+      p.collectionHandles?.includes(path[1])
     );
     return json({
       ...item,
