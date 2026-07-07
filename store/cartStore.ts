@@ -27,8 +27,8 @@ export const useCartStore = create<CartState>()(
         cartId: cart.id,
         checkoutUrl: cart.checkoutUrl,
         totalQuantity: cart.totalQuantity,
-        lines: cart.lines.edges.map((e: any) => e.node),
-        subtotal: cart.cost.subtotalAmount.amount,
+        lines: Array.isArray(cart.lines) ? cart.lines : (cart.lines?.edges?.map((e: any) => e.node) || []),
+        subtotal: cart.cost?.subtotalAmount?.amount || cart.subtotal || "0.00",
       }),
       
       openCart: () => set({ isCartOpen: true }),

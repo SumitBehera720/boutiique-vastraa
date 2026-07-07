@@ -10,7 +10,7 @@ function deleteCookie(name: string) {
 }
 
 export async function register(input: { firstName: string; lastName: string; email: string; password: string }) {
-  const res = await fetch("/api/proxy/auth/register", {
+  const res = await fetch("/api/auth/register", {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
     body: JSON.stringify(input),
@@ -27,7 +27,7 @@ export async function register(input: { firstName: string; lastName: string; ema
 }
 
 export async function login(input: { email: string; password: string }) {
-  const res = await fetch("/api/proxy/auth/login", {
+  const res = await fetch("/api/auth/login", {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
     body: JSON.stringify(input),
@@ -45,7 +45,7 @@ export async function login(input: { email: string; password: string }) {
 
 export function logout() {
   deleteCookie(COOKIE_NAME);
-  fetch("/api/proxy/auth/logout", {
+  fetch("/api/auth/logout", {
     method: "POST",
     headers: { Accept: "application/json" },
   }).catch(() => {});

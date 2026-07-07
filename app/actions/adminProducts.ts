@@ -28,7 +28,6 @@ export async function deleteProductAction(id: string) {
 export async function uploadImageAction(formData: FormData) {
   try {
     await requireAuth();
-    const token = await import("@/lib/api/client").then(m => m.apiFetch);
     const res = await apiFetch<any>("/admin/upload/image", {
       method: "POST",
       body: formData,

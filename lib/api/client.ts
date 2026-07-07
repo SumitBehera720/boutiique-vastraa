@@ -1,5 +1,3 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-
 export class ApiError extends Error {
   status: number;
   data: any;
@@ -11,14 +9,8 @@ export class ApiError extends Error {
   }
 }
 
-async function getToken(): Promise<string | null> {
-  const { cookies } = await import("next/headers");
-  const cookieStore = await cookies();
-  return cookieStore.get("boutiique_vastraa_customer_token")?.value ?? null;
-}
-
 function buildUrl(endpoint: string, params?: Record<string, string>): string {
-  const url = new URL(`/api/proxy${endpoint}`, "http://n");
+  const url = new URL(`/api${endpoint}`, "http://n");
   if (params) {
     Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
   }
@@ -29,18 +21,12 @@ export async function apiFetch<T>(
   endpoint: string,
   options: RequestInit & { params?: Record<string, string> } = {}
 ): Promise<T> {
-  const token = await getToken();
-
   const path = buildUrl(endpoint, options.params);
 
   const headers: Record<string, string> = {
     Accept: "application/json",
     ...(options.headers as Record<string, string>),
   };
-
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
 
   if (options.body && typeof options.body === "object" && !(options.body instanceof FormData)) {
     headers["Content-Type"] = "application/json";
@@ -49,6 +35,7 @@ export async function apiFetch<T>(
   const res = await fetch(path, {
     ...options,
     headers,
+    cache: "no-store",
     body: options.body instanceof FormData ? options.body : options.body ? JSON.stringify(options.body) : undefined,
   });
 

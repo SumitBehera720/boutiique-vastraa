@@ -1,12 +1,17 @@
 import { MetadataRoute } from 'next';
-import { getCollections, getProducts } from '@/lib/shopify/queries';
+
+export const dynamic = 'force-dynamic';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://boutiquevastra.com';
 
-  // Fetch dynamic routes
-  const products = await getProducts(100);
-  const collections = await getCollections(100);
+  let products: any[] = [];
+  let collections: any[] = [];
+  try {
+    const { products: pstore, collections: cstore } = await import('@/lib/data-store');
+    products = (await pstore.all()) as any[];
+    collections = (await cstore.all()) as any[];
+  } catch {}
 
   const productUrls = products.map((product: any) => ({
     url: `${baseUrl}/products/${product.handle}`,

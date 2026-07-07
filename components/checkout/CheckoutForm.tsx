@@ -141,8 +141,8 @@ export default function CheckoutForm({ cartId, initialCustomer }: CheckoutFormPr
           id: null,
           checkoutUrl: null,
           totalQuantity: 0,
-          lines: { edges: [] },
-          cost: { subtotalAmount: { amount: "0.00", currencyCode: "INR" } }
+          lines: [],
+          subtotal: "0.00",
         });
         
         // Redirect to success page

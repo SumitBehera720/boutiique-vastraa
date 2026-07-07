@@ -1,6 +1,6 @@
 export async function applyPromoCode(code: string, subtotal: number) {
   try {
-    const res = await fetch("/api/proxy/coupons/validate", {
+    const res = await fetch("/api/coupons/validate", {
       method: "POST",
       headers: { "Content-Type": "application/json", Accept: "application/json" },
       body: JSON.stringify({ code: code.trim(), cart_subtotal: subtotal }),

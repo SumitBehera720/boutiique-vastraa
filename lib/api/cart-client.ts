@@ -1,5 +1,5 @@
 export async function createCart(lines: { merchandiseId: string; quantity: number }[]) {
-  const res = await fetch("/api/proxy/cart", {
+    const res = await fetch("/api/cart", {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
     body: JSON.stringify({ lines }),
@@ -12,7 +12,7 @@ export async function createCart(lines: { merchandiseId: string; quantity: numbe
 }
 
 export async function addToCart(cartId: string, lines: { merchandiseId: string; quantity: number }[]) {
-  const res = await fetch(`/api/proxy/cart/${cartId}/lines`, {
+    const res = await fetch(`/api/cart/${cartId}/lines`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
     body: JSON.stringify({ lines }),
@@ -25,7 +25,7 @@ export async function addToCart(cartId: string, lines: { merchandiseId: string; 
 }
 
 export async function getCart(cartId: string) {
-  const res = await fetch(`/api/proxy/cart/${cartId}`, {
+    const res = await fetch(`/api/cart/${cartId}`, {
     method: "GET",
     headers: { Accept: "application/json" },
   });
@@ -34,7 +34,7 @@ export async function getCart(cartId: string) {
 }
 
 export async function updateCartLines(cartId: string, lines: { id: string; quantity: number }[]) {
-  const res = await fetch(`/api/proxy/cart/${cartId}/lines`, {
+    const res = await fetch(`/api/cart/${cartId}/lines`, {
     method: "PUT",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
     body: JSON.stringify({ lines }),

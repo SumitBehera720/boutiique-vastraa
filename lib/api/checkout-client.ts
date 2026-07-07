@@ -1,6 +1,6 @@
 export async function getCartForCheckout(cartId: string) {
   try {
-    const res = await fetch(`/api/proxy/cart/${cartId}`, {
+    const res = await fetch(`/api/cart/${cartId}`, {
       headers: { Accept: "application/json" },
     });
     if (!res.ok) {
@@ -33,7 +33,7 @@ export async function submitOrder(formData: {
   promoCode?: string;
 }) {
   try {
-    const res = await fetch("/api/proxy/orders", {
+    const res = await fetch("/api/orders", {
       method: "POST",
       headers: { "Content-Type": "application/json", Accept: "application/json" },
       body: JSON.stringify({
@@ -74,7 +74,7 @@ export async function submitOrder(formData: {
 export async function trackOrder(orderNumber: string, email: string) {
   try {
     const params = new URLSearchParams({ order_number: orderNumber, email });
-    const res = await fetch(`/api/proxy/orders/track?${params}`, {
+    const res = await fetch(`/api/orders/track?${params}`, {
       headers: { Accept: "application/json" },
     });
     if (!res.ok) throw new Error("Order not found");
