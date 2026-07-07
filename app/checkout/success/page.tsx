@@ -19,7 +19,8 @@ export default async function SuccessPage({
   const orderId = resolvedSearchParams.orderId || "";
 
   // Fetch order
-  const orders = await apiGet<any[]>("/admin/orders");
+  let orders: any[] = [];
+  try { orders = await apiGet<any[]>("/admin/orders"); } catch {}
   const order = orders.find(o => o.id === orderId);
 
   if (!order) {

@@ -15,7 +15,8 @@ export default async function AdminNewProductPage() {
     redirect("/account/login");
   }
 
-  const collections = await apiGet<any[]>("/admin/collections");
+  let collections: any[] = [];
+  try { collections = await apiGet<any[]>("/admin/collections"); } catch {}
 
   return (
     <ProductFormClient 

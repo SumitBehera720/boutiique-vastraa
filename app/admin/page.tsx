@@ -11,11 +11,14 @@ export default async function AdminDashboardPage() {
     redirect("/account/login");
   }
 
-  // Load database entities
-  const products = await apiGet<any[]>("/admin/products");
-  const collections = await apiGet<any[]>("/admin/collections");
-  const orders = await apiGet<any[]>("/admin/orders");
-  const customers = await apiGet<any[]>("/admin/customers");
+  let products: any[] = [];
+  let collections: any[] = [];
+  let orders: any[] = [];
+  let customers: any[] = [];
+  try { products = await apiGet<any[]>("/admin/products"); } catch {}
+  try { collections = await apiGet<any[]>("/admin/collections"); } catch {}
+  try { orders = await apiGet<any[]>("/admin/orders"); } catch {}
+  try { customers = await apiGet<any[]>("/admin/customers"); } catch {}
 
   // Calculations
   const nonCancelledOrders = orders.filter(o => o.fulfillmentStatus !== "CANCELLED");

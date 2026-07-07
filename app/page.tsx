@@ -12,31 +12,41 @@ import HeroBanner from "@/components/home/HeroBanner";
 import { apiGet } from "@/lib/api/client";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = await apiGet<any>("/settings");
-  const cleanTitle = settings.seo.titleTemplate
+  let settings: any = {};
+  try {
+    settings = await apiGet<any>("/settings");
+  } catch {}
+  const cleanTitle = settings.seo?.titleTemplate
     ? settings.seo.titleTemplate.replace("%s | ", "")
     : "Boutiique Vastraa";
   return {
     title: "Home | " + cleanTitle,
-    description: settings.seo.defaultDescription,
+    description: settings.seo?.defaultDescription,
     openGraph: {
       type: 'website',
       url: 'https://boutiquevastra.com',
       title: cleanTitle,
-      description: settings.seo.defaultDescription,
+      description: settings.seo?.defaultDescription,
       siteName: 'Boutiique Vastraa',
     },
   };
 }
 
 export default async function Home() {
-  // Load settings for homepage hero slideshow
-  const settings = await apiGet<any>("/settings");
-  const homeSettings = settings.homepage || {};
-  const bannerSlides = settings.banners || [];
+  let settings: any = {};
+  let bannerSlides: any[] = [];
+  let dbReviews: any[] = [];
 
-  // Load verified testimonials
-  const dbReviews = await apiGet<any[]>("/reviews/global");
+  try {
+    settings = await apiGet<any>("/settings");
+    bannerSlides = settings.banners || [];
+  } catch {}
+
+  try {
+    dbReviews = await apiGet<any[]>("/reviews/global");
+  } catch {}
+
+  const homeSettings = settings.homepage || {};
   
   // Custom Testimonials mapping
   let customTestimonials = [];

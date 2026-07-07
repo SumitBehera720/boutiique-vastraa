@@ -10,8 +10,12 @@ async function requireAuth() {
 }
 
 export async function getReviewsAction() {
-  await requireAuth();
-  return apiGet<any[]>("/admin/reviews");
+  try {
+    await requireAuth();
+    return await apiGet<any[]>("/admin/reviews");
+  } catch {
+    return [];
+  }
 }
 
 export async function toggleReviewApprovalAction(reviewId: string) {

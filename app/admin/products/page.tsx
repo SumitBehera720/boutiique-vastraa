@@ -15,8 +15,10 @@ export default async function AdminProductsPage() {
     redirect("/account/login");
   }
 
-  const products = await apiGet<any[]>("/admin/products");
-  const collections = await apiGet<any[]>("/admin/collections");
+  let products: any[] = [];
+  let collections: any[] = [];
+  try { products = await apiGet<any[]>("/admin/products"); } catch {}
+  try { collections = await apiGet<any[]>("/admin/collections"); } catch {}
 
   return (
     <ProductsListClient 

@@ -16,7 +16,8 @@ export default async function AdminSettingsPage() {
     redirect("/account/login");
   }
 
-  const settings = await apiGet<any>("/settings");
+  let settings: any = {};
+  try { settings = await apiGet<any>("/settings"); } catch {}
   const products = await getProducts(100);
   const collections = await getCollections(100);
 

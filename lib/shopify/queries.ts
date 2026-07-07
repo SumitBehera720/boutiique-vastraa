@@ -21,13 +21,21 @@ function formatProduct(p: any) {
 }
 
 export async function getProducts(first = 50) {
-  const res = await apiGet<any[]>("/products", { per_page: String(first) });
-  return res.map(formatProduct);
+  try {
+    const res = await apiGet<any[]>("/products", { per_page: String(first) });
+    return res.map(formatProduct);
+  } catch {
+    return [];
+  }
 }
 
 export async function getCollections(first = 20) {
-  const res = await apiGet<any[]>("/collections", { first: String(first) });
-  return res.filter((col: any) => col.handle !== "frontpage");
+  try {
+    const res = await apiGet<any[]>("/collections", { first: String(first) });
+    return res.filter((col: any) => col.handle !== "frontpage");
+  } catch {
+    return [];
+  }
 }
 
 export async function getProductByHandle(handle: string) {
@@ -79,17 +87,21 @@ export async function getCollectionByHandle({
 }
 
 export async function searchProducts(query: string, first = 24, after: string | null = null) {
-  const params: Record<string, string> = { q: query, per_page: String(first) };
-  if (after) params.after = after;
-  const res = await apiGet<any[]>("/products/search", params);
-  const edges = res.map((p: any) => ({ node: formatProduct(p) }));
-  return {
-    edges,
-    pageInfo: {
-      hasNextPage: res.length >= first,
-      endCursor: res.length > 0 ? res[res.length - 1].id : "",
-    },
-  };
+  try {
+    const params: Record<string, string> = { q: query, per_page: String(first) };
+    if (after) params.after = after;
+    const res = await apiGet<any[]>("/products/search", params);
+    const edges = res.map((p: any) => ({ node: formatProduct(p) }));
+    return {
+      edges,
+      pageInfo: {
+        hasNextPage: res.length >= first,
+        endCursor: res.length > 0 ? res[res.length - 1].id : "",
+      },
+    };
+  } catch {
+    return { edges: [], pageInfo: { hasNextPage: false, endCursor: "" } };
+  }
 }
 
 export async function getCustomer(customerAccessToken: string) {

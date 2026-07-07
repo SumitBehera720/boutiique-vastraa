@@ -1,8 +1,6 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-
 export async function applyPromoCode(code: string, subtotal: number) {
   try {
-    const res = await fetch(`${API_URL}/api/coupons/validate`, {
+    const res = await fetch("/api/proxy/coupons/validate", {
       method: "POST",
       headers: { "Content-Type": "application/json", Accept: "application/json" },
       body: JSON.stringify({ code: code.trim(), cart_subtotal: subtotal }),

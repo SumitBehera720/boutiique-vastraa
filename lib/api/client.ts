@@ -17,16 +17,21 @@ async function getToken(): Promise<string | null> {
   return cookieStore.get("boutiique_vastraa_customer_token")?.value ?? null;
 }
 
+function buildUrl(endpoint: string, params?: Record<string, string>): string {
+  const url = new URL(`/api/proxy${endpoint}`, "http://n");
+  if (params) {
+    Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+  }
+  return url.pathname + url.search;
+}
+
 export async function apiFetch<T>(
   endpoint: string,
   options: RequestInit & { params?: Record<string, string> } = {}
 ): Promise<T> {
   const token = await getToken();
 
-  const url = new URL(`${API_URL}/api${endpoint}`);
-  if (options.params) {
-    Object.entries(options.params).forEach(([k, v]) => url.searchParams.set(k, v));
-  }
+  const path = buildUrl(endpoint, options.params);
 
   const headers: Record<string, string> = {
     Accept: "application/json",
@@ -41,7 +46,7 @@ export async function apiFetch<T>(
     headers["Content-Type"] = "application/json";
   }
 
-  const res = await fetch(url.toString(), {
+  const res = await fetch(path, {
     ...options,
     headers,
     body: options.body instanceof FormData ? options.body : options.body ? JSON.stringify(options.body) : undefined,

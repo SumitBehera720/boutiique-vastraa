@@ -15,7 +15,8 @@ export default async function AdminCouponsPage() {
     redirect("/account/login");
   }
 
-  const coupons = await apiGet<any[]>("/admin/coupons");
+  let coupons: any[] = [];
+  try { coupons = await apiGet<any[]>("/admin/coupons"); } catch {}
 
   return (
     <CouponsListClient 

@@ -32,14 +32,17 @@ const kalnia = Kalnia({
 import { apiGet } from "@/lib/api/client";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = await apiGet<any>("/settings");
+  let settings: any = {};
+  try {
+    settings = await apiGet<any>("/settings");
+  } catch {}
   return {
     title: {
-      template: settings.seo.titleTemplate || "%s | Boutiique Vastraa",
+      template: settings.seo?.titleTemplate || "%s | Boutiique Vastraa",
       default: "Boutiique Vastraa",
     },
-    description: settings.seo.defaultDescription,
-    keywords: settings.seo.keywords,
+    description: settings.seo?.defaultDescription,
+    keywords: settings.seo?.keywords,
   };
 }
 
@@ -51,10 +54,16 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const token = await getCustomerToken();
+  let token: string | null = null;
+  try {
+    token = await getCustomerToken();
+  } catch {}
   const isLoggedIn = !!token;
 
-  const settings = await apiGet<any>("/settings");
+  let settings: any = {};
+  try {
+    settings = await apiGet<any>("/settings");
+  } catch {}
   const footerSettings = settings.footer || {};
   const headerSettings = settings.header || {};
 

@@ -22,7 +22,8 @@ export default async function AdminOrderDetailPage({
   const resolvedParams = await params;
   const id = resolvedParams.id;
 
-  const orders = await apiGet<any[]>("/admin/orders");
+  let orders: any[] = [];
+  try { orders = await apiGet<any[]>("/admin/orders"); } catch {}
   const order = orders.find(o => o.id === id);
 
   if (!order) {

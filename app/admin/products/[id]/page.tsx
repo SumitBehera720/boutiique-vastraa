@@ -23,7 +23,8 @@ export default async function AdminEditProductPage({
   const id = resolvedParams.id;
 
   // Search by exact ID or Shopify GID
-  const products = await apiGet<any[]>("/admin/products");
+  let products: any[] = [];
+  try { products = await apiGet<any[]>("/admin/products"); } catch {}
   const product = products.find(
     p => p.id === id || p.id === `gid://shopify/Product/${id}`
   );
@@ -32,7 +33,8 @@ export default async function AdminEditProductPage({
     notFound();
   }
 
-  const collections = await apiGet<any[]>("/admin/collections");
+  let collections: any[] = [];
+  try { collections = await apiGet<any[]>("/admin/collections"); } catch {}
 
   return (
     <ProductFormClient 

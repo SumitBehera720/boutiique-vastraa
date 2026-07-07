@@ -4,7 +4,8 @@ import { getCustomer } from "@/lib/shopify/queries";
 import OrderHistory from "@/components/account/OrderHistory";
 
 export default async function AccountPage() {
-  const token = await getCustomerToken();
+  let token: string | null = null;
+  try { token = await getCustomerToken(); } catch {}
   
   if (!token) {
     redirect("/account/login");

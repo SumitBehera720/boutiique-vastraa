@@ -15,7 +15,8 @@ export default async function AdminReviewsPage() {
     redirect("/account/login");
   }
 
-  const reviews = await apiGet<any[]>("/admin/reviews");
+  let reviews: any[] = [];
+  try { reviews = await apiGet<any[]>("/admin/reviews"); } catch {}
 
   return (
     <ReviewsListClient 

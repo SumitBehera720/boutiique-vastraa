@@ -15,8 +15,10 @@ export default async function AdminCustomersPage() {
     redirect("/account/login");
   }
 
-  const customers = await apiGet<any[]>("/admin/customers");
-  const orders = await apiGet<any[]>("/admin/orders");
+  let customers: any[] = [];
+  let orders: any[] = [];
+  try { customers = await apiGet<any[]>("/admin/customers"); } catch {}
+  try { orders = await apiGet<any[]>("/admin/orders"); } catch {}
 
   return (
     <CustomersListClient 

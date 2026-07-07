@@ -10,8 +10,12 @@ async function requireAuth() {
 }
 
 export async function getCouponsAction() {
-  await requireAuth();
-  return apiGet<any[]>("/admin/coupons");
+  try {
+    await requireAuth();
+    return await apiGet<any[]>("/admin/coupons");
+  } catch {
+    return [];
+  }
 }
 
 export async function saveCouponAction(couponData: any) {
