@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import { getProducts, getCollections } from "@/lib/shopify/queries";
+export const dynamic = 'force-dynamic';
 import CollectionsSlider from "@/components/home/CollectionsSlider";
 import PatternBanner from "@/components/home/PatternBanner";
 import TopSellings from "@/components/home/TopSellings";
