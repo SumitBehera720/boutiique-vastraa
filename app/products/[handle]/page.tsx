@@ -3,6 +3,7 @@ import { getProductByHandle } from "@/lib/shopify/queries";
 import ProductGallery from "@/components/product/ProductGallery";
 import ProductInfo from "@/components/product/ProductInfo";
 import RelatedProducts from "@/components/product/RelatedProducts";
+import ScrollToTop from "@/components/product/ScrollToTop";
 
 export async function generateMetadata({ params }: { params: Promise<{ handle: string }> }) {
   const resolvedParams = await params;
@@ -55,6 +56,7 @@ export default async function ProductPage({ params }: { params: Promise<{ handle
 
   return (
     <div className="bg-white min-h-screen pb-16">
+      <ScrollToTop />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

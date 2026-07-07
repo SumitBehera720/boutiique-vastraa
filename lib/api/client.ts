@@ -11,14 +11,12 @@ export class ApiError extends Error {
 
 function buildUrl(endpoint: string, params?: Record<string, string>): string {
   const isServer = typeof window === "undefined";
-  const base = isServer
-    ? (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000")
-    : "http://n";
+  const base = "http://n";
   const url = new URL(`/api${endpoint}`, base);
   if (params) {
     Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
   }
-  return isServer ? url.href : url.pathname + url.search;
+  return url.pathname + url.search;
 }
 
 export async function apiFetch<T>(
@@ -34,6 +32,17 @@ export async function apiFetch<T>(
 
   if (options.body && typeof options.body === "object" && !(options.body instanceof FormData)) {
     headers["Content-Type"] = "application/json";
+  }
+
+  if (typeof window === "undefined") {
+    try {
+      const { cookies } = await import("next/headers");
+      const cookieStore = await cookies();
+      const cookieStr = cookieStore.toString();
+      if (cookieStr) {
+        headers["Cookie"] = cookieStr;
+      }
+    } catch {}
   }
 
   const res = await fetch(path, {

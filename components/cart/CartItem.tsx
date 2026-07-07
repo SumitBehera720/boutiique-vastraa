@@ -35,16 +35,23 @@ export default function CartItem({ item }: { item: any }) {
   };
 
   const merchandise = item.merchandise;
-  const product = merchandise.product;
+  const product = merchandise?.product;
+
+  const title = product?.title || item.title || "Product";
+  const handle = product?.handle || "";
+  const imageUrl = merchandise?.image?.url || item.image || "";
+  const imageAlt = merchandise?.image?.altText || title;
+  const variantTitle = merchandise?.title || item.variantTitle || "";
+  const price = merchandise?.price?.amount || item.price || "0";
 
   return (
     <div className={`flex gap-4 py-4 border-b border-gray-100 ${isUpdating ? 'opacity-50 pointer-events-none' : ''}`}>
       {/* Image */}
       <div className="relative w-20 h-24 bg-gray-50 rounded overflow-hidden flex-shrink-0 border border-gray-200">
-        {merchandise.image && (
+        {imageUrl && (
           <Image 
-            src={merchandise.image.url} 
-            alt={merchandise.image.altText || product.title} 
+            src={imageUrl} 
+            alt={imageAlt} 
             fill 
             className="object-cover" 
           />
@@ -54,11 +61,17 @@ export default function CartItem({ item }: { item: any }) {
       {/* Details */}
       <div className="flex flex-col flex-1">
         <div className="flex justify-between items-start">
-          <Link href={`/products/${product.handle}`}>
-            <h4 className="text-sm font-semibold text-gray-800 line-clamp-2 hover:text-primary transition-colors">
-              {product.title}
+          {handle ? (
+            <Link href={`/products/${handle}`}>
+              <h4 className="text-sm font-semibold text-gray-800 line-clamp-2 hover:text-primary transition-colors">
+                {title}
+              </h4>
+            </Link>
+          ) : (
+            <h4 className="text-sm font-semibold text-gray-800 line-clamp-2">
+              {title}
             </h4>
-          </Link>
+          )}
           <button 
             onClick={handleRemove}
             className="text-gray-400 hover:text-red-500 transition-colors p-1"
@@ -68,7 +81,7 @@ export default function CartItem({ item }: { item: any }) {
         </div>
 
         <div className="text-xs text-gray-500 mt-1 uppercase tracking-wider">
-          {merchandise.title !== "Default Title" && merchandise.title}
+          {variantTitle !== "Default Title" && variantTitle}
         </div>
 
         <div className="mt-auto flex justify-between items-end">
@@ -91,7 +104,7 @@ export default function CartItem({ item }: { item: any }) {
           </div>
 
           <div className="font-semibold text-primary">
-            ₹{parseFloat(merchandise.price.amount).toFixed(2)}
+            ₹{parseFloat(price).toFixed(2)}
           </div>
         </div>
       </div>

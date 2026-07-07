@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import VariantSelector from "./VariantSelector";
+import QuantitySelector from "./QuantitySelector";
 import ProductActions from "./ProductActions";
 import ProductAccordion from "./ProductAccordion";
 import { Truck, RefreshCcw, ShieldCheck, MapPin } from "lucide-react";
@@ -119,6 +120,10 @@ export default function ProductInfo({ product, recommendedProducts }: { product:
           />
         </div>
       )}
+
+      <div className="mb-6">
+        <QuantitySelector quantity={quantity} setQuantity={setQuantity} />
+      </div>
 
       <div className="mb-6">
         <ProductActions 

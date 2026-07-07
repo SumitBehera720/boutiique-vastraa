@@ -14,6 +14,9 @@ export default function ProductGallery({ images }: { images: any[] }) {
 
   if (!images || images.length === 0) return <div className="aspect-[3/4] bg-gray-200"></div>;
 
+  const hasEnoughForLoop = images.length >= 2;
+  const hasEnoughThumbs = images.length >= 6;
+
   return (
     <div className="flex flex-col gap-4">
       {/* Main Image */}
@@ -22,7 +25,7 @@ export default function ProductGallery({ images }: { images: any[] }) {
           "--swiper-navigation-color": "#800020",
           "--swiper-pagination-color": "#800020",
         } as any}
-        loop={true}
+        loop={hasEnoughForLoop}
         spaceBetween={10}
         navigation={true}
         thumbs={{ swiper: thumbsSwiper && !thumbsSwiper.destroyed ? thumbsSwiper : null }}
@@ -47,7 +50,7 @@ export default function ProductGallery({ images }: { images: any[] }) {
       {/* Thumbnail Gallery */}
       <Swiper
         onSwiper={setThumbsSwiper}
-        loop={true}
+        loop={hasEnoughThumbs}
         spaceBetween={10}
         slidesPerView={5}
         freeMode={true}
