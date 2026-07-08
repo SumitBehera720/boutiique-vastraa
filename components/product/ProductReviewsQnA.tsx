@@ -161,7 +161,7 @@ export default function ProductReviewsQnA({
   };
 
   return (
-    <div className="w-full mt-12 bg-gray-50/50 border-t border-b border-gray-100 py-12">
+    <div id="reviews" className="w-full mt-12 bg-gray-50/50 border-t border-b border-gray-100 py-12 scroll-mt-24">
       <div className="container mx-auto px-4 max-w-7xl">
         {/* Navigation Tabs */}
         <div className="flex border-b border-gray-200 mb-8 max-w-md mx-auto justify-center gap-6">
