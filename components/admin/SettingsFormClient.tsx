@@ -235,10 +235,11 @@ export default function SettingsFormClient({ initialSettings, products = [], col
   const [sareeTabLabel, setSareeTabLabel] = useState("");
   const [sareeTabImage, setSareeTabImage] = useState("");
   const addSareeTab = () => {
-    if (!sareeTabColHandle || !sareeTabLabel) return;
+    if (!sareeTabColHandle) return;
+    const label = sareeTabLabel || collections.find((c: any) => c.handle === sareeTabColHandle)?.title || sareeTabColHandle;
     setPerfectSareeTabs([
       ...perfectSareeTabs,
-      { collectionHandle: sareeTabColHandle, label: sareeTabLabel, image: sareeTabImage }
+      { collectionHandle: sareeTabColHandle, label, image: sareeTabImage }
     ]);
     setSareeTabColHandle("");
     setSareeTabLabel("");
