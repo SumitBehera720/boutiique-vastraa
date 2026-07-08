@@ -20,7 +20,42 @@ function formatProduct(p: any) {
   };
 }
 
+// ─── Server-side: call data-store directly (no HTTP round-trip) ──────────────
+// Under Phusion Passenger, HOSTNAME/PORT differ from what the Next.js client
+// expects, so we bypass HTTP entirely when running on the server.
+
+let _dsReady = false;
+
+async function ensureDs() {
+  if (_dsReady) return;
+  const { initDataStore } = await import("@/lib/data-store");
+  await initDataStore();
+  _dsReady = true;
+}
+
+async function dsProducts() {
+  await ensureDs();
+  const { products } = await import("@/lib/data-store");
+  return products.all();
+}
+
+async function dsCollections() {
+  await ensureDs();
+  const { collections } = await import("@/lib/data-store");
+  return collections.all();
+}
+
+// ─── Public query functions ───────────────────────────────────────────────────
+
 export async function getProducts(first = 50) {
+  if (typeof window === "undefined") {
+    try {
+      const items = await dsProducts();
+      return items.slice(0, first).map(formatProduct);
+    } catch (e) {
+      console.error("[getProducts] direct DS error:", e);
+    }
+  }
   try {
     const res = await apiGet<any[]>("/products", { per_page: String(first) });
     return res.map(formatProduct);
@@ -30,6 +65,14 @@ export async function getProducts(first = 50) {
 }
 
 export async function getCollections(first = 20) {
+  if (typeof window === "undefined") {
+    try {
+      const items = await dsCollections();
+      return items.filter((col: any) => col.handle !== "frontpage").slice(0, first);
+    } catch (e) {
+      console.error("[getCollections] direct DS error:", e);
+    }
+  }
   try {
     const res = await apiGet<any[]>("/collections", { first: String(first) });
     return res.filter((col: any) => col.handle !== "frontpage");
@@ -39,6 +82,15 @@ export async function getCollections(first = 20) {
 }
 
 export async function getProductByHandle(handle: string) {
+  if (typeof window === "undefined") {
+    try {
+      const items = await dsProducts();
+      const found = items.find((p: any) => p.handle === handle);
+      return found ? formatProduct(found) : null;
+    } catch (e) {
+      console.error("[getProductByHandle] direct DS error:", e);
+    }
+  }
   try {
     const res = await apiGet<any>(`/products/${handle}`);
     return formatProduct(res);
@@ -48,6 +100,15 @@ export async function getProductByHandle(handle: string) {
 }
 
 export async function getProductRecommendations(productId: string) {
+  if (typeof window === "undefined") {
+    try {
+      const items = await dsProducts();
+      const others = items.filter((p: any) => p.id !== productId).slice(0, 8);
+      return others.map(formatProduct);
+    } catch (e) {
+      console.error("[getProductRecommendations] direct DS error:", e);
+    }
+  }
   try {
     const res = await apiGet<any[]>(`/products/${productId}/recommendations`);
     return res.map(formatProduct);
@@ -71,6 +132,32 @@ export async function getCollectionByHandle({
   first?: number;
   after?: string | null;
 }) {
+  if (typeof window === "undefined") {
+    try {
+      const allCols = await dsCollections();
+      const col = allCols.find((c: any) => c.handle === handle);
+      const allProds = await dsProducts();
+      let colProducts = allProds.filter((p: any) => {
+        const colHandles: string[] = Array.isArray(p.collections) ? p.collections : [];
+        return colHandles.includes(handle) || (col && colHandles.includes(col.id));
+      });
+      if (colProducts.length === 0) colProducts = allProds;
+      const edges = colProducts.slice(0, first).map((p: any) => ({ node: formatProduct(p) }));
+      return {
+        id: col?.id || handle,
+        handle,
+        title: col?.title || handle,
+        description: col?.description || "",
+        image: col?.image || null,
+        products: {
+          edges,
+          pageInfo: { hasNextPage: colProducts.length > first, endCursor: "" },
+        },
+      };
+    } catch (e) {
+      console.error("[getCollectionByHandle] direct DS error:", e);
+    }
+  }
   const params: Record<string, string> = {
     first: String(first),
     sort: sortKey,
@@ -78,7 +165,6 @@ export async function getCollectionByHandle({
   };
   if (after) params.after = after;
   if (filters.length > 0) params.filter = JSON.stringify(filters);
-
   try {
     return await apiGet<any>(`/collections/${handle}`, params);
   } catch {
@@ -87,6 +173,24 @@ export async function getCollectionByHandle({
 }
 
 export async function searchProducts(query: string, first = 24, after: string | null = null) {
+  if (typeof window === "undefined") {
+    try {
+      const allProds = await dsProducts();
+      const q = query.toLowerCase();
+      const matched = allProds.filter((p: any) =>
+        p.title?.toLowerCase().includes(q) ||
+        p.description?.toLowerCase().includes(q) ||
+        (Array.isArray(p.tags) && p.tags.some((t: string) => t.toLowerCase().includes(q)))
+      );
+      const edges = matched.slice(0, first).map((p: any) => ({ node: formatProduct(p) }));
+      return {
+        edges,
+        pageInfo: { hasNextPage: matched.length > first, endCursor: "" },
+      };
+    } catch (e) {
+      console.error("[searchProducts] direct DS error:", e);
+    }
+  }
   try {
     const params: Record<string, string> = { q: query, per_page: String(first) };
     if (after) params.after = after;
@@ -112,3 +216,5 @@ export async function getCustomer(customerAccessToken: string) {
     return null;
   }
 }
+
+
