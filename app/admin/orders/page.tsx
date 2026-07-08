@@ -1,6 +1,6 @@
 import { verifyAdminSession } from "@/app/actions/adminAuth";
 import { redirect } from "next/navigation";
-import { apiGet } from "@/lib/api/client";
+import { serverGetOrders } from "@/lib/server-data";
 import OrdersListClient from "@/components/admin/OrdersListClient";
 import { Metadata } from "next";
 
@@ -15,8 +15,7 @@ export default async function AdminOrdersPage() {
     redirect("/account/login");
   }
 
-  let orders: any[] = [];
-  try { orders = await apiGet<any[]>("/admin/orders"); } catch {}
+  const orders = await serverGetOrders();
 
   return (
     <OrdersListClient 

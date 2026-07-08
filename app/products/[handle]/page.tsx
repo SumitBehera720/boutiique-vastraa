@@ -1,11 +1,11 @@
 import { notFound } from "next/navigation";
 import { getProductByHandle } from "@/lib/shopify/queries";
+import { serverGetAllReviews, serverGetQna } from "@/lib/server-data";
 import ProductGallery from "@/components/product/ProductGallery";
 import ProductInfo from "@/components/product/ProductInfo";
 import RelatedProducts from "@/components/product/RelatedProducts";
 import ScrollToTop from "@/components/product/ScrollToTop";
 import ProductReviewsQnA from "@/components/product/ProductReviewsQnA";
-import { apiGet } from "@/lib/api/client";
 
 export async function generateMetadata({ params }: { params: Promise<{ handle: string }> }) {
   const resolvedParams = await params;
@@ -36,15 +36,8 @@ export default async function ProductPage({ params }: { params: Promise<{ handle
   const { getProductRecommendations } = await import("@/lib/shopify/queries");
   const recommendedProducts = await getProductRecommendations(product.id);
 
-  let initialReviews: any[] = [];
-  try {
-    initialReviews = await apiGet<any[]>("/reviews") || [];
-  } catch {}
-
-  let initialQnas: any[] = [];
-  try {
-    initialQnas = await apiGet<any[]>("/qna") || [];
-  } catch {}
+  const initialReviews = await serverGetAllReviews();
+  const initialQnas = await serverGetQna();
 
   const jsonLd = {
     '@context': 'https://schema.org',

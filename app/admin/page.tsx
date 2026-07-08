@@ -1,6 +1,6 @@
 import { verifyAdminSession } from "@/app/actions/adminAuth";
 import { redirect } from "next/navigation";
-import { apiGet } from "@/lib/api/client";
+import { serverGetProducts, serverGetCollections, serverGetOrders, serverGetUsers } from "@/lib/server-data";
 import { IndianRupee, ShoppingBag, Package, Users, AlertTriangle, ArrowRight, Sparkles, TrendingUp } from "lucide-react";
 import Link from "next/link";
 
@@ -11,14 +11,12 @@ export default async function AdminDashboardPage() {
     redirect("/account/login");
   }
 
-  let products: any[] = [];
-  let collections: any[] = [];
-  let orders: any[] = [];
-  let customers: any[] = [];
-  try { products = await apiGet<any[]>("/admin/products"); } catch {}
-  try { collections = await apiGet<any[]>("/admin/collections"); } catch {}
-  try { orders = await apiGet<any[]>("/admin/orders"); } catch {}
-  try { customers = await apiGet<any[]>("/admin/customers"); } catch {}
+  const [products, collections, orders, customers] = await Promise.all([
+    serverGetProducts(),
+    serverGetCollections(),
+    serverGetOrders(),
+    serverGetUsers(),
+  ]);
 
   // Calculations
   const nonCancelledOrders = orders.filter(o => o.fulfillmentStatus !== "CANCELLED");

@@ -29,13 +29,10 @@ const kalnia = Kalnia({
   variable: "--font-kalnia",
 });
 
-import { apiGet } from "@/lib/api/client";
+import { serverGetSettings } from "@/lib/server-data";
 
 export async function generateMetadata(): Promise<Metadata> {
-  let settings: any = {};
-  try {
-    settings = await apiGet<any>("/settings");
-  } catch {}
+  const settings: any = await serverGetSettings();
   return {
     title: {
       template: settings.seo?.titleTemplate || "%s | Boutiique Vastraa",
@@ -59,10 +56,7 @@ export default async function RootLayout({
   } catch {}
   const isLoggedIn = !!token;
 
-  let settings: any = {};
-  try {
-    settings = await apiGet<any>("/settings");
-  } catch {}
+  const settings: any = await serverGetSettings();
   const footerSettings = settings.footer || {};
   const headerSettings = settings.header || {};
 

@@ -2,11 +2,14 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { apiGet } from "@/lib/api/client";
+import { serverGetAuthUser } from "@/lib/server-data";
 
 export async function verifyAdminSession() {
   try {
-    const me = await apiGet<any>("/auth/me");
+    const cookieStore = await cookies();
+    const token = cookieStore.get("boutiique_vastraa_customer_token")?.value;
+    if (!token) return false;
+    const me = await serverGetAuthUser(token);
     return me?.email?.toLowerCase() === "admin@boutiquevastra.com";
   } catch {
     return false;

@@ -1,6 +1,6 @@
 import { verifyAdminSession } from "@/app/actions/adminAuth";
 import { redirect } from "next/navigation";
-import { apiGet } from "@/lib/api/client";
+import { serverGetUsers, serverGetOrders } from "@/lib/server-data";
 import CustomersListClient from "@/components/admin/CustomersListClient";
 import { Metadata } from "next";
 
@@ -15,10 +15,10 @@ export default async function AdminCustomersPage() {
     redirect("/account/login");
   }
 
-  let customers: any[] = [];
-  let orders: any[] = [];
-  try { customers = await apiGet<any[]>("/admin/customers"); } catch {}
-  try { orders = await apiGet<any[]>("/admin/orders"); } catch {}
+  const [customers, orders] = await Promise.all([
+    serverGetUsers(),
+    serverGetOrders(),
+  ]);
 
   return (
     <CustomersListClient 

@@ -2,7 +2,7 @@
 
 import { verifyAdminSession } from "./adminAuth";
 import { revalidatePath } from "next/cache";
-import { apiGet, apiPost, apiDelete, apiPatch } from "@/lib/api/client";
+import { serverGetCoupons } from "@/lib/server-data";
 
 async function requireAuth() {
   const isLogged = await verifyAdminSession();
@@ -12,7 +12,7 @@ async function requireAuth() {
 export async function getCouponsAction() {
   try {
     await requireAuth();
-    return await apiGet<any[]>("/admin/coupons");
+    return await serverGetCoupons();
   } catch {
     return [];
   }
@@ -21,11 +21,16 @@ export async function getCouponsAction() {
 export async function saveCouponAction(couponData: any) {
   try {
     await requireAuth();
+    const { coupons, generateId } = await import("@/lib/data-store");
+    const all = await coupons.all();
     if (couponData.id) {
-      await apiPost(`/admin/coupons`, couponData);
+      const idx = all.findIndex((c: any) => c.id === couponData.id);
+      if (idx >= 0) all[idx] = { ...all[idx], ...couponData };
     } else {
-      await apiPost("/admin/coupons", couponData);
+      couponData.id = generateId();
+      all.push(couponData);
     }
+    await coupons.save(all);
     revalidatePath("/admin/coupons");
     revalidatePath("/checkout");
     return { success: true };
@@ -37,9 +42,17 @@ export async function saveCouponAction(couponData: any) {
 export async function toggleCouponAction(couponId: string) {
   try {
     await requireAuth();
-    const res = await apiPatch<any>(`/admin/coupons/${encodeURIComponent(couponId)}/toggle`);
+    const { coupons } = await import("@/lib/data-store");
+    const all = await coupons.all();
+    const coupon = all.find((c: any) => c.id === couponId);
+    let active = false;
+    if (coupon) {
+      coupon.active = !coupon.active;
+      active = coupon.active;
+    }
+    await coupons.save(all);
     revalidatePath("/admin/coupons");
-    return { success: true, active: res.active };
+    return { success: true, active };
   } catch (error: any) {
     return { success: false, error: error.message || "Failed to toggle coupon." };
   }
@@ -48,7 +61,10 @@ export async function toggleCouponAction(couponId: string) {
 export async function deleteCouponAction(couponId: string) {
   try {
     await requireAuth();
-    await apiDelete(`/admin/coupons/${encodeURIComponent(couponId)}`);
+    const { coupons } = await import("@/lib/data-store");
+    const all = await coupons.all();
+    const filtered = all.filter((c: any) => c.id !== couponId);
+    await coupons.save(filtered);
     revalidatePath("/admin/coupons");
     return { success: true };
   } catch (error: any) {
@@ -58,16 +74,27 @@ export async function deleteCouponAction(couponId: string) {
 
 export async function applyPromoCodeAction(code: string, subtotal: number) {
   try {
-    const res = await apiPost<any>("/coupons/validate", { code: code.trim(), cart_subtotal: subtotal });
+    const { coupons } = await import("@/lib/data-store");
+    const coupon = await coupons.findByCode(code.trim());
+    if (!coupon || !coupon.active) throw new Error("Invalid or expired promo code");
+
+    let discountAmount = 0;
+    if (coupon.type === "percentage") {
+      discountAmount = subtotal * (parseFloat(coupon.value) / 100);
+    } else {
+      discountAmount = parseFloat(coupon.value);
+    }
+    discountAmount = Math.min(discountAmount, subtotal);
+
     return {
       success: true,
-      code: res.code,
-      type: res.type,
-      value: res.value,
-      discountAmount: res.discountAmount,
+      code: coupon.code,
+      type: coupon.type,
+      value: coupon.value,
+      discountAmount: Math.round(discountAmount * 100) / 100,
     };
   } catch (err: any) {
-    const msg = err.data?.message || err.message || "Failed to apply promo code.";
-    return { success: false, error: msg };
+    return { success: false, error: err.message || "Failed to apply promo code." };
   }
 }
+

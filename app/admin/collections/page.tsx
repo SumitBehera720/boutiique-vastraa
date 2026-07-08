@@ -1,6 +1,6 @@
 import { verifyAdminSession } from "@/app/actions/adminAuth";
 import { redirect } from "next/navigation";
-import { apiGet } from "@/lib/api/client";
+import { serverGetCollections } from "@/lib/server-data";
 import CollectionsListClient from "@/components/admin/CollectionsListClient";
 import { Metadata } from "next";
 
@@ -15,8 +15,7 @@ export default async function AdminCollectionsPage() {
     redirect("/account/login");
   }
 
-  let collections: any[] = [];
-  try { collections = await apiGet<any[]>("/admin/collections"); } catch {}
+  const collections = await serverGetCollections();
 
   return (
     <CollectionsListClient 

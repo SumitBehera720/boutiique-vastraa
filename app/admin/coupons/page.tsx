@@ -1,6 +1,6 @@
 import { verifyAdminSession } from "@/app/actions/adminAuth";
 import { redirect } from "next/navigation";
-import { apiGet } from "@/lib/api/client";
+import { serverGetCoupons } from "@/lib/server-data";
 import CouponsListClient from "@/components/admin/CouponsListClient";
 import { Metadata } from "next";
 
@@ -15,8 +15,7 @@ export default async function AdminCouponsPage() {
     redirect("/account/login");
   }
 
-  let coupons: any[] = [];
-  try { coupons = await apiGet<any[]>("/admin/coupons"); } catch {}
+  const coupons = await serverGetCoupons();
 
   return (
     <CouponsListClient 

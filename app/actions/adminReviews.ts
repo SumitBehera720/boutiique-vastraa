@@ -2,7 +2,7 @@
 
 import { verifyAdminSession } from "./adminAuth";
 import { revalidatePath } from "next/cache";
-import { apiGet, apiPatch, apiDelete, apiPost } from "@/lib/api/client";
+import { serverGetAllReviews } from "@/lib/server-data";
 
 async function requireAuth() {
   const isLogged = await verifyAdminSession();
@@ -12,7 +12,7 @@ async function requireAuth() {
 export async function getReviewsAction() {
   try {
     await requireAuth();
-    return await apiGet<any[]>("/admin/reviews");
+    return await serverGetAllReviews();
   } catch {
     return [];
   }
@@ -21,10 +21,18 @@ export async function getReviewsAction() {
 export async function toggleReviewApprovalAction(reviewId: string) {
   try {
     await requireAuth();
-    const res = await apiPatch<any>(`/admin/reviews/${encodeURIComponent(reviewId)}/toggle-approval`);
+    const { reviews } = await import("@/lib/data-store");
+    const all = await reviews.all();
+    const review = all.find((r: any) => r.id === reviewId);
+    let approved = false;
+    if (review) {
+      review.approved = !review.approved;
+      approved = review.approved;
+    }
+    await reviews.save(all);
     revalidatePath("/admin/reviews");
     revalidatePath("/");
-    return { success: true, approved: res.approved };
+    return { success: true, approved };
   } catch (error: any) {
     return { success: false, error: error.message || "Failed to toggle review approval." };
   }
@@ -33,7 +41,10 @@ export async function toggleReviewApprovalAction(reviewId: string) {
 export async function deleteReviewAction(reviewId: string) {
   try {
     await requireAuth();
-    await apiDelete(`/admin/reviews/${encodeURIComponent(reviewId)}`);
+    const { reviews } = await import("@/lib/data-store");
+    const all = await reviews.all();
+    const filtered = all.filter((r: any) => r.id !== reviewId);
+    await reviews.save(filtered);
     revalidatePath("/admin/reviews");
     revalidatePath("/");
     return { success: true };
@@ -49,12 +60,20 @@ export async function submitProductReviewAction(formData: {
   comment: string;
 }) {
   try {
-    await apiPost("/reviews", {
-      product_id: formData.productHandle,
-      reviewer_name: formData.author,
+    const { reviews, generateId } = await import("@/lib/data-store");
+    const review = {
+      id: generateId(),
+      productId: formData.productHandle,
+      author: formData.author,
+      email: "",
       rating: formData.rating,
       comment: formData.comment,
-    });
+      approved: false,
+      createdAt: new Date().toISOString(),
+    };
+    const all = await reviews.all();
+    all.push(review);
+    await reviews.save(all);
     return {
       success: true,
       message: "Thank you! Your review has been submitted and is pending moderation.",
@@ -63,3 +82,4 @@ export async function submitProductReviewAction(formData: {
     return { success: false, error: "Failed to submit review. Please try again." };
   }
 }
+

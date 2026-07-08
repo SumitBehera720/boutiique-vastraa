@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { apiGet } from "@/lib/api/client";
+import { serverGetAuthUser } from "@/lib/server-data";
 import CheckoutForm from "@/components/checkout/CheckoutForm";
 import { Metadata } from "next";
 
@@ -23,7 +23,7 @@ export default async function CheckoutPage({
   let customer = null;
   if (customerToken) {
     try {
-      const rawCustomer = await apiGet<any>("/auth/me");
+      const rawCustomer = await serverGetAuthUser(customerToken);
       if (rawCustomer) {
         // Exclude passwordHash from client
         customer = {

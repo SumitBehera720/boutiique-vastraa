@@ -1,6 +1,6 @@
 import { verifyAdminSession } from "@/app/actions/adminAuth";
 import { redirect } from "next/navigation";
-import { apiGet } from "@/lib/api/client";
+import { serverGetProducts, serverGetCollections } from "@/lib/server-data";
 import ProductsListClient from "@/components/admin/ProductsListClient";
 import { Metadata } from "next";
 
@@ -15,10 +15,7 @@ export default async function AdminProductsPage() {
     redirect("/account/login");
   }
 
-  let products: any[] = [];
-  let collections: any[] = [];
-  try { products = await apiGet<any[]>("/admin/products"); } catch {}
-  try { collections = await apiGet<any[]>("/admin/collections"); } catch {}
+  const [products, collections] = await Promise.all([serverGetProducts(), serverGetCollections()]);
 
   return (
     <ProductsListClient 

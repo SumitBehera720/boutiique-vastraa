@@ -1,6 +1,6 @@
 import { verifyAdminSession } from "@/app/actions/adminAuth";
 import { redirect } from "next/navigation";
-import { apiGet } from "@/lib/api/client";
+import { serverGetAllReviews } from "@/lib/server-data";
 import ReviewsListClient from "@/components/admin/ReviewsListClient";
 import { Metadata } from "next";
 
@@ -15,8 +15,7 @@ export default async function AdminReviewsPage() {
     redirect("/account/login");
   }
 
-  let reviews: any[] = [];
-  try { reviews = await apiGet<any[]>("/admin/reviews"); } catch {}
+  const reviews = await serverGetAllReviews();
 
   return (
     <ReviewsListClient 

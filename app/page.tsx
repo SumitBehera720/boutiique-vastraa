@@ -10,13 +10,10 @@ import FeaturesGrid from "@/components/home/FeaturesGrid";
 import TestimonialsSection from "@/components/home/TestimonialsSection";
 import FaqAccordion from "@/components/home/FaqAccordion";
 import HeroBanner from "@/components/home/HeroBanner";
-import { apiGet } from "@/lib/api/client";
+import { serverGetSettings, serverGetReviews } from "@/lib/server-data";
 
 export async function generateMetadata(): Promise<Metadata> {
-  let settings: any = {};
-  try {
-    settings = await apiGet<any>("/settings");
-  } catch {}
+  const settings: any = await serverGetSettings();
   const cleanTitle = settings.seo?.titleTemplate
     ? settings.seo.titleTemplate.replace("%s | ", "")
     : "Boutiique Vastraa";
@@ -34,18 +31,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Home() {
-  let settings: any = {};
-  let bannerSlides: any[] = [];
-  let dbReviews: any[] = [];
-
-  try {
-    settings = await apiGet<any>("/settings");
-    bannerSlides = settings.banners || [];
-  } catch {}
-
-  try {
-    dbReviews = await apiGet<any[]>("/reviews/global");
-  } catch {}
+  const settings: any = await serverGetSettings();
+  const bannerSlides: any[] = settings.banners || [];
+  const dbReviews: any[] = await serverGetReviews();
 
   const homeSettings = settings.homepage || {};
   

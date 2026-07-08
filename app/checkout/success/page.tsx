@@ -1,4 +1,4 @@
-import { apiGet } from "@/lib/api/client";
+import { serverGetOrders } from "@/lib/server-data";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -19,8 +19,7 @@ export default async function SuccessPage({
   const orderId = resolvedSearchParams.orderId || "";
 
   // Fetch order
-  let orders: any[] = [];
-  try { orders = await apiGet<any[]>("/admin/orders"); } catch {}
+  const orders = await serverGetOrders();
   const order = orders.find(o => o.id === orderId);
 
   if (!order) {

@@ -1,6 +1,6 @@
 import { verifyAdminSession } from "@/app/actions/adminAuth";
 import { redirect } from "next/navigation";
-import { apiGet } from "@/lib/api/client";
+import { serverGetSettings } from "@/lib/server-data";
 import SettingsFormClient from "@/components/admin/SettingsFormClient";
 import { getProducts, getCollections } from "@/lib/shopify/queries";
 import { Metadata } from "next";
@@ -16,8 +16,7 @@ export default async function AdminSettingsPage() {
     redirect("/account/login");
   }
 
-  let settings: any = {};
-  try { settings = await apiGet<any>("/settings"); } catch {}
+  const settings = await serverGetSettings();
   const products = await getProducts(100);
   const collections = await getCollections(100);
 

@@ -1,6 +1,6 @@
 import { verifyAdminSession } from "@/app/actions/adminAuth";
 import { redirect, notFound } from "next/navigation";
-import { apiGet } from "@/lib/api/client";
+import { serverGetOrders } from "@/lib/server-data";
 import OrderDetailClient from "@/components/admin/OrderDetailClient";
 import { Metadata } from "next";
 
@@ -22,8 +22,7 @@ export default async function AdminOrderDetailPage({
   const resolvedParams = await params;
   const id = resolvedParams.id;
 
-  let orders: any[] = [];
-  try { orders = await apiGet<any[]>("/admin/orders"); } catch {}
+  const orders = await serverGetOrders();
   const order = orders.find(o => o.id === id);
 
   if (!order) {
