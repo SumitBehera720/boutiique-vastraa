@@ -139,7 +139,7 @@ export const admins = {
 export const products = {
   all: async () => {
     if (db()) {
-      const rows = await query<any[]>("SELECT * FROM products ORDER BY created_at DESC");
+      const rows = await query<any[]>("SELECT * FROM products");
       return rows.map(mapProductFromDb);
     }
     return cachedRead<any[]>("products");
