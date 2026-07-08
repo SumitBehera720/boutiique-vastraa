@@ -398,7 +398,7 @@ export async function seedIfEmpty(): Promise<void> {
     const items = readJson<any[]>("admin");
     if (items.length) {
       const mapped = items.map((a: any) => ({
-        id: a.id,
+        id: a.id || a.username || "admin",
         username: a.username,
         password: a.password || a.passwordHash || "",
       }));
