@@ -483,6 +483,9 @@ export function hashPassword(password: string): string {
 const COOKIE_NAME = "boutiique_vastraa_customer_token";
 
 export function getTokenFromRequest(request: Request): string | null {
+  const url = new URL(request.url);
+  const queryToken = url.searchParams.get("_token");
+  if (queryToken) return queryToken;
   const cookieHeader = request.headers.get("cookie") || "";
   const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${COOKIE_NAME}=([^;]*)`));
   return match ? decodeURIComponent(match[1]) : null;

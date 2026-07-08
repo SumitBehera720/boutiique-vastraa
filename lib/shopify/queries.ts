@@ -106,7 +106,7 @@ export async function searchProducts(query: string, first = 24, after: string | 
 
 export async function getCustomer(customerAccessToken: string) {
   try {
-    const customer = await apiGet<any>("/auth/me");
+    const customer = await apiGet<any>("/auth/me", { _token: customerAccessToken });
     return customer;
   } catch {
     return null;
