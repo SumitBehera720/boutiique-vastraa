@@ -743,7 +743,8 @@ async function routePOST(req: NextRequest, { params }: any) {
 
 async function routePUT(req: NextRequest, { params }: any) {
   const path = (await params).path || [];
-  return (await handleCart(path, req))
+  return (await handleAuth(path, req))
+    || (await handleCart(path, req))
     || (await handleAdmin(path, req))
     || error("Not found", 404);
 }
