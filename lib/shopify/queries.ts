@@ -138,7 +138,11 @@ export async function getCollectionByHandle({
       const col = allCols.find((c: any) => c.handle === handle);
       const allProds = await dsProducts();
       let colProducts = allProds.filter((p: any) => {
-        const colHandles: string[] = Array.isArray(p.collections) ? p.collections : [];
+        const colHandles: string[] = Array.isArray(p.collectionHandles)
+          ? p.collectionHandles
+          : Array.isArray(p.collections)
+          ? p.collections
+          : [];
         return colHandles.includes(handle) || (col && colHandles.includes(col.id));
       });
       if (colProducts.length === 0) colProducts = allProds;

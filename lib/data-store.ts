@@ -75,7 +75,7 @@ export const users = {
     if (db()) {
       await insert("users", {
         id: user.id, first_name: user.firstName || "", last_name: user.lastName || "",
-        email: user.email, phone: user.phone || "", password: user.password || "",
+        email: user.email, phone: user.phone || "", password: user.password || user.passwordHash || "",
         default_address: JSON.stringify(user.defaultAddress || null),
       });
       return user;
@@ -113,6 +113,7 @@ function mapUserFromDb(row: any): any {
     email: row.email,
     phone: row.phone || "",
     password: row.password,
+    passwordHash: row.password,
     defaultAddress: row.default_address ? (typeof row.default_address === "string" ? JSON.parse(row.default_address) : row.default_address) : null,
   };
 }
@@ -122,13 +123,15 @@ function mapUserFromDb(row: any): any {
 export const admins = {
   all: async () => {
     if (db()) {
-      return await query<any[]>("SELECT * FROM admin");
+      const rows = await query<any[]>("SELECT * FROM admin");
+      return rows.map((r: any) => ({ ...r, passwordHash: r.password }));
     }
     return cachedRead<any[]>("admin");
   },
   findByUsername: async (username: string) => {
     if (db()) {
-      return await getOne<any>("SELECT * FROM admin WHERE username = ?", [username]);
+      const row = await getOne<any>("SELECT * FROM admin WHERE username = ?", [username]);
+      return row ? { ...row, passwordHash: row.password } : null;
     }
     return cachedRead<any[]>("admin").find((a: any) => a.username === username) || null;
   },

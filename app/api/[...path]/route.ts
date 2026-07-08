@@ -73,8 +73,10 @@ async function handleAuth(path: string[], req: NextRequest) {
     let isAdmin = false;
 
     if (!user) {
-      const admin = await admins.findByUsername(body.email);
-      if (admin && admin.passwordHash === hashPassword(body.password)) {
+      const uName = body.email.includes("@") ? body.email.split("@")[0] : body.email;
+      const admin = await admins.findByUsername(body.email) || await admins.findByUsername(uName);
+      const hash = hashPassword(body.password);
+      if (admin && ((admin.passwordHash && admin.passwordHash === hash) || (admin.password && admin.password === hash))) {
         user = {
           id: "admin",
           firstName: "Admin",
@@ -84,8 +86,11 @@ async function handleAuth(path: string[], req: NextRequest) {
         };
         isAdmin = true;
       }
-    } else if (user.passwordHash !== hashPassword(body.password)) {
-      return error("Invalid credentials", 401);
+    } else {
+      const hash = hashPassword(body.password);
+      if ((user.passwordHash && user.passwordHash !== hash) && (user.password && user.password !== hash)) {
+        return error("Invalid credentials", 401);
+      }
     }
 
     if (!user) return error("Invalid credentials", 401);
