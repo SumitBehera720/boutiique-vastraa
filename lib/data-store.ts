@@ -85,6 +85,24 @@ export const users = {
     writeJson("users", all);
     return user;
   },
+  update: async (id: string, updates: Partial<any>) => {
+    if (db()) {
+      const mapped: Record<string, any> = {};
+      if (updates.firstName !== undefined) mapped.first_name = updates.firstName;
+      if (updates.lastName !== undefined) mapped.last_name = updates.lastName;
+      if (updates.email !== undefined) mapped.email = updates.email;
+      if (updates.phone !== undefined) mapped.phone = updates.phone;
+      if (updates.defaultAddress !== undefined) mapped.default_address = JSON.stringify(updates.defaultAddress);
+      await update("users", "id", id, mapped);
+      return;
+    }
+    const all = cachedRead<any[]>("users");
+    const idx = all.findIndex((u: any) => u.id === id);
+    if (idx >= 0) {
+      all[idx] = { ...all[idx], ...updates };
+      writeJson("users", all);
+    }
+  },
 };
 
 function mapUserFromDb(row: any): any {
@@ -517,6 +535,15 @@ export const sessions = {
     }
     const all = readSessionsRaw();
     delete all[token];
+    writeSessionsRaw(all);
+  },
+  set: async (token: string, userId: string) => {
+    if (db()) {
+      await insert("sessions", { token, user_id: userId }).catch(() => {});
+      return;
+    }
+    const all = readSessionsRaw();
+    all[token] = userId;
     writeSessionsRaw(all);
   },
 };

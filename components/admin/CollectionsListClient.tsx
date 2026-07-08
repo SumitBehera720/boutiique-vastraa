@@ -114,18 +114,17 @@ export default function CollectionsListClient({ initialCollections }: Collection
         title,
         handle: handle.trim() || undefined,
         description,
-        imageUrl: imageUrl || undefined
+        image: imageUrl ? { url: imageUrl, altText: title } : null,
       });
 
       if (res.success && res.id) {
-        // Refresh collections list
         const updatedCollections = [...collections];
         const formattedCol = {
           id: res.id,
           title,
           handle: res.handle,
           description,
-          image: imageUrl ? { url: imageUrl, altText: title } : null
+          image: imageUrl ? { url: imageUrl, altText: title } : null,
         };
 
         if (modalMode === "edit") {

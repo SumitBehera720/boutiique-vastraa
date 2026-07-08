@@ -28,15 +28,24 @@ export async function saveCollectionAction(collectionData: any) {
     if (!collectionData.title || !collectionData.description) {
       return { success: false, error: "Please fill in Title and Description." };
     }
+    const body: any = {
+      id: collectionData.id,
+      title: collectionData.title,
+      handle: collectionData.handle,
+      description: collectionData.description,
+    };
+    if (collectionData.image) {
+      body.image = collectionData.image;
+    }
     if (collectionData.id) {
-      const res = await apiPut<any>(`/admin/collections/${encodeURIComponent(collectionData.id)}`, collectionData);
+      const res = await apiPut<any>(`/admin/collections/${encodeURIComponent(collectionData.id)}`, body);
       revalidatePath("/admin/collections");
       revalidatePath(`/collections/${res.handle}`);
       revalidatePath("/collections");
       revalidatePath("/");
       return { success: true, id: res.id, handle: res.handle };
     } else {
-      const res = await apiPost<any>("/admin/collections", collectionData);
+      const res = await apiPost<any>("/admin/collections", body);
       revalidatePath("/admin/collections");
       revalidatePath(`/collections/${res.handle}`);
       revalidatePath("/collections");

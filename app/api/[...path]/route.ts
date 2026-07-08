@@ -91,7 +91,9 @@ async function handleAuth(path: string[], req: NextRequest) {
     if (!user) return error("Invalid credentials", 401);
 
     const token = isAdmin ? "admin-token" : await sessions.create(user.id);
-    if (isAdmin) await sessions.create("admin");
+    if (isAdmin) {
+      await sessions.set("admin-token", "admin");
+    }
 
     const res = json({
       token,
@@ -117,7 +119,11 @@ async function handleAuth(path: string[], req: NextRequest) {
   }
 
   if (sub === "me" && req.method === "GET") {
-    const user = await getAuthUser(req);
+    const token = getTokenFromRequest(req);
+    let user = await getAuthUser(req);
+    if (!user && token === "admin-token") {
+      user = { id: "admin", firstName: "Admin", lastName: "", email: "admin@boutiquevastra.com", phone: "", defaultAddress: null };
+    }
     if (!user) return error("Unauthorized", 401);
     const allOrders = await orders.all();
     const userOrders = allOrders.filter((o: any) => o.email?.toLowerCase() === user.email?.toLowerCase());
@@ -130,6 +136,24 @@ async function handleAuth(path: string[], req: NextRequest) {
       defaultAddress: user.defaultAddress || null,
       orders: { edges: userOrders.map((o: any) => ({ node: o })) },
     });
+  }
+
+  if (path[1] === "me" && path[2] === "address" && req.method === "PUT") {
+    const user = await getAuthUser(req);
+    if (!user) return error("Unauthorized", 401);
+    const body = await parseBody(req);
+    if (!body) return error("Invalid request body");
+    const address = {
+      address1: body.address1 || "",
+      address2: body.address2 || "",
+      city: body.city || "",
+      province: body.province || "",
+      zip: body.zip || "",
+      country: body.country || "India",
+      phone: body.phone || user.phone || "",
+    };
+    await users.update(user.id, { defaultAddress: address });
+    return json({ success: true, defaultAddress: address });
   }
 
   return error("Not found", 404);
@@ -182,14 +206,28 @@ async function handleCollections(path: string[], req: NextRequest) {
   }
 
   if (path.length === 2 && req.method === "GET") {
-    const item = await collections.findByHandle(path[1]);
-    if (!item) return error("Not found", 404);
-
+    const handle = path[1];
     const url = new URL(req.url);
     const first = parseInt(url.searchParams.get("first") || "24");
     const all = await products.all();
+
+    // Special "all" collection — returns all products
+    if (handle === "all") {
+      return json({
+        id: "all",
+        title: "All Products",
+        handle: "all",
+        description: "Browse our complete collection of handcrafted ethnic wear.",
+        image: null,
+        products: { edges: all.slice(0, first).map((p: any) => ({ node: p })) },
+      });
+    }
+
+    const item = await collections.findByHandle(handle);
+    if (!item) return error("Not found", 404);
+
     const filtered = all.filter((p: any) =>
-      p.collectionHandles?.includes(path[1])
+      p.collectionHandles?.includes(handle)
     );
     return json({
       ...item,
@@ -522,7 +560,7 @@ async function handleAdmin(path: string[], req: NextRequest) {
         if (idx >= 0) all[idx] = { ...all[idx], ...body };
       } else {
         body.id = generateId();
-        body.handle = body.title?.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+        if (!body.handle) body.handle = body.title?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
         body.createdAt = new Date().toISOString();
         all.push(body);
       }
@@ -549,10 +587,11 @@ async function handleAdmin(path: string[], req: NextRequest) {
         if (idx >= 0) all[idx] = { ...all[idx], ...body };
       } else {
         body.id = generateId();
+        if (!body.handle) body.handle = body.title?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || body.id;
         all.push(body);
       }
       await collections.save(all);
-      return json({ success: true });
+      return json({ success: true, id: body.id, handle: body.handle });
     }
     if (req.method === "DELETE") {
       const id = path[2];

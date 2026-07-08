@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getCustomerToken, logoutAction } from "@/app/actions/auth";
 import { getCustomer } from "@/lib/shopify/queries";
 import OrderHistory from "@/components/account/OrderHistory";
+import AddressForm from "@/components/account/AddressForm";
 
 export default async function AccountPage() {
   let token: string | null = null;
@@ -64,16 +65,7 @@ export default async function AccountPage() {
 
               <div className="border-t border-gray-100 pt-4 mt-4">
                 <h3 className="text-sm font-semibold text-gray-800 uppercase tracking-widest mb-3">Default Address</h3>
-                {customer.defaultAddress ? (
-                  <div className="text-gray-600 text-sm space-y-1">
-                    <p>{customer.defaultAddress.address1}</p>
-                    {customer.defaultAddress.address2 && <p>{customer.defaultAddress.address2}</p>}
-                    <p>{customer.defaultAddress.city}, {customer.defaultAddress.province} {customer.defaultAddress.zip}</p>
-                    <p>{customer.defaultAddress.country}</p>
-                  </div>
-                ) : (
-                  <p className="text-gray-500 text-sm">No default address saved.</p>
-                )}
+                <AddressForm initialAddress={customer.defaultAddress} />
               </div>
             </div>
           </div>
