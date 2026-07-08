@@ -270,6 +270,14 @@ export async function initDatabase(): Promise<void> {
       // Column probably already exists, which is fine
     }
 
+    try {
+      await query("ALTER TABLE products ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP AFTER collection_handles;");
+    } catch {}
+
+    try {
+      await query("ALTER TABLE products ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER created_at;");
+    } catch {}
+
     console.log("[DB] Tables ready");
   } catch (err) {
     console.error("[DB] Init error:", err);
