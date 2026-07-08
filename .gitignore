@@ -43,3 +43,8 @@ hostingercredential.md
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# large build artifacts (exceed GitHub 100MB limit)
+*.tar.gz
+standalone_dotnext.tar.gz
+next_static.tar.gz
