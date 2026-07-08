@@ -2,6 +2,37 @@ import fs from "fs";
 import path from "path";
 import crypto from "crypto";
 
+// Try to load env files when running in standalone mode
+// The standalone server runs from .next/standalone/ so .env.local is not auto-loaded
+(function loadEnvFiles() {
+  const envPaths = [
+    path.join(process.cwd(), ".env.local"),
+    path.join(process.cwd(), ".env"),
+    path.join(process.cwd(), "..", ".env.local"),
+    path.join(process.cwd(), "..", ".env"),
+    path.join(process.cwd(), "..", "..", ".env.local"),
+    path.join(process.cwd(), "..", "..", ".env"),
+  ];
+  for (const envPath of envPaths) {
+    try {
+      if (fs.existsSync(envPath)) {
+        const content = fs.readFileSync(envPath, "utf-8");
+        for (const line of content.split("\n")) {
+          const trimmed = line.trim();
+          if (!trimmed || trimmed.startsWith("#")) continue;
+          const eqIdx = trimmed.indexOf("=");
+          if (eqIdx === -1) continue;
+          const key = trimmed.slice(0, eqIdx).trim();
+          const val = trimmed.slice(eqIdx + 1).trim();
+          if (!process.env[key]) {
+            process.env[key] = val;
+          }
+        }
+      }
+    } catch {}
+  }
+})();
+
 const DB_HOST = process.env.DB_HOST || "";
 const DB_USER = process.env.DB_USER || "";
 const DB_PASS = process.env.DB_PASSWORD || "";

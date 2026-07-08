@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && node -e \"try{require('fs').copyFileSync('.env.local','.next/standalone/.env')}catch(e){console.error('Could not copy .env.local to standalone:',e.message)}\"",
     "start": "next start",
     "lint": "eslint"
   },
