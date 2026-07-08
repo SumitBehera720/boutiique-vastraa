@@ -7,6 +7,7 @@ import { useState } from "react";
 import { useCartStore } from "@/store/cartStore";
 import { useRouter, usePathname } from "next/navigation";
 import MarqueeBanner from "@/components/global/MarqueeBanner";
+import SearchBar from "@/components/search/SearchBar";
 
 interface HeaderProps {
   isLoggedIn?: boolean;
@@ -80,8 +81,8 @@ export default function Header({ isLoggedIn = false, settings }: HeaderProps) {
 
         {/* Right: Actions */}
         <div className="flex flex-1 items-center justify-end gap-2">
-          {/* Search */}
-          <div className="relative">
+          {/* Search - Desktop */}
+          <div className="relative max-sm:hidden">
             <form onSubmit={handleSearch}>
               <div className={`border-gray-200 bg-white focus-within:border-maroonClr flex h-[34px] items-center rounded-full px-3 transition-all duration-200 gap-2 border text-gray-500 shadow-sm`}>
                 <Search className="h-4 w-4 text-maroonClr" aria-hidden="true" />
@@ -96,6 +97,10 @@ export default function Header({ isLoggedIn = false, settings }: HeaderProps) {
                 />
               </div>
             </form>
+          </div>
+          {/* Search - Mobile overlay trigger */}
+          <div className="sm:hidden">
+            <SearchBar />
           </div>
 
           {/* WhatsApp */}

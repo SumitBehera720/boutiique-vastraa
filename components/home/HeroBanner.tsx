@@ -38,7 +38,7 @@ export default function HeroBanner({ slides }: { slides?: BannerSlide[] }) {
     if (bannerSlides.length <= 1) return;
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % bannerSlides.length);
-    }, 5000);
+    }, 3000);
     return () => clearInterval(timer);
   }, [bannerSlides.length]);
 
@@ -50,7 +50,7 @@ export default function HeroBanner({ slides }: { slides?: BannerSlide[] }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.6, ease: "easeInOut" }}
+          transition={{ duration: 0.3, ease: "easeInOut" }}
           className="absolute inset-0 w-full h-full"
         >
           {/* Slide Background Image */}
