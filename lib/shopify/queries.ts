@@ -213,6 +213,19 @@ export async function searchProducts(query: string, first = 24, after: string | 
 }
 
 export async function getCustomer(customerAccessToken: string) {
+  if (typeof window === "undefined") {
+    try {
+      const { serverGetAuthUser } = await import("@/lib/server-data");
+      const customer = await serverGetAuthUser(customerAccessToken);
+      if (!customer) return null;
+      await ensureDs();
+      const { orders } = await import("@/lib/data-store");
+      const userOrders = (await orders.all()).filter((o: any) => o.email?.toLowerCase() === customer.email?.toLowerCase());
+      return { ...customer, orders: { edges: userOrders.map((o: any) => ({ node: o })) } };
+    } catch (e) {
+      console.error("[getCustomer] direct DS error:", e);
+    }
+  }
   try {
     const customer = await apiGet<any>("/auth/me", { _token: customerAccessToken });
     return customer;
