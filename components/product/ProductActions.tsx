@@ -4,6 +4,7 @@ import { useState } from "react";
 import * as cartClient from "@/lib/api/cart-client";
 import { useCartStore } from "@/store/cartStore";
 import { ShoppingBag, CreditCard } from "lucide-react";
+import { getTokenFromCookie } from "@/lib/api/auth-client";
 
 export default function ProductActions({ 
   variantId, 
@@ -18,8 +19,17 @@ export default function ProductActions({
   const [isBuying, setIsBuying] = useState(false);
   const { cartId, setCart, openCart } = useCartStore();
 
+  const requireAuth = () => {
+    if (!getTokenFromCookie()) {
+      window.location.href = "/account/login";
+      return false;
+    }
+    return true;
+  };
+
   const handleAddToCart = async () => {
     if (!availableForSale) return;
+    if (!requireAuth()) return;
     setIsAdding(true);
     
     try {
@@ -37,6 +47,7 @@ export default function ProductActions({
 
   const handleBuyNow = async () => {
     if (!availableForSale) return;
+    if (!requireAuth()) return;
     setIsBuying(true);
     
     try {

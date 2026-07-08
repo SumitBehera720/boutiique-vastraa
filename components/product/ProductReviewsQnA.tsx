@@ -39,7 +39,7 @@ export default function ProductReviewsQnA({
   const [activeTab, setActiveTab] = useState<"reviews" | "qna">("reviews");
 
   // Reviews state
-  const [reviews, setReviews] = useState<Review[]>(initialReviews.filter(r => r.productHandle === productHandle || r.productHandle === productId));
+  const [reviews, setReviews] = useState<Review[]>(initialReviews.filter(r => r.productHandle === productHandle || r.productHandle === productId || (r as any).productId === productHandle || (r as any).productId === productId));
   const [reviewRating, setReviewRating] = useState<number>(5);
   const [reviewHoverRating, setReviewHoverRating] = useState<number | null>(null);
   const [reviewAuthor, setReviewAuthor] = useState("");

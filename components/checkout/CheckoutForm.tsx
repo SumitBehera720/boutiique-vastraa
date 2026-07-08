@@ -8,6 +8,7 @@ import { applyPromoCode } from "@/lib/api/promo-client";
 import { useCartStore } from "@/store/cartStore";
 import { ArrowLeft, CreditCard, Shield, Truck, AlertCircle, Sparkles, Tag, X } from "lucide-react";
 import Link from "next/link";
+import { getTokenFromCookie } from "@/lib/api/auth-client";
 
 interface CheckoutFormProps {
   cartId: string;
@@ -99,6 +100,10 @@ export default function CheckoutForm({ cartId, initialCustomer }: CheckoutFormPr
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    if (!getTokenFromCookie()) {
+      router.push("/account/login");
+      return;
+    }
     setSubmitting(true);
 
     if (!firstName || !lastName || !email || !phone || !address1 || !city || !province || !zip || !country) {

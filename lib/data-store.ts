@@ -341,7 +341,7 @@ function mapReviewFromDb(row: any): any {
 function mapReviewToDb(r: any): any {
   return {
     id: r.id,
-    product_handle: r.productHandle || "global",
+    product_handle: r.productHandle || r.productId || "global",
     author: r.author,
     rating: r.rating || 5,
     comment: r.comment,

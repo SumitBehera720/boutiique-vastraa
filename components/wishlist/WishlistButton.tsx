@@ -2,6 +2,7 @@
 
 import { Heart } from "lucide-react";
 import { useWishlistStore } from "@/store/wishlistStore";
+import { getTokenFromCookie } from "@/lib/api/auth-client";
 
 interface WishlistButtonProps {
   product: {
@@ -25,6 +26,10 @@ export default function WishlistButton({ product, className = "" }: WishlistButt
     if (isWished) {
       removeItem(product.id);
     } else {
+      if (!getTokenFromCookie()) {
+        window.location.href = "/account/login";
+        return;
+      }
       addItem({
         id: product.id,
         handle: product.handle,

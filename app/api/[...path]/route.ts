@@ -471,7 +471,7 @@ async function handleReviews(path: string[], req: NextRequest) {
 
     const review = {
       id: generateId(),
-      productId: body.productId,
+      productHandle: body.productId,
       author: body.author,
       email: body.email || "",
       rating: body.rating || 5,

@@ -6,6 +6,7 @@ import { useState } from "react";
 import WishlistButton from "@/components/wishlist/WishlistButton";
 import { useCartStore } from "@/store/cartStore";
 import * as cartClient from "@/lib/api/cart-client";
+import { getTokenFromCookie } from "@/lib/api/auth-client";
 
 interface Product {
   id: string;
@@ -48,6 +49,10 @@ export default function ProductCard({ product }: { product: Product }) {
 
   const handleAddToCart = async () => {
     if (!firstVariantId || isAdding) return;
+    if (!getTokenFromCookie()) {
+      window.location.href = "/account/login";
+      return;
+    }
     setIsAdding(true);
     try {
       const cart = cartId

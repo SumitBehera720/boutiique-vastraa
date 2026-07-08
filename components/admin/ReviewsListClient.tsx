@@ -123,7 +123,7 @@ export default function ReviewsListClient({ initialReviews }: ReviewsListClientP
                     <div>
                       <h4 className="font-semibold text-white text-sm">{review.author}</h4>
                       <p className="text-[10px] text-neutral-500 font-bold uppercase tracking-wider">
-                        Target: {review.productHandle === "global" ? "HOMEPAGE TESTIMONIAL" : `Product (${review.productHandle})`}
+                        Target: {(review.productHandle || review.productId) === "global" ? "HOMEPAGE TESTIMONIAL" : `Product (${review.productHandle || review.productId})`}
                       </p>
                     </div>
                     <span className="text-[10px] text-neutral-500 font-medium">{date}</span>
