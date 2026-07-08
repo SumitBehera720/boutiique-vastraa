@@ -397,7 +397,12 @@ export async function seedIfEmpty(): Promise<void> {
   if (adminCount === 0) {
     const items = readJson<any[]>("admin");
     if (items.length) {
-      await replaceAll("admin", items);
+      const mapped = items.map((a: any) => ({
+        id: a.id,
+        username: a.username,
+        password: a.password || a.passwordHash || "",
+      }));
+      await replaceAll("admin", mapped);
     }
   }
 
