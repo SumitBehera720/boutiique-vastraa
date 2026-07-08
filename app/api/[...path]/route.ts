@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import nodePath from "path";
 import {
-  users, admins, products, collections, coupons, reviews, orders, settings, carts,
+  users, admins, products, collections, coupons, reviews, qna, orders, settings, carts,
   sessions, hashPassword, generateId, getAuthUser, getTokenFromRequest, initDataStore,
 } from "@/lib/data-store";
 
@@ -442,6 +442,39 @@ async function handleReviews(path: string[], req: NextRequest) {
   return error("Not found", 404);
 }
 
+// ─── Q&A routes ────────────────────────────────────────────────────────────────
+
+async function handleQna(path: string[], req: NextRequest) {
+  if (path[0] !== "qna") return null;
+
+  if (path.length === 1 && req.method === "GET") {
+    const all = await qna.all();
+    return json(all);
+  }
+
+  if (path.length === 1 && req.method === "POST") {
+    const body = await parseBody(req);
+    if (!body?.productHandle || !body?.author || !body?.question) return error("Missing fields");
+
+    const item = {
+      id: generateId(),
+      productHandle: body.productHandle,
+      author: body.author,
+      email: body.email || "",
+      question: body.question,
+      answer: null,
+      approved: false,
+      createdAt: new Date().toISOString(),
+    };
+    const all = await qna.all();
+    all.push(item);
+    await qna.save(all);
+    return json(item, 201);
+  }
+
+  return error("Not found", 404);
+}
+
 // ─── Settings route ────────────────────────────────────────────────────────────
 
 async function handleSettings(path: string[], req: NextRequest) {
@@ -651,6 +684,7 @@ async function routeGET(req: NextRequest, { params }: any) {
     || (await handleOrders(path, req))
     || (await handleCoupons(path, req))
     || (await handleReviews(path, req))
+    || (await handleQna(path, req))
     || (await handleSettings(path, req))
     || (await handleAdmin(path, req))
     || error("Not found", 404);
@@ -663,6 +697,7 @@ async function routePOST(req: NextRequest, { params }: any) {
     || (await handleOrders(path, req))
     || (await handleCoupons(path, req))
     || (await handleReviews(path, req))
+    || (await handleQna(path, req))
     || (await handleAdmin(path, req))
     || error("Not found", 404);
 }

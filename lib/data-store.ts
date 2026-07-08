@@ -328,6 +328,51 @@ function mapReviewToDb(r: any): any {
   };
 }
 
+// ─── Q&A (Questions & Answers) ──────────────────────────────────────────────
+
+export const qna = {
+  all: async () => {
+    if (db()) {
+      const rows = await query<any[]>("SELECT * FROM qna ORDER BY created_at DESC");
+      return rows.map(mapQnaFromDb);
+    }
+    return cachedRead<any[]>("qna");
+  },
+  save: async (items: any[]) => {
+    if (db()) {
+      const mapped = items.map(mapQnaToDb);
+      await replaceAll("qna", mapped);
+      return;
+    }
+    writeJson("qna", items);
+  },
+};
+
+function mapQnaFromDb(row: any): any {
+  return {
+    id: row.id,
+    productHandle: row.product_handle || "global",
+    author: row.author,
+    email: row.email || "",
+    question: row.question,
+    answer: row.answer || null,
+    approved: !!row.approved,
+    createdAt: row.created_at,
+  };
+}
+
+function mapQnaToDb(q: any): any {
+  return {
+    id: q.id,
+    product_handle: q.productHandle || "global",
+    author: q.author,
+    email: q.email || "",
+    question: q.question,
+    answer: q.answer || null,
+    approved: q.approved ?? false,
+  };
+}
+
 // ─── Orders ─────────────────────────────────────────────────────────────────
 
 export const orders = {

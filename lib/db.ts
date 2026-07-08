@@ -208,6 +208,18 @@ CREATE TABLE IF NOT EXISTS sessions (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_user (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS qna (
+  id VARCHAR(255) PRIMARY KEY,
+  product_handle VARCHAR(500),
+  author VARCHAR(255),
+  email VARCHAR(255),
+  question TEXT,
+  answer TEXT,
+  approved BOOLEAN DEFAULT false,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_prod (product_handle)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 `;
 
 export async function initDatabase(): Promise<void> {
@@ -382,6 +394,23 @@ export async function seedIfEmpty(): Promise<void> {
         payment_status: o.paymentStatus || "pending",
       }));
       await replaceAll("orders", mapped);
+    }
+  }
+
+  const qnaCount = await countRows("qna");
+  if (qnaCount === 0) {
+    const items = readJson<any[]>("qna");
+    if (items.length) {
+      const mapped = items.map((q: any) => ({
+        id: q.id,
+        product_handle: q.productHandle || "global",
+        author: q.author,
+        email: q.email || "",
+        question: q.question,
+        answer: q.answer || null,
+        approved: q.approved ?? false,
+      }));
+      await replaceAll("qna", mapped);
     }
   }
 
