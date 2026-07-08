@@ -88,7 +88,10 @@ async function handleAuth(path: string[], req: NextRequest) {
       }
     } else {
       const hash = hashPassword(body.password);
-      if ((user.passwordHash && user.passwordHash !== hash) && (user.password && user.password !== hash)) {
+      const pwOk = (!user.passwordHash && !user.password)
+        || (user.passwordHash && user.passwordHash === hash)
+        || (user.password && user.password === hash);
+      if (!pwOk) {
         return error("Invalid credentials", 401);
       }
     }

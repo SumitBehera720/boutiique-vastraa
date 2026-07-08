@@ -119,49 +119,23 @@ export default async function Home() {
     trendingProducts = allProducts.slice(0, 10);
   }
 
-  // Build tabs from collections for PerfectSareeTabs
-  const { getCollectionByHandle } = await import("@/lib/shopify/queries");
+  // Build tabs from collections for PerfectSareeTabs — direct DS access (no HTTP round-trip)
   let perfectSareeTabs = [];
-  if (homeSettings.perfectSareeTabs && homeSettings.perfectSareeTabs.length > 0) {
-    perfectSareeTabs = await Promise.all(
-      homeSettings.perfectSareeTabs.map(async (tabItem: any) => {
-        try {
-          const matchedCol = allCollections.find((c: any) => c.handle === tabItem.collectionHandle);
-          const colData = await getCollectionByHandle({ handle: tabItem.collectionHandle, first: 8 });
-          return {
-            label: tabItem.label || matchedCol?.title || tabItem.collectionHandle,
-            image: tabItem.image || matchedCol?.image?.url || null,
-            products: colData?.products?.edges?.map((e: any) => e.node) || [],
-          };
-        } catch (e) {
-          return {
-            label: tabItem.label || tabItem.collectionHandle,
-            image: tabItem.image || null,
-            products: [],
-          };
-        }
-      })
+  const tabConfigs = homeSettings.perfectSareeTabs?.length
+    ? homeSettings.perfectSareeTabs
+    : allCollections.slice(0, 10).map((c: any) => ({ collectionHandle: c.handle, label: c.title, image: c.image?.url }));
+  perfectSareeTabs = tabConfigs.map((tabItem: any) => {
+    const matchedCol = allCollections.find((c: any) => c.handle === tabItem.collectionHandle);
+    const filtered = allProducts.filter((p: any) =>
+      (Array.isArray(p.collectionHandles) && p.collectionHandles.includes(tabItem.collectionHandle))
+      || (matchedCol && Array.isArray(p.collectionHandles) && p.collectionHandles.includes(matchedCol.id))
     );
-  } else {
-    perfectSareeTabs = await Promise.all(
-      allCollections.slice(0, 10).map(async (col: any) => {
-        try {
-          const colData = await getCollectionByHandle({ handle: col.handle, first: 8 });
-          return {
-            label: col.title,
-            image: col.image?.url || null,
-            products: colData?.products?.edges?.map((e: any) => e.node) || [],
-          };
-        } catch (e) {
-          return {
-            label: col.title,
-            image: col.image?.url || null,
-            products: [],
-          };
-        }
-      })
-    );
-  }
+    return {
+      label: tabItem.label || matchedCol?.title || tabItem.collectionHandle,
+      image: tabItem.image || matchedCol?.image?.url || null,
+      products: filtered.slice(0, 8),
+    };
+  });
 
   return (
     <>
