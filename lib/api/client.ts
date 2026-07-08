@@ -12,7 +12,7 @@ export class ApiError extends Error {
 function buildUrl(endpoint: string, params?: Record<string, string>): string {
   const isServer = typeof window === "undefined";
   const base = isServer
-    ? `http://127.0.0.1:${process.env.PORT || 3000}`
+    ? (process.env.NEXT_PUBLIC_SITE_URL || `http://127.0.0.1:${process.env.PORT || 3000}`)
     : "http://n";
   const url = new URL(`/api${endpoint}`, base);
   if (params) {

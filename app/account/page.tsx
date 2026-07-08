@@ -15,7 +15,6 @@ export default async function AccountPage() {
 
   if (!customer) {
     // Token might be invalid or expired
-    await logoutAction();
     redirect("/account/login");
   }
 

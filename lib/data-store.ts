@@ -163,6 +163,7 @@ function mapProductFromDb(row: any): any {
     images: parse(row.images),
     variants: parse(row.variants),
     tags: parse(row.tags),
+    collectionHandles: parse(row.collection_handles) || [],
   };
 }
 
@@ -178,6 +179,7 @@ function mapProductToDb(p: any): any {
     images: JSON.stringify(p.images || { edges: [] }),
     variants: JSON.stringify(p.variants || { edges: [] }),
     tags: JSON.stringify(p.tags || []),
+    collection_handles: JSON.stringify(p.collectionHandles || []),
   };
 }
 

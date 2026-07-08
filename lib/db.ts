@@ -122,6 +122,7 @@ CREATE TABLE IF NOT EXISTS products (
   images JSON,
   variants JSON,
   tags JSON,
+  collection_handles JSON,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_handle (\`handle\`)
@@ -212,15 +213,28 @@ CREATE TABLE IF NOT EXISTS sessions (
 export async function initDatabase(): Promise<void> {
   if (!USE_DB) return;
   try {
-    // create database if not exists
-    const tmpPool = mysql.createPool({ host: DB_HOST, user: DB_USER, password: DB_PASS, connectionLimit: 1 });
-    await tmpPool.execute(`CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
-    await tmpPool.end();
+    // create database if not exists - ignore error if it fails (common on shared hosting)
+    try {
+      const tmpPool = mysql.createPool({ host: DB_HOST, user: DB_USER, password: DB_PASS, connectionLimit: 1 });
+      await tmpPool.execute(`CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
+      await tmpPool.end();
+    } catch (dbErr) {
+      console.log("[DB] CREATE DATABASE omitted or failed (usual on shared hosting):", dbErr);
+    }
 
     const stmts = SCHEMA_SQL.split(";").map(s => s.trim()).filter(Boolean);
     for (const stmt of stmts) {
       await query(stmt + ";");
     }
+
+    // Safely add collection_handles column if it does not exist
+    try {
+      await query("ALTER TABLE products ADD COLUMN collection_handles JSON AFTER tags;");
+      console.log("[DB] Added collection_handles column to products table");
+    } catch (colErr) {
+      // Column probably already exists, which is fine
+    }
+
     console.log("[DB] Tables ready");
   } catch (err) {
     console.error("[DB] Init error:", err);
@@ -271,6 +285,7 @@ export async function seedIfEmpty(): Promise<void> {
         images: JSON.stringify(p.images || { edges: [] }),
         variants: JSON.stringify(p.variants || { edges: [] }),
         tags: JSON.stringify(p.tags || []),
+        collection_handles: JSON.stringify(p.collectionHandles || []),
       }));
       await replaceAll("products", mapped);
     }
