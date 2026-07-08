@@ -46,7 +46,6 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-import { headers } from "next/headers";
 import { getCustomerToken } from "@/app/actions/auth";
 
 export default async function RootLayout({
@@ -67,35 +66,20 @@ export default async function RootLayout({
   const footerSettings = settings.footer || {};
   const headerSettings = settings.header || {};
 
-  const headersList = await headers();
-  const pathname = headersList.get("x-pathname") || "";
-
-  // Hide storefront layout elements for login, admin, and checkout screens
-  const isLoginPage = pathname === "/account/login";
-  const isAdminPage = pathname.startsWith("/admin");
-  const isCheckoutPage = pathname.startsWith("/checkout");
-  const showHeaderFooter = !isLoginPage && !isAdminPage && !isCheckoutPage;
-
   return (
     <html lang="en">
       <body className={`${poppins.variable} ${kalnia.variable} ${rubik.variable} font-poppins antialiased`}>
         <PageLoader />
-        {showHeaderFooter && (
-          <div className="sticky top-0 z-50">
-            <AnnouncementBar settings={headerSettings} />
-            <Header isLoggedIn={isLoggedIn} settings={headerSettings} />
-          </div>
-        )}
+        <div className="sticky top-0 z-50">
+          <AnnouncementBar settings={headerSettings} />
+          <Header isLoggedIn={isLoggedIn} settings={headerSettings} />
+        </div>
         <CartDrawer />
         <main>
           {children}
         </main>
-        {showHeaderFooter && (
-          <>
-            <Footer settings={footerSettings} />
-            <MobileBottomNav />
-          </>
-        )}
+        <Footer settings={footerSettings} />
+        <MobileBottomNav />
       </body>
     </html>
   );

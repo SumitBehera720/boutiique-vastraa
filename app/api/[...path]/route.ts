@@ -221,7 +221,7 @@ async function handleCart(path: string[], req: NextRequest) {
       updatedAt: new Date().toISOString(),
     };
     await carts.save(cartId, cart);
-    return json(cart, 201);
+    return json(formatCartCheckout(cart), 201);
   }
 
   if (path.length === 2 && req.method === "GET") {
@@ -246,7 +246,7 @@ async function handleCart(path: string[], req: NextRequest) {
       cart.lines = [...cart.lines, ...newLines];
       cart.updatedAt = new Date().toISOString();
       await carts.save(path[1], cart);
-      return json(cart);
+      return json(formatCartCheckout(cart));
     }
 
     if (req.method === "PUT") {
@@ -259,7 +259,7 @@ async function handleCart(path: string[], req: NextRequest) {
         cart.updatedAt = new Date().toISOString();
         await carts.save(path[1], cart);
       }
-      return json(cart);
+      return json(formatCartCheckout(cart));
     }
 
     if (req.method === "DELETE") {
@@ -268,7 +268,7 @@ async function handleCart(path: string[], req: NextRequest) {
       cart.lines = cart.lines.filter((l: any) => !lineIds.includes(l.id));
       cart.updatedAt = new Date().toISOString();
       await carts.save(path[1], cart);
-      return json(cart);
+      return json(formatCartCheckout(cart));
     }
   }
 
@@ -310,6 +310,7 @@ function formatCartCheckout(cart: any) {
     lines,
     subtotal: subtotal.toFixed(2),
     totalQuantity: lines.reduce((s: number, l: any) => s + l.quantity, 0),
+    checkoutUrl: `/checkout?cartId=${cart.id}`,
   };
 }
 
