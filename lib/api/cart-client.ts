@@ -48,7 +48,7 @@ export async function updateCartLines(cartId: string, lines: { id: string; quant
 
 export async function removeFromCart(cartId: string, lineIds: string[]) {
   const params = new URLSearchParams({ lineIds: JSON.stringify(lineIds) });
-  const res = await fetch(`/api/proxy/cart/${cartId}/lines?${params}`, {
+  const res = await fetch(`/api/cart/${cartId}/lines?${params}`, {
     method: "DELETE",
     headers: { Accept: "application/json" },
   });
