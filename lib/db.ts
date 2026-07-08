@@ -52,10 +52,17 @@ export async function getOne<T = any>(sql: string, params?: any[]): Promise<T | 
   return (rows.length ? rows[0] : null) as T | null;
 }
 
+function safeValue(val: any): any {
+  if (val !== null && typeof val === "object" && !(val instanceof Date)) {
+    return JSON.stringify(val);
+  }
+  return val;
+}
+
 export async function insert(table: string, data: Record<string, any>): Promise<void> {
   if (!USE_DB) return;
   const keys = Object.keys(data);
-  const vals = Object.values(data);
+  const vals = Object.values(data).map(safeValue);
   const placeholders = keys.map(() => "?").join(", ");
   await query(`INSERT INTO ?? (${keys.map(() => "??").join(", ")}) VALUES (${placeholders})`, [table, ...keys, ...vals]);
 }
@@ -63,7 +70,7 @@ export async function insert(table: string, data: Record<string, any>): Promise<
 export async function update(table: string, idCol: string, idVal: any, data: Record<string, any>): Promise<void> {
   if (!USE_DB) return;
   const keys = Object.keys(data);
-  const vals = Object.values(data);
+  const vals = Object.values(data).map(safeValue);
   const sets = keys.map(() => "?? = ?").join(", ");
   const flat: any[] = [];
   for (let i = 0; i < keys.length; i++) { flat.push(keys[i], vals[i]); }
@@ -100,7 +107,7 @@ export async function replaceAll(table: string, items: Record<string, any>[], id
     await conn.query(`DELETE FROM ??`, [table]);
     for (const item of items) {
       const keys = Object.keys(item);
-      const vals = Object.values(item);
+      const vals = Object.values(item).map(safeValue);
       const ph = keys.map(() => "?").join(", ");
       await conn.query(`INSERT INTO ?? (${keys.map(() => "??").join(", ")}) VALUES (${ph})`, [table, ...keys, ...vals]);
     }
