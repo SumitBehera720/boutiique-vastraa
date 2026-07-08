@@ -2,7 +2,6 @@
 
 import { verifyAdminSession } from "./adminAuth";
 import { revalidatePath } from "next/cache";
-import { apiPost, apiPut, apiDelete } from "@/lib/api/client";
 
 async function requireAuth() {
   const isLogged = await verifyAdminSession();
@@ -12,7 +11,10 @@ async function requireAuth() {
 export async function deleteCollectionAction(id: string) {
   try {
     await requireAuth();
-    await apiDelete(`/admin/collections/${encodeURIComponent(id)}`);
+    const { initDataStore, collections } = await import("@/lib/data-store");
+    await initDataStore();
+    const all = await collections.all();
+    await collections.save(all.filter((c: any) => c.id !== id));
     revalidatePath("/admin/collections");
     revalidatePath("/collections");
     revalidatePath("/");
@@ -28,30 +30,24 @@ export async function saveCollectionAction(collectionData: any) {
     if (!collectionData.title || !collectionData.description) {
       return { success: false, error: "Please fill in Title and Description." };
     }
+    const { initDataStore, collections } = await import("@/lib/data-store");
+    await initDataStore();
+    const all = await collections.all();
     const body: any = {
-      id: collectionData.id,
+      id: collectionData.id || `col_${Date.now()}`,
       title: collectionData.title,
-      handle: collectionData.handle,
+      handle: collectionData.handle || collectionData.title.toLowerCase().replace(/\s+/g, '-'),
       description: collectionData.description,
     };
-    if (collectionData.image) {
-      body.image = collectionData.image;
-    }
-    if (collectionData.id) {
-      const res = await apiPut<any>(`/admin/collections/${encodeURIComponent(collectionData.id)}`, body);
-      revalidatePath("/admin/collections");
-      revalidatePath(`/collections/${res.handle}`);
-      revalidatePath("/collections");
-      revalidatePath("/");
-      return { success: true, id: res.id, handle: res.handle };
-    } else {
-      const res = await apiPost<any>("/admin/collections", body);
-      revalidatePath("/admin/collections");
-      revalidatePath(`/collections/${res.handle}`);
-      revalidatePath("/collections");
-      revalidatePath("/");
-      return { success: true, id: res.id, handle: res.handle };
-    }
+    if (collectionData.image) body.image = collectionData.image;
+    const idx = all.findIndex((c: any) => c.id === body.id || c.handle === body.handle);
+    if (idx >= 0) { all[idx] = body; } else { all.push(body); }
+    await collections.save(all);
+    revalidatePath("/admin/collections");
+    revalidatePath(`/collections/${body.handle}`);
+    revalidatePath("/collections");
+    revalidatePath("/");
+    return { success: true, id: body.id, handle: body.handle };
   } catch (error: any) {
     return { success: false, error: error.message || "Failed to save collection." };
   }

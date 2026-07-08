@@ -54,6 +54,7 @@ export async function getProducts(first = 50) {
       return items.slice(0, first).map(formatProduct);
     } catch (e) {
       console.error("[getProducts] direct DS error:", e);
+      return [];
     }
   }
   try {
@@ -71,6 +72,7 @@ export async function getCollections(first = 20) {
       return items.filter((col: any) => col.handle !== "frontpage").slice(0, first);
     } catch (e) {
       console.error("[getCollections] direct DS error:", e);
+      return [];
     }
   }
   try {
@@ -89,6 +91,7 @@ export async function getProductByHandle(handle: string) {
       return found ? formatProduct(found) : null;
     } catch (e) {
       console.error("[getProductByHandle] direct DS error:", e);
+      return null;
     }
   }
   try {
@@ -107,6 +110,7 @@ export async function getProductRecommendations(productId: string) {
       return others.map(formatProduct);
     } catch (e) {
       console.error("[getProductRecommendations] direct DS error:", e);
+      return [];
     }
   }
   try {
@@ -160,6 +164,7 @@ export async function getCollectionByHandle({
       };
     } catch (e) {
       console.error("[getCollectionByHandle] direct DS error:", e);
+      return null;
     }
   }
   const params: Record<string, string> = {
@@ -193,6 +198,7 @@ export async function searchProducts(query: string, first = 24, after: string | 
       };
     } catch (e) {
       console.error("[searchProducts] direct DS error:", e);
+      return { edges: [], pageInfo: { hasNextPage: false, endCursor: "" } };
     }
   }
   try {
@@ -224,6 +230,7 @@ export async function getCustomer(customerAccessToken: string) {
       return { ...customer, orders: { edges: userOrders.map((o: any) => ({ node: o })) } };
     } catch (e) {
       console.error("[getCustomer] direct DS error:", e);
+      return null;
     }
   }
   try {

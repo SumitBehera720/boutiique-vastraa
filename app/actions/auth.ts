@@ -69,8 +69,11 @@ export async function registerAction(formData: FormData) {
 
 export async function logoutAction() {
   try {
-    const { apiPost } = await import("@/lib/api/client");
-    await apiPost("/auth/logout").catch(() => {});
+    const { initDataStore, sessions } = await import("@/lib/data-store");
+    await initDataStore();
+    const cookieStore = await cookies();
+    const token = cookieStore.get(COOKIE_NAME)?.value;
+    if (token) await sessions.delete(token);
   } catch {}
   const cookieStore = await cookies();
   cookieStore.delete(COOKIE_NAME);
