@@ -1,4 +1,3 @@
-import mysql, { Pool, PoolConnection, RowDataPacket, ResultSetHeader } from "mysql2/promise";
 import fs from "fs";
 import path from "path";
 import crypto from "crypto";
@@ -9,11 +8,22 @@ const DB_PASS = process.env.DB_PASSWORD || "";
 const DB_NAME = process.env.DB_NAME || "";
 const USE_DB = !!(DB_HOST && DB_USER && DB_NAME);
 
-let pool: Pool | null = null;
+let mysql: any = null;
 
-function getPool(): Pool {
+async function getMysql() {
+  if (!mysql) {
+    mysql = await import("mysql2/promise").catch(() => null);
+  }
+  return mysql;
+}
+
+let pool: any = null;
+
+async function getPool() {
   if (!pool) {
-    pool = mysql.createPool({
+    const m = await getMysql();
+    if (!m) throw new Error("mysql2 not available");
+    pool = m.createPool({
       host: DB_HOST,
       user: DB_USER,
       password: DB_PASS,
@@ -30,13 +40,15 @@ function getPool(): Pool {
 
 export async function query<T = any>(sql: string, params?: any[]): Promise<T> {
   if (!USE_DB) return [] as any;
-  const [rows] = await getPool().execute(sql, params);
+  const p = await getPool();
+  const [rows] = await p.query(sql, params);
   return rows as T;
 }
 
 export async function getOne<T = any>(sql: string, params?: any[]): Promise<T | null> {
   if (!USE_DB) return null;
-  const [rows] = await getPool().execute<RowDataPacket[]>(sql, params);
+  const p = await getPool();
+  const [rows] = await p.query(sql, params);
   return (rows.length ? rows[0] : null) as T | null;
 }
 
@@ -81,15 +93,16 @@ export async function remove(table: string, idCol: string, idVal: any): Promise<
 
 export async function replaceAll(table: string, items: Record<string, any>[], idCol = "id"): Promise<void> {
   if (!USE_DB || !items.length) return;
-  const conn = await getPool().getConnection();
+  const p = await getPool();
+  const conn = await p.getConnection();
   try {
     await conn.beginTransaction();
-    await conn.execute(`DELETE FROM ??`, [table]);
+    await conn.query(`DELETE FROM ??`, [table]);
     for (const item of items) {
       const keys = Object.keys(item);
       const vals = Object.values(item);
       const ph = keys.map(() => "?").join(", ");
-      await conn.execute(`INSERT INTO ?? (${keys.map(() => "??").join(", ")}) VALUES (${ph})`, [table, ...keys, ...vals]);
+      await conn.query(`INSERT INTO ?? (${keys.map(() => "??").join(", ")}) VALUES (${ph})`, [table, ...keys, ...vals]);
     }
     await conn.commit();
   } catch (e) {
@@ -227,9 +240,12 @@ export async function initDatabase(): Promise<void> {
   try {
     // create database if not exists - ignore error if it fails (common on shared hosting)
     try {
-      const tmpPool = mysql.createPool({ host: DB_HOST, user: DB_USER, password: DB_PASS, connectionLimit: 1 });
-      await tmpPool.execute(`CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
-      await tmpPool.end();
+      const m = await getMysql();
+      if (m) {
+        const tmpPool = m.createPool({ host: DB_HOST, user: DB_USER, password: DB_PASS, connectionLimit: 1 });
+        await tmpPool.execute(`CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
+        await tmpPool.end();
+      }
     } catch (dbErr) {
       console.log("[DB] CREATE DATABASE omitted or failed (usual on shared hosting):", dbErr);
     }
