@@ -582,7 +582,11 @@ export function generateId(): string {
 
 // ─── Init & housekeeping ────────────────────────────────────────────────────
 
+let _dataStoreInit = false;
+
 export async function initDataStore(): Promise<void> {
+  if (_dataStoreInit) return;
+  _dataStoreInit = true;
   if (USE_DB) {
     try {
       await initDatabase();
