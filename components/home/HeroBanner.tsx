@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 interface BannerSlide {
   id?: string;
   imageUrl: string;
+  mobileImageUrl?: string;
   title?: string;
   subtitle?: string;
   buttonText?: string;
@@ -43,7 +44,7 @@ export default function HeroBanner({ slides }: { slides?: BannerSlide[] }) {
   }, [bannerSlides.length]);
 
   return (
-    <section className="relative w-full h-[320px] sm:h-[450px] md:h-[600px] lg:h-[680px] overflow-hidden bg-maroonClr">
+    <section className="relative w-full h-[620px] sm:h-[450px] md:h-[600px] lg:h-[680px] overflow-hidden bg-maroonClr">
       <AnimatePresence initial={false} mode="wait">
         <motion.div
           key={currentSlide}
@@ -54,14 +55,28 @@ export default function HeroBanner({ slides }: { slides?: BannerSlide[] }) {
           className="absolute inset-0 w-full h-full"
         >
           {/* Slide Background Image */}
-          <Image
-            src={bannerSlides[currentSlide].imageUrl || "/images/banner-1773659037696-747582281.webp"}
-            alt={bannerSlides[currentSlide].title || "Banner"}
-            fill
-            priority
-            className="object-cover object-center"
-            sizes="100vw"
-          />
+          {/* Desktop Image */}
+          <div className="hidden sm:block absolute inset-0 w-full h-full">
+            <Image
+              src={bannerSlides[currentSlide].imageUrl || "/images/banner-1773659037696-747582281.webp"}
+              alt={bannerSlides[currentSlide].title || "Banner"}
+              fill
+              priority
+              className="object-cover object-center"
+              sizes="100vw"
+            />
+          </div>
+          {/* Mobile Image */}
+          <div className="block sm:hidden absolute inset-0 w-full h-full">
+            <Image
+              src={bannerSlides[currentSlide].mobileImageUrl || bannerSlides[currentSlide].imageUrl || "/images/banner-1773659037696-747582281.webp"}
+              alt={bannerSlides[currentSlide].title || "Banner"}
+              fill
+              priority
+              className="object-cover object-center"
+              sizes="100vw"
+            />
+          </div>
           {/* Overlay gradient */}
           <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent" />
           

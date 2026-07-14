@@ -146,7 +146,12 @@ export default async function Home() {
       <CollectionsSlider collections={lovedCollections} title={homeSettings.lovedCollectionsTitle} />
 
       {/* Section 2: Pattern Banner */}
-      <PatternBanner heading={homeSettings.patternBanner?.heading} mediaUrl={homeSettings.patternBanner?.mediaUrl} type={homeSettings.patternBanner?.type} />
+      <PatternBanner 
+        heading={homeSettings.patternBanner?.heading} 
+        mediaUrl={homeSettings.patternBanner?.mediaUrl} 
+        type={homeSettings.patternBanner?.type} 
+        reels={homeSettings.patternBanner?.reels}
+      />
 
       {/* Section 3: Top-Sellings */}
       <TopSellings 

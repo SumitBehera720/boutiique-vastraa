@@ -1,5 +1,6 @@
 import { verifyAdminSession } from "@/app/actions/adminAuth";
 import AdminSidebar from "@/components/admin/AdminSidebar";
+import AdminLayoutClient from "@/components/admin/AdminLayoutClient";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -20,11 +21,8 @@ export default async function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen bg-neutral-900 text-white flex">
-      <AdminSidebar />
-      <main className="flex-1 overflow-y-auto h-screen p-8 bg-neutral-900 custom-scrollbar">
-        {children}
-      </main>
-    </div>
+    <AdminLayoutClient sidebar={<AdminSidebar />}>
+      {children}
+    </AdminLayoutClient>
   );
 }

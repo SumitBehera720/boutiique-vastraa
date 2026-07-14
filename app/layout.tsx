@@ -8,6 +8,7 @@ import CartDrawer from "@/components/cart/CartDrawer";
 import MobileBottomNav from "@/components/global/MobileBottomNav";
 import PageLoader from "@/components/global/PageLoader";
 import AnnouncementBar from "@/components/global/AnnouncementBar";
+import MobileSocialStrip from "@/components/global/MobileSocialStrip";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -66,13 +67,20 @@ export default async function RootLayout({
         <PageLoader />
         <div className="sticky top-0 z-50">
           <AnnouncementBar settings={headerSettings} />
-          <Header isLoggedIn={isLoggedIn} settings={headerSettings} />
+          <Header isLoggedIn={isLoggedIn} settings={headerSettings} footerSettings={footerSettings} />
         </div>
         <CartDrawer />
         <main>
           {children}
         </main>
         <Footer settings={footerSettings} />
+        <MobileSocialStrip
+          facebook={footerSettings.facebookUrl}
+          instagram={footerSettings.instagramUrl}
+          pinterest={footerSettings.pinterestUrl}
+          whatsapp={headerSettings.whatsappNumber ? `https://wa.me/${headerSettings.whatsappNumber}` : undefined}
+          youtube={footerSettings.youtubeUrl}
+        />
         <MobileBottomNav />
       </body>
     </html>

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { adminLogoutAction } from "@/app/actions/adminAuth";
-import { LayoutDashboard, Package, FolderHeart, ShoppingBag, Users, LogOut, Sparkles, Tag, MessageSquare, Settings } from "lucide-react";
+import { LayoutDashboard, Package, FolderHeart, ShoppingBag, Users, LogOut, Sparkles, Tag, MessageSquare, Settings, Smartphone } from "lucide-react";
 
 export default function AdminSidebar() {
   const pathname = usePathname();
@@ -20,7 +20,7 @@ export default function AdminSidebar() {
   ];
 
   return (
-    <aside className="w-64 bg-neutral-950 border-r border-neutral-800 flex flex-col h-screen sticky top-0 flex-shrink-0 z-20">
+    <aside className="w-full lg:w-64 bg-neutral-950 border-r border-neutral-850 flex flex-col h-full lg:h-screen lg:sticky lg:top-0 flex-shrink-0">
       {/* Brand Header */}
       <div className="p-6 border-b border-neutral-800">
         <Link href="/admin" className="flex items-center gap-2">

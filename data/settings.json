@@ -11,7 +11,8 @@
       "title": "Heritage Handlooms",
       "subtitle": "Discover our new collections of Banarasi Silk & Organza Sarees",
       "buttonText": "Explore Collection",
-      "link": "/collections/saree"
+      "link": "/collections/saree",
+      "mobileImageUrl": "/images/uploads/1784030165379.jpeg"
     },
     {
       "id": "slide_2",
@@ -19,7 +20,8 @@
       "title": "Elegance Redefined",
       "subtitle": "Artisan craftsmanship, curated colors and modern designs",
       "buttonText": "Shop All Products",
-      "link": "/collections/all"
+      "link": "/collections/all",
+      "mobileImageUrl": "/images/uploads/1784030171746.jpeg"
     },
     {
       "id": "slide_3",
@@ -27,7 +29,8 @@
       "title": "Festive Splendor",
       "subtitle": "Celebrate in style with our handloom cotton and linen sarees",
       "buttonText": "Discover Festive",
-      "link": "/collections/saree"
+      "link": "/collections/saree",
+      "mobileImageUrl": "/images/uploads/1784030179797.jpeg"
     }
   ],
   "homepage": {
@@ -48,7 +51,36 @@
     "patternBanner": {
       "heading": "Spot it. Style it. Own it.",
       "type": "IMAGE",
-      "mediaUrl": "/images/pattern-bg.jpg"
+      "mediaUrl": "/images/pattern-bg.jpg",
+      "reels": [
+        {
+          "id": "reel_1784030380721",
+          "videoUrl": "/images/uploads/1784030386315.mp4",
+          "title": "",
+          "price": "",
+          "compareAtPrice": "",
+          "views": "10K",
+          "link": ""
+        },
+        {
+          "id": "reel_1784030389853",
+          "videoUrl": "/images/uploads/1784030394642.mp4",
+          "title": "",
+          "price": "",
+          "compareAtPrice": "",
+          "views": "10K",
+          "link": ""
+        },
+        {
+          "id": "reel_1784030401986",
+          "videoUrl": "/images/uploads/1784030409157.mp4",
+          "title": "",
+          "price": "",
+          "compareAtPrice": "",
+          "views": "10K",
+          "link": ""
+        }
+      ]
     },
     "trendingTitle": "Top-Sellings",
     "trendingSubtitle": "Wrap yourself in timeless beauty with our exquisite saree collection. Each drape is crafted to celebrate grace, tradition, and modern charm.",

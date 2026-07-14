@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { saveSeoSettingsAction, saveBannersSettingsAction, saveHomepageSettingsAction, saveFooterSettingsAction, saveHeaderSettingsAction, uploadFileAction } from "@/app/actions/adminSettings";
-import { Sparkles, Save, Plus, Trash2, ArrowUp, ArrowDown, Image as ImageIcon, Globe, AlertCircle, CheckCircle2, Home, HelpCircle, Gift, Info, Star, PlusCircle, Link2, Mail, Phone, Heart, Grid, Video, Play, List, Compass, MessageSquare, Menu, Smile } from "lucide-react";
+import { saveSeoSettingsAction, saveBannersSettingsAction, saveHomepageSettingsAction, saveFooterSettingsAction, saveHeaderSettingsAction } from "@/app/actions/adminSettings";
+import { Sparkles, Save, Plus, Trash2, ArrowUp, ArrowDown, Image as ImageIcon, Globe, AlertCircle, CheckCircle2, Home, HelpCircle, Gift, Info, Star, PlusCircle, Link2, Mail, Phone, Heart, Grid, Video, Play, List, Compass, MessageSquare, Menu, Smile, Laptop, Smartphone } from "lucide-react";
 
 interface SettingsFormClientProps {
   initialSettings: any;
@@ -38,11 +38,15 @@ function ImageOrVideoUploader({
     formData.append("file", file);
 
     try {
-      const res = await uploadFileAction(formData);
-      if (res.success && res.url) {
-        onChange(res.url);
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData
+      });
+      const data = await response.json();
+      if (data.success && data.url) {
+        onChange(data.url);
       } else {
-        setLocalError(res.error || "Failed to upload.");
+        setLocalError(data.error || "Failed to upload.");
       }
     } catch (err) {
       setLocalError("Failed to upload file.");
@@ -114,6 +118,7 @@ export default function SettingsFormClient({ initialSettings, products = [], col
   const [marqueeItems, setMarqueeItems] = useState<any[]>(hd.marquee || []);
   const [menuLinks, setMenuLinks] = useState<any[]>(hd.menuLinks || []);
 
+
   // ----------------------------------------------------
   // 3. Banners State
   // ----------------------------------------------------
@@ -129,10 +134,10 @@ export default function SettingsFormClient({ initialSettings, products = [], col
   const [lovedCollectionsSubtitle, setLovedCollectionsSubtitle] = useState(hp.lovedCollectionsSubtitle || "");
   const [lovedCollectionsItems, setLovedCollectionsItems] = useState<any[]>(hp.lovedCollectionsItems || []);
 
-  // Section 2: Pattern Banner
   const [patternBannerHeading, setPatternBannerHeading] = useState(hp.patternBanner?.heading || "");
   const [patternBannerType, setPatternBannerType] = useState<"IMAGE" | "VIDEO">(hp.patternBanner?.type || "IMAGE");
   const [patternBannerMediaUrl, setPatternBannerMediaUrl] = useState(hp.patternBanner?.mediaUrl || "");
+  const [reels, setReels] = useState<any[]>(hp.patternBanner?.reels || []);
 
   // Section 3: Top Sellings
   const [trendingTitle, setTrendingTitle] = useState(hp.trendingTitle || "");
@@ -176,6 +181,7 @@ export default function SettingsFormClient({ initialSettings, products = [], col
   const [facebookUrl, setFacebookUrl] = useState(ft.facebookUrl || "");
   const [instagramUrl, setInstagramUrl] = useState(ft.instagramUrl || "");
   const [pinterestUrl, setPinterestUrl] = useState(ft.pinterestUrl || "");
+  const [youtubeUrl, setYoutubeUrl] = useState(ft.youtubeUrl || "");
   const [footerLinks, setFooterLinks] = useState<any[]>(ft.links || []);
 
   // ----------------------------------------------------
@@ -287,6 +293,28 @@ export default function SettingsFormClient({ initialSettings, products = [], col
     setFaqA("");
   };
 
+  // Reels Helpers
+  const handleAddReel = () => {
+    setReels([
+      ...reels,
+      {
+        id: `reel_${Date.now()}`,
+        videoUrl: "",
+        title: "",
+        price: "",
+        compareAtPrice: "",
+        views: "10K",
+        link: ""
+      }
+    ]);
+  };
+
+  const handleReelChange = (index: number, key: string, val: string) => {
+    const updated = [...reels];
+    updated[index] = { ...updated[index], [key]: val };
+    setReels(updated);
+  };
+
   // Footer Link Helpers
   const [footLinkLabel, setFootLinkLabel] = useState("");
   const [footLinkUrl, setFootLinkUrl] = useState("");
@@ -320,6 +348,7 @@ export default function SettingsFormClient({ initialSettings, products = [], col
       {
         id: `slide_${Date.now()}`,
         imageUrl: "",
+        mobileImageUrl: "",
         title: "",
         subtitle: "",
         buttonText: "Explore Now",
@@ -391,7 +420,8 @@ export default function SettingsFormClient({ initialSettings, products = [], col
       patternBanner: {
         heading: patternBannerHeading,
         type: patternBannerType,
-        mediaUrl: patternBannerMediaUrl
+        mediaUrl: patternBannerMediaUrl,
+        reels: reels
       },
       trendingTitle,
       trendingSubtitle,
@@ -430,6 +460,7 @@ export default function SettingsFormClient({ initialSettings, products = [], col
       facebookUrl,
       instagramUrl,
       pinterestUrl,
+      youtubeUrl,
       links: footerLinks
     });
     setLoading(false);
@@ -591,6 +622,7 @@ export default function SettingsFormClient({ initialSettings, products = [], col
                 <span className="text-[9px] text-neutral-500 block mt-1">Include country code without + or spaces (e.g. 919205238666)</span>
               </div>
 
+
               {/* Dynamic Announcement list */}
               <div className="space-y-3 pt-2">
                 <h4 className="text-xs font-bold text-[#C9A84C] uppercase tracking-widest pb-1 border-b border-neutral-900">2. Announcement Bar Sliding Items</h4>
@@ -730,10 +762,14 @@ export default function SettingsFormClient({ initialSettings, products = [], col
                   <button onClick={() => deleteItem(banners, setBanners, index)} className="p-1 bg-neutral-900 hover:bg-red-950/40 text-neutral-500 hover:text-red-400 rounded border border-neutral-800"><Trash2 className="w-3.5 h-3.5" /></button>
                 </div>
                 <h4 className="text-xs font-bold text-[#C9A84C] uppercase tracking-widest pb-1 border-b border-neutral-900">Slide #{index + 1}</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-neutral-900/30 p-5 rounded-xl border border-neutral-850">
+                  {/* Desktop configuration panel */}
+                  <div className="space-y-4">
+                    <h5 className="text-[10px] font-bold text-[#C9A84C] uppercase tracking-widest pb-1 border-b border-neutral-800/60 flex items-center gap-1.5">
+                      <Laptop className="w-3.5 h-3.5" /> 1. Desktop Slide Media
+                    </h5>
                     <ImageOrVideoUploader
-                      label="Slide Banner Image"
+                      label="Desktop Banner Image"
                       value={slide.imageUrl}
                       onChange={(url) => handleBannerChange(index, "imageUrl", url)}
                       accept="image/*"
@@ -743,11 +779,26 @@ export default function SettingsFormClient({ initialSettings, products = [], col
                       <input type="text" value={slide.title} onChange={(e) => handleBannerChange(index, "title", e.target.value)} className="w-full bg-neutral-900 border border-neutral-800 rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-maroonClr" />
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <div>
-                      <label className="block text-[9px] font-bold text-neutral-500 uppercase tracking-wider mb-1">Subtitle</label>
+
+                  {/* Mobile portrait configuration panel */}
+                  <div className="space-y-4">
+                    <h5 className="text-[10px] font-bold text-[#C9A84C] uppercase tracking-widest pb-1 border-b border-neutral-800/60 flex items-center gap-1.5">
+                      <Smartphone className="w-3.5 h-3.5" /> 2. Mobile Slide Media (Portrait)
+                    </h5>
+                    <ImageOrVideoUploader
+                      label="Mobile Portrait Image"
+                      value={slide.mobileImageUrl || ""}
+                      onChange={(url) => handleBannerChange(index, "mobileImageUrl", url)}
+                      accept="image/*"
+                    />
+                    <div className="pt-1.5">
+                      <label className="block text-[9px] font-bold text-neutral-500 uppercase tracking-wider mb-1">Slide Subtitle</label>
                       <input type="text" value={slide.subtitle} onChange={(e) => handleBannerChange(index, "subtitle", e.target.value)} className="w-full bg-neutral-900 border border-neutral-800 rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-maroonClr" />
                     </div>
+                  </div>
+
+                  {/* CTA & Link row */}
+                  <div className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 border-t border-neutral-800/60">
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="block text-[9px] font-bold text-neutral-500 uppercase tracking-wider mb-1">Button Text</label>
@@ -885,27 +936,89 @@ export default function SettingsFormClient({ initialSettings, products = [], col
 
             {/* Subsection 2: Pattern Banner */}
             {activeSubSection === "patternBanner" && (
-              <div className="space-y-4">
-                <h3 className="text-xs font-bold text-[#C9A84C] uppercase tracking-widest pb-1 border-b border-neutral-900">2. Pattern Banner (Video/Image Strip)</h3>
-                <div>
-                  <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Banner Text Headline</label>
-                  <input type="text" value={patternBannerHeading} onChange={(e) => setPatternBannerHeading(e.target.value)} className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-maroonClr" />
-                </div>
+              <div className="space-y-6">
+                <h3 className="text-xs font-bold text-[#C9A84C] uppercase tracking-widest pb-1 border-b border-neutral-900">2. Pattern Banner (Headline & Reels)</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Background Media Type</label>
-                    <select value={patternBannerType} onChange={(e: any) => setPatternBannerType(e.target.value)} className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none">
-                      <option value="IMAGE">IMAGE BACKGROUND</option>
-                      <option value="VIDEO">VIDEO BACKGROUND (MP4 LOOP)</option>
-                    </select>
+                    <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Banner Text Headline</label>
+                    <input type="text" value={patternBannerHeading} onChange={(e) => setPatternBannerHeading(e.target.value)} className="w-full bg-neutral-900 border border-neutral-850 rounded px-3 py-2 text-xs text-white focus:outline-none" />
                   </div>
-                  
-                  <ImageOrVideoUploader
-                    label="Background Media File"
-                    value={patternBannerMediaUrl}
-                    onChange={setPatternBannerMediaUrl}
-                    accept={patternBannerType === "VIDEO" ? "video/*" : "image/*"}
-                  />
+                  <div>
+                    <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Background Media File (Fallback)</label>
+                    <ImageOrVideoUploader
+                      label="Background Media File"
+                      value={patternBannerMediaUrl}
+                      onChange={setPatternBannerMediaUrl}
+                      accept={patternBannerType === "VIDEO" ? "video/*" : "image/*"}
+                    />
+                  </div>
+                </div>
+
+                {/* Reels Customizer */}
+                <div className="space-y-4 pt-4 border-t border-neutral-900">
+                  <div className="flex justify-between items-center bg-neutral-900/60 p-3 rounded-lg border border-neutral-850">
+                    <div>
+                      <h4 className="text-[10px] font-bold text-white uppercase tracking-wider">Shoppable Video Reels</h4>
+                      <p className="text-[9px] text-neutral-500 mt-0.5">Configure portrait videos with product titles, pricing and links.</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleAddReel}
+                      className="bg-neutral-800 hover:bg-[#C9A84C] hover:text-black text-white px-3 py-1.5 text-[9px] font-bold uppercase rounded tracking-wider flex items-center gap-1 transition-colors"
+                    >
+                      <Plus className="w-3 h-3" /> Add Video Card
+                    </button>
+                  </div>
+
+                  <div className="space-y-4">
+                    {reels.map((reel, index) => (
+                      <div key={reel.id} className="bg-neutral-900/40 border border-neutral-855 p-4 rounded-xl space-y-4 relative group">
+                        <div className="absolute right-4 top-4 flex gap-1">
+                          <button type="button" onClick={() => moveItem(reels, setReels, index, "UP")} disabled={index === 0} className="p-1 bg-neutral-950 hover:bg-neutral-900 text-neutral-400 hover:text-white rounded border border-neutral-800 disabled:opacity-20"><ArrowUp className="w-3 h-3" /></button>
+                          <button type="button" onClick={() => moveItem(reels, setReels, index, "DOWN")} disabled={index === reels.length - 1} className="p-1 bg-neutral-955 hover:bg-neutral-900 text-neutral-400 hover:text-white rounded border border-neutral-800 disabled:opacity-20"><ArrowDown className="w-3 h-3" /></button>
+                          <button type="button" onClick={() => deleteItem(reels, setReels, index)} className="p-1 bg-neutral-955 hover:bg-red-950/40 text-neutral-500 hover:text-red-400 rounded border border-neutral-800"><Trash2 className="w-3.5 h-3.5" /></button>
+                        </div>
+                        
+                        <h5 className="text-[10px] font-bold text-[#C9A84C] uppercase tracking-wider">Video Card #{index + 1}</h5>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="space-y-2">
+                            <ImageOrVideoUploader
+                              label="Video File"
+                              value={reel.videoUrl || ""}
+                              onChange={(url) => handleReelChange(index, "videoUrl", url)}
+                              accept="video/*"
+                            />
+                            <div>
+                              <label className="block text-[8px] font-bold text-neutral-500 uppercase">Views Badge (e.g. 12K)</label>
+                              <input type="text" value={reel.views || ""} onChange={(e) => handleReelChange(index, "views", e.target.value)} className="w-full bg-neutral-900 border border-neutral-800 rounded px-2.5 py-1 text-xs text-white focus:outline-none" />
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <div>
+                              <label className="block text-[8px] font-bold text-neutral-500 uppercase">Product Title</label>
+                              <input type="text" value={reel.title || ""} onChange={(e) => handleReelChange(index, "title", e.target.value)} className="w-full bg-neutral-900 border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white focus:outline-none" />
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <label className="block text-[8px] font-bold text-neutral-500 uppercase">Price (INR)</label>
+                                <input type="text" value={reel.price || ""} onChange={(e) => handleReelChange(index, "price", e.target.value)} className="w-full bg-neutral-900 border border-neutral-800 rounded px-2 py-1 text-xs text-white focus:outline-none" />
+                              </div>
+                              <div>
+                                <label className="block text-[8px] font-bold text-neutral-500 uppercase">Compare Price</label>
+                                <input type="text" value={reel.compareAtPrice || ""} onChange={(e) => handleReelChange(index, "compareAtPrice", e.target.value)} className="w-full bg-neutral-900 border border-neutral-800 rounded px-2 py-1 text-xs text-white focus:outline-none" />
+                              </div>
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-[8px] font-bold text-neutral-500 uppercase mb-1">Product Action Link</label>
+                            <input type="text" value={reel.link || ""} onChange={(e) => handleReelChange(index, "link", e.target.value)} placeholder="/products/product-handle" className="w-full bg-neutral-900 border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white font-mono focus:outline-none" />
+                            <span className="text-[8px] text-neutral-500 block mt-1">E.g., /products/gold-ring or /collections/saree</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
@@ -1335,10 +1448,23 @@ export default function SettingsFormClient({ initialSettings, products = [], col
 
               <div className="space-y-2 pt-2">
                 <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Social Media Links</p>
-                <div className="grid grid-cols-3 gap-2">
-                  <input type="text" placeholder="Facebook Link" value={facebookUrl} onChange={(e) => setFacebookUrl(e.target.value)} className="bg-neutral-900 border border-neutral-850 rounded px-2.5 py-1.5 text-xs text-white font-mono" />
-                  <input type="text" placeholder="Instagram Link" value={instagramUrl} onChange={(e) => setInstagramUrl(e.target.value)} className="bg-neutral-900 border border-neutral-850 rounded px-2.5 py-1.5 text-xs text-white font-mono" />
-                  <input type="text" placeholder="Pinterest Link" value={pinterestUrl} onChange={(e) => setPinterestUrl(e.target.value)} className="bg-neutral-900 border border-neutral-850 rounded px-2.5 py-1.5 text-xs text-white font-mono" />
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[8px] font-bold text-neutral-500 uppercase mb-0.5">Facebook Link</label>
+                    <input type="text" placeholder="Facebook Link" value={facebookUrl} onChange={(e) => setFacebookUrl(e.target.value)} className="w-full bg-neutral-900 border border-neutral-850 rounded px-2.5 py-1.5 text-xs text-white font-mono" />
+                  </div>
+                  <div>
+                    <label className="block text-[8px] font-bold text-neutral-500 uppercase mb-0.5">Instagram Link</label>
+                    <input type="text" placeholder="Instagram Link" value={instagramUrl} onChange={(e) => setInstagramUrl(e.target.value)} className="w-full bg-neutral-900 border border-neutral-850 rounded px-2.5 py-1.5 text-xs text-white font-mono" />
+                  </div>
+                  <div>
+                    <label className="block text-[8px] font-bold text-neutral-500 uppercase mb-0.5">Pinterest Link</label>
+                    <input type="text" placeholder="Pinterest Link" value={pinterestUrl} onChange={(e) => setPinterestUrl(e.target.value)} className="w-full bg-neutral-900 border border-neutral-850 rounded px-2.5 py-1.5 text-xs text-white font-mono" />
+                  </div>
+                  <div>
+                    <label className="block text-[8px] font-bold text-neutral-500 uppercase mb-0.5">YouTube Link</label>
+                    <input type="text" placeholder="YouTube Link" value={youtubeUrl} onChange={(e) => setYoutubeUrl(e.target.value)} className="w-full bg-neutral-900 border border-neutral-850 rounded px-2.5 py-1.5 text-xs text-white font-mono" />
+                  </div>
                 </div>
               </div>
             </div>

@@ -7,6 +7,9 @@ import { usePathname } from "next/navigation";
 interface AnnouncementBarProps {
   settings?: {
     announcements?: string[];
+    facebookUrl?: string;
+    instagramUrl?: string;
+    youtubeUrl?: string;
   };
 }
 
