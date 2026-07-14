@@ -48,3 +48,9 @@ next-env.d.ts
 *.tar.gz
 standalone_dotnext.tar.gz
 next_static.tar.gz
+
+# local storage data & uploads
+/data/carts.json
+/data/sessions.json
+/public/images/uploads/
+/public/images/banners/
