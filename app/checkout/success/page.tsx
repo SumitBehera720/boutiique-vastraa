@@ -101,7 +101,13 @@ export default async function SuccessPage({
                     <p className="text-xs text-gray-400">Quantity: {item.quantity}</p>
                   </div>
                   <div className="text-right">
-                    <span className="font-bold text-gray-800 text-sm">₹{parseFloat(item.price).toFixed(0)}</span>
+                    <span className="font-bold text-gray-800 text-sm">
+                      {item.isGift ? (
+                        <span className="text-green-600 font-bold bg-green-50 px-1.5 py-0.5 rounded text-xs border border-green-100">FREE</span>
+                      ) : (
+                        `₹${parseFloat(item.price).toFixed(0)}`
+                      )}
+                    </span>
                   </div>
                 </div>
               ))}

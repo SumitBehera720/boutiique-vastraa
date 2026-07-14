@@ -1,4 +1,4 @@
-export async function createCart(lines: { merchandiseId: string; quantity: number }[]) {
+export async function createCart(lines: { merchandiseId: string; quantity: number; isGift?: boolean }[]) {
     const res = await fetch("/api/cart", {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
@@ -11,7 +11,7 @@ export async function createCart(lines: { merchandiseId: string; quantity: numbe
   return res.json();
 }
 
-export async function addToCart(cartId: string, lines: { merchandiseId: string; quantity: number }[]) {
+export async function addToCart(cartId: string, lines: { merchandiseId: string; quantity: number; isGift?: boolean }[]) {
     const res = await fetch(`/api/cart/${cartId}/lines`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json" },

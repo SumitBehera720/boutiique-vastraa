@@ -89,6 +89,21 @@ export async function saveHeaderSettingsAction(headerData: any) {
   }
 }
 
+export async function saveGiftsSettingsAction(giftsData: any[]) {
+  try {
+    await requireAuth();
+    const ds = await getDs();
+    const current = (await ds.get()) || {};
+    current.gifts = giftsData;
+    await ds.save(current);
+    revalidatePath("/admin/settings");
+    revalidatePath("/");
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message || "Failed to save gifts settings." };
+  }
+}
+
 export async function uploadFileAction(formData: FormData) {
   try {
     await requireAuth();

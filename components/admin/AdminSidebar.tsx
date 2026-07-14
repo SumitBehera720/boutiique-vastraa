@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { adminLogoutAction } from "@/app/actions/adminAuth";
-import { LayoutDashboard, Package, FolderHeart, ShoppingBag, Users, LogOut, Sparkles, Tag, MessageSquare, Settings, Smartphone } from "lucide-react";
+import { LayoutDashboard, Package, FolderHeart, ShoppingBag, Users, LogOut, Sparkles, Tag, MessageSquare, Settings, Smartphone, Gift } from "lucide-react";
 
 export default function AdminSidebar() {
   const pathname = usePathname();
@@ -15,6 +15,7 @@ export default function AdminSidebar() {
     { name: "Orders", href: "/admin/orders", icon: ShoppingBag },
     { name: "Customers", href: "/admin/customers", icon: Users },
     { name: "Promo Codes", href: "/admin/coupons", icon: Tag },
+    { name: "Free Gifts", href: "/admin/gifts", icon: Gift },
     { name: "Reviews", href: "/admin/reviews", icon: MessageSquare },
     { name: "Site Settings", href: "/admin/settings", icon: Settings },
   ];

@@ -48,6 +48,13 @@ export default function CheckoutForm({ cartId, initialCustomer }: CheckoutFormPr
   const [discount, setDiscount] = useState(0);
   const [appliedCode, setAppliedCode] = useState("");
   const [checkingPromo, setCheckingPromo] = useState(false);
+  const [prepaidDiscountPercent, setPrepaidDiscountPercent] = useState(8);
+
+  useEffect(() => {
+    // Generate random percentage between 5% and 10%
+    const pct = Math.floor(Math.random() * 6) + 5; // 5, 6, 7, 8, 9, 10
+    setPrepaidDiscountPercent(pct);
+  }, []);
 
   useEffect(() => {
     async function loadCart() {
@@ -138,6 +145,7 @@ export default function CheckoutForm({ cartId, initialCustomer }: CheckoutFormPr
         cardExpiry: paymentMethod === "CARD" ? cardExpiry : undefined,
         cardCvv: paymentMethod === "CARD" ? cardCvv : undefined,
         promoCode: appliedCode || undefined,
+        discount: discount + prepaidDiscountAmount,
       });
 
       if (res.success && res.orderId) {
@@ -197,6 +205,12 @@ export default function CheckoutForm({ cartId, initialCustomer }: CheckoutFormPr
       </div>
     );
   }
+
+  const isPrepaid = paymentMethod === "CARD";
+  const prepaidDiscountAmount = isPrepaid 
+    ? parseFloat(((parseFloat(cart.subtotal) - discount) * (prepaidDiscountPercent / 100)).toFixed(2))
+    : 0;
+  const finalTotal = parseFloat(cart.subtotal) - discount - prepaidDiscountAmount;
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] py-12 px-4 md:px-6">
@@ -386,7 +400,12 @@ export default function CheckoutForm({ cartId, initialCustomer }: CheckoutFormPr
                         className="w-4 h-4 text-maroonClr focus:ring-maroonClr accent-maroonClr"
                       />
                       <div>
-                        <p className="font-semibold text-gray-800 text-sm">Credit / Debit Card</p>
+                        <p className="font-semibold text-gray-800 text-sm flex items-center gap-2">
+                          Credit / Debit Card
+                          <span className="bg-green-100 text-green-800 text-[10px] px-2 py-0.5 rounded-full font-bold">
+                            Flat {prepaidDiscountPercent}% Off
+                          </span>
+                        </p>
                         <p className="text-xs text-gray-500">Pay securely with card options.</p>
                       </div>
                     </div>
@@ -448,7 +467,7 @@ export default function CheckoutForm({ cartId, initialCustomer }: CheckoutFormPr
                     Placing Order...
                   </>
                 ) : (
-                  <>Place Order (₹{(parseFloat(cart.subtotal) - discount).toFixed(0)})</>
+                  <>Place Order (₹{finalTotal.toFixed(0)})</>
                 )}
               </button>
             </form>
@@ -488,7 +507,11 @@ export default function CheckoutForm({ cartId, initialCustomer }: CheckoutFormPr
                   </div>
                   <div className="text-right flex-shrink-0">
                     <span className="font-bold text-gray-800 text-sm">
-                      ₹{parseFloat(line.price).toFixed(0)}
+                      {line.isGift ? (
+                        <span className="text-green-600 font-bold bg-green-50 px-1.5 py-0.5 rounded text-[10px] border border-green-100">FREE</span>
+                      ) : (
+                        `₹${parseFloat(line.price).toFixed(0)}`
+                      )}
                     </span>
                   </div>
                 </div>
@@ -546,6 +569,12 @@ export default function CheckoutForm({ cartId, initialCustomer }: CheckoutFormPr
                   <span>-₹{discount.toFixed(2)}</span>
                 </div>
               )}
+              {isPrepaid && prepaidDiscountAmount > 0 && (
+                <div className="flex justify-between text-sm text-green-600 font-semibold animate-fadeIn">
+                  <span className="flex items-center gap-1">Prepaid Discount ({prepaidDiscountPercent}%)</span>
+                  <span>-₹{prepaidDiscountAmount.toFixed(2)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-sm text-gray-600 font-medium">
                 <span>Shipping</span>
                 <span className="text-green-600 font-semibold uppercase tracking-wider text-xs">Free</span>
@@ -557,7 +586,7 @@ export default function CheckoutForm({ cartId, initialCustomer }: CheckoutFormPr
               <div className="border-t border-gray-100 pt-3 flex justify-between items-center text-gray-800">
                 <span className="font-bold uppercase tracking-wider text-xs">Total</span>
                 <span className="font-bold text-xl text-maroonClr">
-                  ₹{(parseFloat(cart.subtotal) - discount).toFixed(2)}
+                  ₹{finalTotal.toFixed(2)}
                 </span>
               </div>
             </div>

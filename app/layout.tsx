@@ -5,10 +5,14 @@ import "./globals.css";
 import Header from "@/components/global/Header";
 import Footer from "@/components/global/Footer";
 import CartDrawer from "@/components/cart/CartDrawer";
+import CartInitializer from "@/components/cart/CartInitializer";
+import GiftManager from "@/components/cart/GiftManager";
 import MobileBottomNav from "@/components/global/MobileBottomNav";
 import PageLoader from "@/components/global/PageLoader";
 import AnnouncementBar from "@/components/global/AnnouncementBar";
 import MobileSocialStrip from "@/components/global/MobileSocialStrip";
+import FloatingWhatsApp from "@/components/global/FloatingWhatsApp";
+import MetaPixel from "@/components/global/MetaPixel";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -62,14 +66,17 @@ export default async function RootLayout({
   const headerSettings = settings.header || {};
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={`${poppins.variable} ${kalnia.variable} ${rubik.variable} font-poppins antialiased`}>
+        <MetaPixel />
         <PageLoader />
         <div className="sticky top-0 z-50">
           <AnnouncementBar settings={headerSettings} />
           <Header isLoggedIn={isLoggedIn} settings={headerSettings} footerSettings={footerSettings} />
         </div>
         <CartDrawer />
+        <CartInitializer />
+        <GiftManager />
         <main>
           {children}
         </main>
@@ -81,6 +88,7 @@ export default async function RootLayout({
           whatsapp={headerSettings.whatsappNumber ? `https://wa.me/${headerSettings.whatsappNumber}` : undefined}
           youtube={footerSettings.youtubeUrl}
         />
+        <FloatingWhatsApp whatsappNumber={headerSettings.whatsappNumber} />
         <MobileBottomNav />
       </body>
     </html>

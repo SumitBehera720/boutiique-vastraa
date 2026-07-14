@@ -42,7 +42,7 @@ export default function CartItem({ item }: { item: any }) {
   const imageUrl = merchandise?.image?.url || item.image || "";
   const imageAlt = merchandise?.image?.altText || title;
   const variantTitle = merchandise?.title || item.variantTitle || "";
-  const price = merchandise?.price?.amount || item.price || "0";
+  const price = item.isGift ? "0" : (merchandise?.price?.amount || item.price || "0");
 
   return (
     <div className={`flex gap-4 py-4 border-b border-gray-100 ${isUpdating ? 'opacity-50 pointer-events-none' : ''}`}>
@@ -86,25 +86,35 @@ export default function CartItem({ item }: { item: any }) {
 
         <div className="mt-auto flex justify-between items-end">
           {/* Quantity Controls */}
-          <div className="flex items-center border border-gray-300 rounded overflow-hidden w-24">
-            <button 
-              onClick={() => handleUpdateQuantity(item.quantity - 1)}
-              disabled={item.quantity <= 1}
-              className="px-2 py-1 bg-gray-50 hover:bg-gray-100 text-gray-600 transition-colors disabled:opacity-50"
-            >
-              <Minus className="w-3 h-3" />
-            </button>
-            <span className="flex-1 text-center text-sm font-medium">{item.quantity}</span>
-            <button 
-              onClick={() => handleUpdateQuantity(item.quantity + 1)}
-              className="px-2 py-1 bg-gray-50 hover:bg-gray-100 text-gray-600 transition-colors"
-            >
-              <Plus className="w-3 h-3" />
-            </button>
-          </div>
+          {item.isGift ? (
+            <span className="text-xs text-green-600 font-bold bg-green-50 px-2.5 py-1.5 rounded border border-green-150 flex items-center gap-1">
+              🎁 Free Gift
+            </span>
+          ) : (
+            <div className="flex items-center border border-gray-300 rounded overflow-hidden w-24">
+              <button 
+                onClick={() => handleUpdateQuantity(item.quantity - 1)}
+                disabled={item.quantity <= 1}
+                className="px-2 py-1 bg-gray-50 hover:bg-gray-100 text-gray-600 transition-colors disabled:opacity-50"
+              >
+                <Minus className="w-3 h-3" />
+              </button>
+              <span className="flex-1 text-center text-sm font-medium">{item.quantity}</span>
+              <button 
+                onClick={() => handleUpdateQuantity(item.quantity + 1)}
+                className="px-2 py-1 bg-gray-50 hover:bg-gray-100 text-gray-600 transition-colors"
+              >
+                <Plus className="w-3 h-3" />
+              </button>
+            </div>
+          )}
 
           <div className="font-semibold text-primary">
-            ₹{parseFloat(price).toFixed(2)}
+            {item.isGift ? (
+              <span className="text-green-600 font-bold uppercase tracking-wider text-xs bg-green-50 px-2 py-1.5 rounded">FREE</span>
+            ) : (
+              <>₹{parseFloat(price).toFixed(2)}</>
+            )}
           </div>
         </div>
       </div>

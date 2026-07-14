@@ -31,6 +31,7 @@ export async function submitOrder(formData: {
   cardExpiry?: string;
   cardCvv?: string;
   promoCode?: string;
+  discount?: number;
 }) {
   try {
     const res = await fetch("/api/orders", {
@@ -52,6 +53,7 @@ export async function submitOrder(formData: {
         },
         paymentMethod: formData.paymentMethod,
         promoCode: formData.promoCode || null,
+        discount: formData.discount || 0,
       }),
     });
 

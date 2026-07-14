@@ -261,6 +261,7 @@ async function handleCart(path: string[], req: NextRequest) {
         id: `${cartId}-line-${i}`,
         merchandiseId: l.merchandiseId,
         quantity: l.quantity || 1,
+        isGift: !!l.isGift,
         ...resolveProductInfo(l.merchandiseId, allProducts),
       })) || [],
       createdAt: new Date().toISOString(),
@@ -287,6 +288,7 @@ async function handleCart(path: string[], req: NextRequest) {
         id: `${cart.id}-line-${Date.now()}-${i}`,
         merchandiseId: l.merchandiseId,
         quantity: l.quantity || 1,
+        isGift: !!l.isGift,
         ...resolveProductInfo(l.merchandiseId, allProducts),
       })) || [];
       cart.lines = [...cart.lines, ...newLines];
@@ -300,7 +302,12 @@ async function handleCart(path: string[], req: NextRequest) {
       if (body?.lines) {
         for (const ln of body.lines) {
           const idx = cart.lines.findIndex((l: any) => l.id === ln.id);
-          if (idx >= 0) cart.lines[idx].quantity = ln.quantity;
+          if (idx >= 0) {
+            cart.lines[idx].quantity = ln.quantity;
+            if (ln.isGift !== undefined) {
+              cart.lines[idx].isGift = !!ln.isGift;
+            }
+          }
         }
         cart.updatedAt = new Date().toISOString();
         await carts.save(path[1], cart);
@@ -340,15 +347,17 @@ function resolveProductInfo(merchandiseId: string, allProducts: any[]) {
 function formatCartCheckout(cart: any) {
   let subtotal = 0;
   const lines = cart.lines.map((l: any) => {
-    const price = parseFloat(l.price || "0");
+    const isGift = !!l.isGift;
+    const price = isGift ? 0 : parseFloat(l.price || "0");
     subtotal += price * l.quantity;
     return {
       id: l.id,
       title: l.title,
       variantTitle: l.variantTitle,
       quantity: l.quantity,
-      price: l.price,
+      price: price.toString(),
       image: l.image,
+      isGift,
     };
   });
   return {
