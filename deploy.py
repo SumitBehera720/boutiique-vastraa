@@ -8,7 +8,6 @@ sftp = ssh.open_sftp()
 
 REMOTE_FRONTEND = "/home/u892283443/frontend"
 REMOTE_LARAVEL_PUBLIC = "/home/u892283443/domains/darkslategrey-chough-173926.hostingersite.com/public_html"
-LOCAL_DATA = r"D:\BOUTIIQUE VASTRAA\data"
 LOCAL_PUBLIC_IMAGES = r"D:\BOUTIIQUE VASTRAA\public\images"
 
 # ─── Helper: upload a whole directory tree via tar ─────────────────────────
@@ -32,11 +31,24 @@ stdin, stdout, stderr = ssh.exec_command("cd " + REMOTE_FRONTEND + " && tar -xzf
 exit_code = stdout.channel.recv_exit_status()
 print(f"  Extracted (exit: {exit_code})")
 
-# ─── 2. data/ directory ────────────────────────────────────────────────────
-print("Uploading data/...")
-upload_dir_tar(LOCAL_DATA, REMOTE_FRONTEND, "data")
+# ─── 2. data/ — SKIP: live data lives in MySQL on Hostinger ────────────────
+#
+# DO NOT upload data/ during deployment.
+# All live data (products, orders, collections, settings, users, coupons,
+# reviews, qna) is stored in MySQL (ENABLE_DATABASE=true on the server).
+# Uploading local data/ would OVERWRITE the live database's JSON fallback
+# and reset the site to defaults on every deploy.
+#
+# If this is a FRESH first deploy to an empty database, uncomment the
+# two lines below ONCE, then comment them out again for future deploys:
+#
+# LOCAL_DATA = r"D:\BOUTIIQUE VASTRAA\data"
+# upload_dir_tar(LOCAL_DATA, REMOTE_FRONTEND, "data")
 
 # ─── 3. public/images/ (so images are served by the web server) ────────────
+#
+# Only upload images that exist locally. This does NOT delete images
+# already on the server — new images are added, existing ones preserved.
 print("Uploading images/...")
 upload_dir_tar(LOCAL_PUBLIC_IMAGES, REMOTE_LARAVEL_PUBLIC, "images")
 

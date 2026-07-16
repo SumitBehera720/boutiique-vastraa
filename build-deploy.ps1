@@ -7,11 +7,11 @@ if ($LASTEXITCODE -ne 0) { throw "Build failed" }
 Remove-Item -LiteralPath "standalone_dotnext.tar.gz" -ErrorAction SilentlyContinue
 Remove-Item -LiteralPath "next_static.tar.gz" -ErrorAction SilentlyContinue
 
-# 3. Create standalone tar.gz with .next/ AND data/ AND public/images/
+# 3. Create standalone tar.gz with .next/ only (NOT data/ — live data is in MySQL)
+#    data/ is excluded to prevent overwriting live products/orders/settings on deploy.
 Write-Host "Creating standalone_dotnext.tar.gz..."
 $standaloneItems = @(
     ".next/",
-    "data/",
     "package.json",
     "server.js"
 )
