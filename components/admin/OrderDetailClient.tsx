@@ -109,7 +109,7 @@ export default function OrderDetailClient({ order }: OrderDetailClientProps) {
             </h3>
             
             <div className="space-y-4">
-              {order.lineItems.map((item: any, idx: number) => (
+              {(order.lineItems || order.items || []).map((item: any, idx: number) => (
                 <div key={idx} className="flex gap-4 items-center justify-between py-2 border-b border-neutral-900 print:border-neutral-200">
                   <div className="flex gap-4 items-center">
                     <div className="w-12 h-16 bg-neutral-900 relative rounded overflow-hidden border border-neutral-850 flex-shrink-0 print:hidden">

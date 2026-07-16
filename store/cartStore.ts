@@ -13,7 +13,7 @@ interface CartState {
   closeCart: () => void;
 }
 
-export const useCartStore = create<CartState>()(
+export const useCartStore = create<CartState & { clearCart: () => void }>()(
   persist(
     (set) => ({
       cartId: null,
@@ -23,12 +23,33 @@ export const useCartStore = create<CartState>()(
       subtotal: "0.00",
       isCartOpen: false,
 
-      setCart: (cart) => set({
-        cartId: cart.id,
-        checkoutUrl: cart.checkoutUrl,
-        totalQuantity: cart.totalQuantity,
-        lines: Array.isArray(cart.lines) ? cart.lines : (cart.lines?.edges?.map((e: any) => e.node) || []),
-        subtotal: cart.cost?.subtotalAmount?.amount || cart.subtotal || "0.00",
+      setCart: (cart) => {
+        if (!cart) {
+          set({
+            cartId: null,
+            checkoutUrl: null,
+            totalQuantity: 0,
+            lines: [],
+            subtotal: "0.00",
+          });
+          return;
+        }
+        set({
+          cartId: cart.id,
+          checkoutUrl: cart.checkoutUrl,
+          totalQuantity: cart.totalQuantity,
+          lines: Array.isArray(cart.lines) ? cart.lines : (cart.lines?.edges?.map((e: any) => e.node) || []),
+          subtotal: cart.cost?.subtotalAmount?.amount || cart.subtotal || "0.00",
+        });
+      },
+      
+      clearCart: () => set({
+        cartId: null,
+        checkoutUrl: null,
+        totalQuantity: 0,
+        lines: [],
+        subtotal: "0.00",
+        isCartOpen: false,
       }),
       
       openCart: () => set({ isCartOpen: true }),

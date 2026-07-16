@@ -7,12 +7,13 @@ import VariantSelector from "./VariantSelector";
 import QuantitySelector from "./QuantitySelector";
 import ProductActions from "./ProductActions";
 import ProductAccordion from "./ProductAccordion";
-import { Truck, RefreshCcw, ShieldCheck, MapPin } from "lucide-react";
+import { Truck, RefreshCcw, ShieldCheck, Ruler } from "lucide-react";
+import SizeChartModal from "./SizeChartModal";
 
 export default function ProductInfo({ product, recommendedProducts }: { product: any, recommendedProducts?: any[] }) {
   const [selectedVariant, setSelectedVariant] = useState(product.variants.edges[0].node);
   const [quantity, setQuantity] = useState(1);
-  const [pincode, setPincode] = useState("");
+  const [sizeChartOpen, setSizeChartOpen] = useState(false);
 
   const handleOptionChange = (name: string, value: string) => {
     const newOptions = selectedVariant.selectedOptions.map((opt: any) => 
@@ -90,25 +91,7 @@ export default function ProductInfo({ product, recommendedProducts }: { product:
         </div>
       )}
 
-      {/* Delivery & COD */}
-      <div className="mb-6">
-        <div className="flex items-center gap-1.5 text-sm font-medium text-gray-800 mb-2">
-          <MapPin className="w-4 h-4 text-maroonClr" />
-          Check Delivery & COD Availability
-        </div>
-        <div className="flex items-center w-full border border-gray-300 rounded overflow-hidden">
-          <input 
-            type="text" 
-            placeholder="Enter your pincode" 
-            className="flex-1 px-3 py-2 text-sm outline-none w-full"
-            value={pincode}
-            onChange={(e) => setPincode(e.target.value)}
-          />
-          <button className="bg-maroonClr text-white px-6 py-2 text-sm font-medium hover:bg-maroonClr/90 transition-colors border-l border-maroonClr">
-            Check
-          </button>
-        </div>
-      </div>
+
 
       {/* Selectors (only show if it has variants) */}
       {product.options && product.options.some((opt:any) => opt.name !== 'Title') && (
@@ -117,7 +100,23 @@ export default function ProductInfo({ product, recommendedProducts }: { product:
             options={product.options} 
             selectedOptions={selectedVariant.selectedOptions}
             onChange={handleOptionChange}
+            showSizeChart={product.showSizeChart}
+            onOpenSizeChart={() => setSizeChartOpen(true)}
           />
+        </div>
+      )}
+
+      {/* Standalone Size Chart Button (if product has showSizeChart enabled but no "Size" option in variants) */}
+      {product.showSizeChart && !product.options?.some((opt: any) => opt.name.toLowerCase() === "size") && (
+        <div className="mb-6">
+          <button
+            type="button"
+            onClick={() => setSizeChartOpen(true)}
+            className="flex items-center gap-1.5 text-xs text-maroonClr hover:text-maroonClr/80 font-bold uppercase tracking-wider transition-colors"
+          >
+            <Ruler className="w-4 h-4" />
+            View Size Chart
+          </button>
         </div>
       )}
 
@@ -150,6 +149,12 @@ export default function ProductInfo({ product, recommendedProducts }: { product:
       </div>
 
       <ProductAccordion descriptionHtml={product.descriptionHtml} />
+
+      <SizeChartModal 
+        isOpen={sizeChartOpen} 
+        onClose={() => setSizeChartOpen(false)} 
+        sizeChartImage={product.sizeChartImage} 
+      />
     </div>
   );
 }

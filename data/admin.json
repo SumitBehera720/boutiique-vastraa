@@ -1,7 +1,8 @@
 [
   {
+    "id": "admin",
     "username": "admin",
-    "passwordHash": "240789146b148e658ec6a836cb1a8ff0cf99c35b8cb40ff71fe89a243007018c",
+    "passwordHash": "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9",
     "name": "Boutiique Admin"
   }
 ]

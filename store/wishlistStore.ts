@@ -9,26 +9,37 @@ export interface WishlistItem {
   image: string | null;
 }
 
+import { syncWishlist } from '@/lib/api/auth-client';
+
 interface WishlistState {
   items: WishlistItem[];
   addItem: (item: WishlistItem) => void;
   removeItem: (id: string) => void;
   isInWishlist: (id: string) => boolean;
+  clearWishlist: () => void;
+  setWishlist: (items: WishlistItem[]) => void;
 }
 
 export const useWishlistStore = create<WishlistState>()(
   persist(
     (set, get) => ({
       items: [],
-      addItem: (item) => set((state) => ({ 
-        items: state.items.find((i) => i.id === item.id) 
-          ? state.items 
-          : [...state.items, item] 
-      })),
-      removeItem: (id) => set((state) => ({ 
-        items: state.items.filter((i) => i.id !== id) 
-      })),
+      addItem: (item) => {
+        const current = get().items;
+        const exists = current.some((i) => i.id === item.id);
+        if (exists) return;
+        const updated = [...current, item];
+        set({ items: updated });
+        syncWishlist(updated).catch(() => {});
+      },
+      removeItem: (id) => {
+        const updated = get().items.filter((i) => i.id !== id);
+        set({ items: updated });
+        syncWishlist(updated).catch(() => {});
+      },
       isInWishlist: (id) => get().items.some((i) => i.id === id),
+      clearWishlist: () => set({ items: [] }),
+      setWishlist: (items) => set({ items }),
     }),
     {
       name: 'boutiique-vastraa-wishlist',

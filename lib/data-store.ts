@@ -77,6 +77,8 @@ export const users = {
         id: user.id, first_name: user.firstName || "", last_name: user.lastName || "",
         email: user.email, phone: user.phone || "", password: user.password || user.passwordHash || "",
         default_address: JSON.stringify(user.defaultAddress || null),
+        cart_id: user.cartId || null,
+        wishlist: JSON.stringify(user.wishlist || null),
       });
       return user;
     }
@@ -93,6 +95,8 @@ export const users = {
       if (updates.email !== undefined) mapped.email = updates.email;
       if (updates.phone !== undefined) mapped.phone = updates.phone;
       if (updates.defaultAddress !== undefined) mapped.default_address = JSON.stringify(updates.defaultAddress);
+      if (updates.cartId !== undefined) mapped.cart_id = updates.cartId;
+      if (updates.wishlist !== undefined) mapped.wishlist = JSON.stringify(updates.wishlist);
       await update("users", "id", id, mapped);
       return;
     }
@@ -115,6 +119,8 @@ function mapUserFromDb(row: any): any {
     password: row.password,
     passwordHash: row.password,
     defaultAddress: row.default_address ? (typeof row.default_address === "string" ? JSON.parse(row.default_address) : row.default_address) : null,
+    cartId: row.cart_id || null,
+    wishlist: row.wishlist ? (typeof row.wishlist === "string" ? JSON.parse(row.wishlist) : row.wishlist) : null,
   };
 }
 
@@ -145,39 +151,88 @@ export const products = {
       const rows = await query<any[]>("SELECT * FROM products");
       return rows.map(mapProductFromDb);
     }
-    return cachedRead<any[]>("products");
+    return cachedRead<any[]>("products").map(mapProductFromJson);
   },
   findByHandle: async (handle: string) => {
     if (db()) {
       const row = await getOne<any>("SELECT * FROM products WHERE handle = ?", [handle]);
       return row ? mapProductFromDb(row) : null;
     }
-    return cachedRead<any[]>("products").find((p: any) => p.handle === handle) || null;
+    const found = cachedRead<any[]>("products").find((p: any) => p.handle === handle);
+    return found ? mapProductFromJson(found) : null;
   },
   findById: async (id: string) => {
     if (db()) {
       const row = await getOne<any>("SELECT * FROM products WHERE id = ?", [id]);
       return row ? mapProductFromDb(row) : null;
     }
-    return cachedRead<any[]>("products").find((p: any) => p.id === id) || null;
+    const found = cachedRead<any[]>("products").find((p: any) => p.id === id);
+    return found ? mapProductFromJson(found) : null;
   },
   save: async (items: any[]) => {
+    const mappedItems = items.map((p: any) => ({
+      ...p,
+      showSizeChart: p.showSizeChart === undefined ? !isSareeProduct(p) : !!p.showSizeChart,
+      sizeChartImage: p.sizeChartImage || null,
+    }));
     if (db()) {
-      const mapped = items.map(mapProductToDb);
+      const mapped = mappedItems.map(mapProductToDb);
       await replaceAll("products", mapped);
       return;
     }
-    writeJson("products", items);
+    writeJson("products", mappedItems);
   },
 };
 
+function isSareeProduct(p: any): boolean {
+  const title = (p.title || "").toLowerCase();
+  
+  let tags: string[] = [];
+  if (Array.isArray(p.tags)) {
+    tags = p.tags;
+  } else if (typeof p.tags === "string") {
+    try {
+      tags = JSON.parse(p.tags);
+    } catch {}
+  }
+  const tagList = tags.map((t: any) => String(t).toLowerCase());
+
+  let collectionHandles: string[] = [];
+  if (Array.isArray(p.collectionHandles)) {
+    collectionHandles = p.collectionHandles;
+  } else if (p.collection_handles && Array.isArray(p.collection_handles)) {
+    collectionHandles = p.collection_handles;
+  } else if (typeof p.collectionHandles === "string") {
+    try {
+      collectionHandles = JSON.parse(p.collectionHandles);
+    } catch {}
+  } else if (typeof p.collection_handles === "string") {
+    try {
+      collectionHandles = JSON.parse(p.collection_handles);
+    } catch {}
+  }
+  const collList = collectionHandles.map((c: any) => String(c).toLowerCase());
+
+  return title.includes("saree") || tagList.includes("saree") || tagList.includes("sarees") || collList.includes("saree");
+}
+
+function mapProductFromJson(p: any): any {
+  if (!p) return null;
+  return {
+    ...p,
+    showSizeChart: p.showSizeChart !== undefined ? !!p.showSizeChart : !isSareeProduct(p),
+    sizeChartImage: p.sizeChartImage || null,
+  };
+}
+
 function mapProductFromDb(row: any): any {
   const parse = (v: any) => (v ? (typeof v === "string" ? JSON.parse(v) : v) : {});
-  return {
+  const baseProd = {
     id: row.id,
     title: row.title,
     handle: row.handle,
     description: row.description || "",
+    descriptionHtml: row.description || "",
     availableForSale: !!row.available_for_sale,
     priceRange: parse(row.price_range),
     compareAtPriceRange: parse(row.compare_at_price_range),
@@ -185,6 +240,13 @@ function mapProductFromDb(row: any): any {
     variants: parse(row.variants),
     tags: parse(row.tags),
     collectionHandles: parse(row.collection_handles) || [],
+  };
+  return {
+    ...baseProd,
+    showSizeChart: row.show_size_chart !== null && row.show_size_chart !== undefined
+      ? !!row.show_size_chart
+      : !isSareeProduct(baseProd),
+    sizeChartImage: row.size_chart_image || null,
   };
 }
 
@@ -201,6 +263,8 @@ function mapProductToDb(p: any): any {
     variants: JSON.stringify(p.variants || { edges: [] }),
     tags: JSON.stringify(p.tags || []),
     collection_handles: JSON.stringify(p.collectionHandles || []),
+    show_size_chart: p.showSizeChart === undefined ? !isSareeProduct(p) : !!p.showSizeChart,
+    size_chart_image: p.sizeChartImage || null,
   };
 }
 
@@ -416,27 +480,34 @@ export const orders = {
 
 function mapOrderFromDb(row: any): any {
   const parse = (v: any) => (v ? (typeof v === "string" ? JSON.parse(v) : v) : {});
+  const customer = parse(row.customer);
+  const items = parse(row.items);
   return {
     id: row.id,
     orderNumber: row.order_number,
     email: row.email,
-    customer: parse(row.customer),
-    items: parse(row.items),
+    customer,
+    customerName: customer.name || `${customer.firstName || ""} ${customer.lastName || ""}`.trim() || "",
+    phone: customer.phone || "",
+    items,
+    lineItems: items,
     shippingAddress: parse(row.shipping_address),
     totalPrice: parse(row.total_price),
     fulfillmentStatus: row.fulfillment_status || "unfulfilled",
     paymentStatus: row.payment_status || "pending",
     createdAt: row.created_at,
+    processedAt: row.created_at,
   };
 }
 
 function mapOrderToDb(o: any): any {
+  const customerData = o.customer || { name: o.customerName || "", phone: o.phone || "" };
   return {
     id: o.id,
     order_number: o.orderNumber || "",
     email: o.email || "",
-    customer: JSON.stringify(o.customer || {}),
-    items: JSON.stringify(o.items || []),
+    customer: JSON.stringify(customerData),
+    items: JSON.stringify(o.items || o.lineItems || []),
     shipping_address: JSON.stringify(o.shippingAddress || {}),
     total_price: JSON.stringify(o.totalPrice || { amount: "0", currencyCode: "INR" }),
     fulfillment_status: o.fulfillmentStatus || "unfulfilled",

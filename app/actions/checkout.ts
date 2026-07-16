@@ -68,6 +68,13 @@ export async function submitOrderAction(formData: {
       customerName: `${formData.firstName} ${formData.lastName}`,
       email: formData.email,
       phone: formData.phone,
+      customer: {
+        name: `${formData.firstName} ${formData.lastName}`,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        phone: formData.phone,
+        email: formData.email,
+      },
       shippingAddress: {
         address1: formData.address1,
         address2: formData.address2 || "",
@@ -78,6 +85,7 @@ export async function submitOrderAction(formData: {
       },
       paymentMethod: formData.paymentMethod || "COD",
       lineItems: formatted.lines,
+      items: formatted.lines,
       totalPrice: {
         amount: (parseFloat(formatted.subtotal) - (formData.discount || 0)).toFixed(2),
         currencyCode: "INR",

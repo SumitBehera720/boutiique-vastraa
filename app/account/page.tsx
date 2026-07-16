@@ -1,8 +1,9 @@
 import { redirect } from "next/navigation";
-import { getCustomerToken, logoutAction } from "@/app/actions/auth";
+import { getCustomerToken } from "@/app/actions/auth";
 import { getCustomer } from "@/lib/shopify/queries";
-import OrderHistory from "@/components/account/OrderHistory";
+import AccountDashboardTabs from "@/components/account/AccountDashboardTabs";
 import AddressForm from "@/components/account/AddressForm";
+import LogoutButton from "@/components/account/LogoutButton";
 
 export default async function AccountPage() {
   let token: string | null = null;
@@ -35,22 +36,12 @@ export default async function AccountPage() {
               Welcome back, <span className="font-semibold text-primary">{customer.firstName || customer.email}</span>
             </p>
           </div>
-          <form action={logoutAction} className="inline">
-            <button 
-              type="submit" 
-              className="text-sm font-semibold text-gray-500 hover:text-red-600 underline transition-colors"
-            >
-              Log out
-            </button>
-          </form>
+          <LogoutButton />
         </div>
 
         <div className="flex flex-col lg:flex-row gap-10">
-          {/* Order History */}
-          <div className="flex-1">
-            <h2 className="text-2xl font-serif font-bold text-gray-800 mb-6">Order History</h2>
-            <OrderHistory orders={customer.orders?.edges.map((e: any) => e.node) || []} />
-          </div>
+          {/* Dashboard Tabs (Order History & Wishlist) */}
+          <AccountDashboardTabs orders={customer.orders?.edges.map((e: any) => e.node) || []} />
 
           {/* Account Details Sidebar */}
           <div className="w-full lg:w-1/3">

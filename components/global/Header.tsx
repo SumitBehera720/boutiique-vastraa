@@ -28,6 +28,16 @@ interface HeaderProps {
 
 export default function Header({ isLoggedIn = false, settings, footerSettings }: HeaderProps) {
   const pathname = usePathname();
+  const cartCount = useCartStore((s) => s.totalQuantity);
+  const { openCart } = useCartStore();
+  const router = useRouter();
+
+  const [searchValue, setSearchValue] = useState("");
+  const [searchFocused, setSearchFocused] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [collectionsOpen, setCollectionsOpen] = useState(false);
+  const [productsOpen, setProductsOpen] = useState(false);
+
   const isLoginPage = pathname === "/account/login";
   const isAdminPage = pathname.startsWith("/admin");
   const isCheckoutPage = pathname.startsWith("/checkout");
@@ -35,15 +45,6 @@ export default function Header({ isLoggedIn = false, settings, footerSettings }:
   if (isLoginPage || isAdminPage || isCheckoutPage) {
     return null;
   }
-
-  const [searchValue, setSearchValue] = useState("");
-  const [searchFocused, setSearchFocused] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [collectionsOpen, setCollectionsOpen] = useState(false);
-  const [productsOpen, setProductsOpen] = useState(false);
-  const cartCount = useCartStore((s) => s.totalQuantity);
-  const { openCart } = useCartStore();
-  const router = useRouter();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

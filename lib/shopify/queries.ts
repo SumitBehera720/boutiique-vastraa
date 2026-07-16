@@ -1,8 +1,10 @@
 import { apiGet } from "@/lib/api/client";
 
 function formatProduct(p: any) {
+  if (!p) return p;
   return {
     ...p,
+    descriptionHtml: p.descriptionHtml || p.description || "",
     variants: p.variants || {
       edges: [
         {
@@ -10,7 +12,7 @@ function formatProduct(p: any) {
             id: `${p.id}-default`,
             title: "Default Title",
             availableForSale: p.availableForSale,
-            price: p.priceRange.minVariantPrice,
+            price: p.priceRange?.minVariantPrice || { amount: "0.0", currencyCode: "INR" },
             compareAtPrice: p.compareAtPriceRange?.minVariantPrice || null,
             selectedOptions: [{ name: "Title", value: "Default Title" }],
           },

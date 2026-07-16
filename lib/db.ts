@@ -174,6 +174,8 @@ CREATE TABLE IF NOT EXISTS products (
   variants JSON,
   tags JSON,
   collection_handles JSON,
+  show_size_chart BOOLEAN DEFAULT true,
+  size_chart_image VARCHAR(500) DEFAULT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_handle (\`handle\`)
@@ -236,6 +238,8 @@ CREATE TABLE IF NOT EXISTS users (
   phone VARCHAR(50),
   \`password\` VARCHAR(255),
   default_address JSON,
+  cart_id VARCHAR(255) DEFAULT NULL,
+  wishlist JSON DEFAULT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_email (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -302,11 +306,27 @@ export async function initDatabase(): Promise<void> {
     }
 
     try {
+      await query("ALTER TABLE products ADD COLUMN show_size_chart BOOLEAN DEFAULT true AFTER collection_handles;");
+    } catch {}
+
+    try {
+      await query("ALTER TABLE products ADD COLUMN size_chart_image VARCHAR(500) DEFAULT NULL AFTER show_size_chart;");
+    } catch {}
+
+    try {
       await query("ALTER TABLE products ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP AFTER collection_handles;");
     } catch {}
 
     try {
       await query("ALTER TABLE products ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER created_at;");
+    } catch {}
+
+    try {
+      await query("ALTER TABLE users ADD COLUMN cart_id VARCHAR(255) DEFAULT NULL AFTER default_address;");
+    } catch {}
+
+    try {
+      await query("ALTER TABLE users ADD COLUMN wishlist JSON DEFAULT NULL AFTER cart_id;");
     } catch {}
 
     console.log("[DB] Tables ready");

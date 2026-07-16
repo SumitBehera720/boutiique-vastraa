@@ -32,6 +32,7 @@ export async function getCart(cartId: string) {
     method: "GET",
     headers: { Accept: "application/json" },
   });
+  if (res.status === 404) return null;
   if (!res.ok) throw new Error("Failed to fetch cart");
   return res.json();
 }
@@ -42,6 +43,7 @@ export async function updateCartLines(cartId: string, lines: { id: string; quant
     headers: { "Content-Type": "application/json", Accept: "application/json" },
     body: JSON.stringify({ lines }),
   });
+  if (res.status === 404) return null;
   if (!res.ok) throw new Error("Failed to update cart");
   return res.json();
 }
@@ -52,6 +54,7 @@ export async function removeFromCart(cartId: string, lineIds: string[]) {
     method: "DELETE",
     headers: { Accept: "application/json" },
   });
+  if (res.status === 404) return null;
   if (!res.ok) throw new Error("Failed to remove from cart");
   return res.json();
 }

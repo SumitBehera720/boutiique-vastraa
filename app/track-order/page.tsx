@@ -234,7 +234,7 @@ export default function TrackOrderPage() {
                   <Package className="w-4 h-4 text-goldClr" /> Items List
                 </h3>
                 <div className="space-y-3">
-                  {order.lineItems.map((item: any, idx: number) => (
+                  {(order.lineItems || order.items || []).map((item: any, idx: number) => (
                     <div key={idx} className="flex gap-3 items-center">
                       <div className="w-10 h-14 bg-gray-50 relative rounded overflow-hidden border border-gray-100 flex-shrink-0">
                         {item.image ? (

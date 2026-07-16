@@ -28,13 +28,15 @@ function parseBody(req: NextRequest): Promise<any> {
 
 const COOKIE_NAME = "boutiique_vastraa_customer_token";
 
-function setAuthCookie(token: string) {
+function setAuthCookie(token: string, req?: NextRequest) {
   const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toUTCString();
-  return `${COOKIE_NAME}=${encodeURIComponent(token)}; expires=${expires}; path=/; SameSite=Lax; Secure`;
+  const isSecure = req ? req.nextUrl.protocol === "https:" : false;
+  return `${COOKIE_NAME}=${encodeURIComponent(token)}; expires=${expires}; path=/; SameSite=Lax${isSecure ? "; Secure" : ""}`;
 }
 
-function clearAuthCookie() {
-  return `${COOKIE_NAME}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax; Secure`;
+function clearAuthCookie(req?: NextRequest) {
+  const isSecure = req ? req.nextUrl.protocol === "https:" : false;
+  return `${COOKIE_NAME}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax${isSecure ? "; Secure" : ""}`;
 }
 
 // ─── Auth routes ─────────────────────────────────────────────────────────────
@@ -71,6 +73,12 @@ async function handleAuth(path: string[], req: NextRequest) {
 
     let user: any = await users.findByEmail(body.email);
     let isAdmin = false;
+
+    // If the found user is the admin account, treat it as an admin login
+    // (admin credentials are managed in admin.json / admin DB table, not users)
+    if (user?.email === "admin@boutiquevastra.com") {
+      user = null;
+    }
 
     if (!user) {
       const uName = body.email.includes("@") ? body.email.split("@")[0] : body.email;
@@ -112,9 +120,11 @@ async function handleAuth(path: string[], req: NextRequest) {
         email: user.email,
         phone: user.phone || "",
         defaultAddress: user.defaultAddress || null,
+        cartId: user.cartId || null,
+        wishlist: user.wishlist || null,
       },
     });
-    res.headers.set("Set-Cookie", setAuthCookie(token));
+    res.headers.set("Set-Cookie", setAuthCookie(token, req));
     return res;
   }
 
@@ -122,7 +132,7 @@ async function handleAuth(path: string[], req: NextRequest) {
     const token = getTokenFromRequest(req);
     if (token) await sessions.delete(token);
     const res = json({ success: true });
-    res.headers.set("Set-Cookie", clearAuthCookie());
+    res.headers.set("Set-Cookie", clearAuthCookie(req));
     return res;
   }
 
@@ -142,6 +152,8 @@ async function handleAuth(path: string[], req: NextRequest) {
       email: user.email,
       phone: user.phone || "",
       defaultAddress: user.defaultAddress || null,
+      cartId: user.cartId || null,
+      wishlist: user.wishlist || null,
       orders: { edges: userOrders.map((o: any) => ({ node: o })) },
     });
   }
@@ -151,17 +163,109 @@ async function handleAuth(path: string[], req: NextRequest) {
     if (!user) return error("Unauthorized", 401);
     const body = await parseBody(req);
     if (!body) return error("Invalid request body");
-    const address = {
-      address1: body.address1 || "",
-      address2: body.address2 || "",
-      city: body.city || "",
-      province: body.province || "",
-      zip: body.zip || "",
-      country: body.country || "India",
-      phone: body.phone || user.phone || "",
-    };
-    await users.update(user.id, { defaultAddress: address });
-    return json({ success: true, defaultAddress: address });
+    
+    let defaultAddressData: any = null;
+    if (body.addresses && Array.isArray(body.addresses)) {
+      defaultAddressData = { addresses: body.addresses };
+    } else {
+      defaultAddressData = {
+        address1: body.address1 || "",
+        address2: body.address2 || "",
+        city: body.city || "",
+        province: body.province || "",
+        zip: body.zip || "",
+        country: body.country || "India",
+        phone: body.phone || user.phone || "",
+      };
+    }
+    await users.update(user.id, { defaultAddress: defaultAddressData });
+    return json({ success: true, defaultAddress: defaultAddressData });
+  }
+
+  if (path[1] === "me" && path[2] === "wishlist" && req.method === "PUT") {
+    const user = await getAuthUser(req);
+    if (!user) return error("Unauthorized", 401);
+    const body = await parseBody(req);
+    if (!body) return error("Invalid request body");
+    
+    const wishlist = body.wishlist || [];
+    await users.update(user.id, { wishlist });
+    return json({ success: true, wishlist });
+  }
+
+  if (path[1] === "me" && path[2] === "sync" && req.method === "PUT") {
+    const user = await getAuthUser(req);
+    if (!user) return error("Unauthorized", 401);
+    const body = await parseBody(req);
+    
+    // 1. Merge Wishlist
+    const clientWishlist = body?.wishlist || [];
+    const savedWishlist = user.wishlist || [];
+    
+    const mergedWishlist = [...savedWishlist];
+    for (const item of clientWishlist) {
+      if (!mergedWishlist.some((w: any) => w.id === item.id)) {
+        mergedWishlist.push(item);
+      }
+    }
+    
+    // 2. Merge Cart
+    const clientCartId = body?.cartId;
+    let finalCartId = user.cartId || clientCartId;
+    
+    if (clientCartId && user.cartId && clientCartId !== user.cartId) {
+      // Merge guest cart into user account cart
+      const guestCart = await carts.get(clientCartId);
+      const accountCart = await carts.get(user.cartId);
+      
+      if (guestCart && accountCart) {
+        const mergedLines = [...(accountCart.lines || [])];
+        for (const gLine of (guestCart.lines || [])) {
+          const existingLineIdx = mergedLines.findIndex((l: any) => l.merchandiseId === gLine.merchandiseId);
+          if (existingLineIdx >= 0) {
+            mergedLines[existingLineIdx].quantity += gLine.quantity;
+          } else {
+            mergedLines.push(gLine);
+          }
+        }
+        accountCart.lines = mergedLines;
+        accountCart.updatedAt = new Date().toISOString();
+        await carts.save(user.cartId, accountCart);
+        
+        // Delete the guest cart
+        try {
+          await carts.remove(clientCartId);
+        } catch {}
+      } else if (guestCart && !accountCart) {
+        // Account cart deleted or missing, fallback to guest cart
+        finalCartId = clientCartId;
+      }
+    } else if (clientCartId && !user.cartId) {
+      // Set client guest cart as user's cart
+      finalCartId = clientCartId;
+    }
+    
+    // Update user profile with final references
+    await users.update(user.id, {
+      cartId: finalCartId || null,
+      wishlist: mergedWishlist,
+    });
+    
+    // Fetch and format final cart
+    let finalCart = null;
+    if (finalCartId) {
+      const rawCart = await carts.get(finalCartId);
+      if (rawCart) {
+        finalCart = formatCartCheckout(rawCart);
+      }
+    }
+    
+    return json({
+      success: true,
+      cartId: finalCartId || null,
+      cart: finalCart,
+      wishlist: mergedWishlist,
+    });
   }
 
   return error("Not found", 404);
@@ -268,6 +372,10 @@ async function handleCart(path: string[], req: NextRequest) {
       updatedAt: new Date().toISOString(),
     };
     await carts.save(cartId, cart);
+    const user = await getAuthUser(req);
+    if (user) {
+      await users.update(user.id, { cartId });
+    }
     return json(formatCartCheckout(cart), 201);
   }
 
@@ -391,9 +499,17 @@ async function handleOrders(path: string[], req: NextRequest) {
       customerName: `${body.firstName} ${body.lastName}`,
       email: body.email,
       phone: body.phone,
+      customer: {
+        name: `${body.firstName} ${body.lastName}`,
+        firstName: body.firstName,
+        lastName: body.lastName,
+        phone: body.phone,
+        email: body.email,
+      },
       shippingAddress: body.shippingAddress || {},
       paymentMethod: body.paymentMethod || "COD",
       lineItems: formatted.lines,
+      items: formatted.lines,
       totalPrice: { amount: (parseFloat(formatted.subtotal) - (body.discount || 0)).toFixed(2), currencyCode: "INR" },
       fulfillmentStatus: "UNFULFILLED",
       financialStatus: "PENDING",

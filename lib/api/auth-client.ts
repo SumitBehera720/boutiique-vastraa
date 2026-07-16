@@ -2,11 +2,13 @@ const COOKIE_NAME = "boutiique_vastraa_customer_token";
 
 function setCookie(name: string, value: string, days: number) {
   const expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toUTCString();
-  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax; Secure`;
+  const isSecure = typeof window !== "undefined" && window.location.protocol === "https:";
+  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax${isSecure ? "; Secure" : ""}`;
 }
 
 function deleteCookie(name: string) {
-  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax; Secure`;
+  const isSecure = typeof window !== "undefined" && window.location.protocol === "https:";
+  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax${isSecure ? "; Secure" : ""}`;
 }
 
 export async function register(input: { firstName: string; lastName: string; email: string; password: string }) {
@@ -54,6 +56,32 @@ export function logout() {
 export function getTokenFromCookie(): string | null {
   const match = document.cookie.match(new RegExp(`(?:^|; )${COOKIE_NAME}=([^;]*)`));
   return match ? decodeURIComponent(match[1]) : null;
+}
+
+export async function syncSession(input: { cartId: string | null; wishlist: any[] }) {
+  const token = getTokenFromCookie();
+  if (!token) return null;
+  
+  const res = await fetch("/api/auth/me/sync", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error("Sync failed");
+  return res.json();
+}
+
+export async function syncWishlist(wishlist: any[]) {
+  const token = getTokenFromCookie();
+  if (!token) return null;
+  
+  const res = await fetch("/api/auth/me/wishlist", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify({ wishlist }),
+  });
+  if (!res.ok) throw new Error("Wishlist sync failed");
+  return res.json();
 }
 
 export { COOKIE_NAME };

@@ -1,10 +1,22 @@
 "use client";
 
-export default function VariantSelector({ options, selectedOptions, onChange }: { 
-  options: any[]; 
+import { Ruler } from "lucide-react";
+
+interface VariantSelectorProps {
+  options: any[];
   selectedOptions: any[];
   onChange: (name: string, value: string) => void;
-}) {
+  showSizeChart?: boolean;
+  onOpenSizeChart?: () => void;
+}
+
+export default function VariantSelector({ 
+  options, 
+  selectedOptions, 
+  onChange,
+  showSizeChart,
+  onOpenSizeChart
+}: VariantSelectorProps) {
   if (!options || options.length === 0 || (options.length === 1 && options[0].name === "Title")) {
     return null; // Don't show selector for single default variant
   }
@@ -13,12 +25,25 @@ export default function VariantSelector({ options, selectedOptions, onChange }: 
     <div className="flex flex-col gap-6 mb-6">
       {options.map((option) => {
         const selectedValue = selectedOptions.find((o) => o.name === option.name)?.value;
+        const isSizeOption = option.name.toLowerCase() === "size";
 
         return (
           <div key={option.name}>
-            <h3 className="text-sm font-semibold text-gray-800 uppercase tracking-wider mb-3">
-              {option.name}
-            </h3>
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="text-sm font-semibold text-gray-800 uppercase tracking-wider">
+                {option.name}
+              </h3>
+              {isSizeOption && showSizeChart && onOpenSizeChart && (
+                <button
+                  type="button"
+                  onClick={onOpenSizeChart}
+                  className="flex items-center gap-1 text-xs text-maroonClr hover:text-maroonClr/80 font-bold uppercase tracking-wider transition-colors"
+                >
+                  <Ruler className="w-3.5 h-3.5" />
+                  Size Chart
+                </button>
+              )}
+            </div>
             <div className="flex flex-wrap gap-3">
               {option.values.map((val: string) => {
                 const isSelected = selectedValue === val;
@@ -51,3 +76,4 @@ export default function VariantSelector({ options, selectedOptions, onChange }: 
     </div>
   );
 }
+

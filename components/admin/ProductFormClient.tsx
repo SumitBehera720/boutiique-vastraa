@@ -56,6 +56,13 @@ export default function ProductFormClient({ product, collections }: ProductFormC
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
+  // Size Chart States
+  const [showSizeChart, setShowSizeChart] = useState<boolean>(
+    product?.showSizeChart !== undefined ? product.showSizeChart : true
+  );
+  const [sizeChartImage, setSizeChartImage] = useState<string>(product?.sizeChartImage || "");
+  const [sizeChartUploading, setSizeChartUploading] = useState<boolean>(false);
+
   // Handler: Add image URL manually
   const handleAddImageUrl = () => {
     if (newImageUrl.trim() && !images.includes(newImageUrl.trim())) {
@@ -93,6 +100,33 @@ export default function ProductFormClient({ product, collections }: ProductFormC
       setError("An unexpected error occurred during image upload.");
     } finally {
       setUploading(false);
+    }
+  };
+
+  // Handler: Size Chart Image Upload local
+  const handleSizeChartImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const fileList = e.target.files;
+    if (!fileList || fileList.length === 0) return;
+
+    setSizeChartUploading(true);
+    setError("");
+
+    try {
+      const file = fileList[0];
+      const formData = new FormData();
+      formData.append("image", file);
+
+      const res = await uploadImageAction(formData);
+      if (res.success && res.url) {
+        setSizeChartImage(res.url);
+      } else {
+        setError(res.error || "Size chart upload failed.");
+      }
+    } catch (err) {
+      console.error(err);
+      setError("An unexpected error occurred during size chart upload.");
+    } finally {
+      setSizeChartUploading(false);
     }
   };
 
@@ -213,7 +247,9 @@ export default function ProductFormClient({ product, collections }: ProductFormC
         options: options.length > 0 ? options : [{ name: "Standard", values: ["Default Title"] }],
         variants: variants.length > 0 ? variants : [{ title: "Default Title", price, compareAtPrice: compareAtPrice || undefined, selectedOptions: [{ name: "Standard", value: "Default Title" }] }],
         tags,
-        collectionHandles: selectedCollections
+        collectionHandles: selectedCollections,
+        showSizeChart,
+        sizeChartImage: sizeChartImage || ""
       });
 
       if (res.success) {
@@ -520,6 +556,88 @@ export default function ProductFormClient({ product, collections }: ProductFormC
                 })
               )}
             </div>
+          </div>
+
+          {/* Block 2.5: Size Chart Settings */}
+          <div className="bg-neutral-950 border border-neutral-800 rounded-xl p-6 space-y-4">
+            <h3 className="text-xs font-bold text-white uppercase tracking-widest pb-2 border-b border-neutral-900">
+              Size Chart Settings
+            </h3>
+            
+            <label className="flex items-center gap-3 cursor-pointer group">
+              <div className="relative flex items-center justify-center">
+                <input
+                  type="checkbox"
+                  checked={showSizeChart}
+                  onChange={(e) => setShowSizeChart(e.target.checked)}
+                  className="peer appearance-none w-4 h-4 border border-neutral-800 bg-neutral-900 rounded checked:bg-maroonClr checked:border-maroonClr transition-all cursor-pointer"
+                />
+                <Check className="absolute w-3 h-3 text-white opacity-0 peer-checked:opacity-100 pointer-events-none" />
+              </div>
+              <span className="text-xs text-neutral-400 group-hover:text-white transition-colors">
+                Show Size Chart
+              </span>
+            </label>
+
+            {showSizeChart && (
+              <div className="space-y-4 pt-2 border-t border-neutral-900">
+                <label className="block text-[9px] font-bold text-neutral-500 uppercase tracking-wider">
+                  Size Chart Image
+                </label>
+
+                {sizeChartImage ? (
+                  <div className="relative aspect-[4/3] rounded-lg border border-neutral-800 overflow-hidden bg-neutral-900 group">
+                    <Image
+                      src={sizeChartImage}
+                      alt="Size Chart"
+                      fill
+                      className="object-contain"
+                      sizes="200px"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setSizeChartImage("")}
+                      className="absolute inset-0 bg-red-950/80 flex items-center justify-center text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <p className="text-[10px] text-neutral-500 italic">No custom chart uploaded. Standard size table will be shown as default.</p>
+                )}
+
+                {/* File Upload Selector for size chart */}
+                <div className="space-y-2">
+                  <label className="block text-[9px] font-bold text-neutral-500 uppercase tracking-wider">Upload Chart Image</label>
+                  <label className={`w-full border border-dashed border-neutral-800 rounded-lg p-3 flex flex-col items-center justify-center cursor-pointer transition-all hover:bg-neutral-900/40 hover:border-neutral-700 ${sizeChartUploading ? "opacity-50 pointer-events-none" : ""}`}>
+                    <Upload className="w-4 h-4 text-neutral-500 mb-1" />
+                    <span className="text-[9px] text-neutral-400 font-bold uppercase">
+                      {sizeChartUploading ? "Uploading..." : "Browse Chart File"}
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleSizeChartImageUpload}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+
+                {/* URL manual addition for size chart */}
+                <div className="space-y-2 pt-2 border-t border-neutral-900">
+                  <label className="block text-[9px] font-bold text-neutral-500 uppercase tracking-wider">Or Chart Image URL</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="url"
+                      placeholder="https://..."
+                      value={sizeChartImage}
+                      onChange={(e) => setSizeChartImage(e.target.value)}
+                      className="flex-1 bg-neutral-900 border border-neutral-800 rounded px-2 py-1.5 text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Block 3: Images Catalog */}

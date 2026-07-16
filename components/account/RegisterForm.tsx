@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { register, login } from "@/lib/api/auth-client";
+import { register, login, syncSession } from "@/lib/api/auth-client";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Eye, EyeOff } from "lucide-react";
+import { useCartStore } from "@/store/cartStore";
+import { useWishlistStore } from "@/store/wishlistStore";
 
 export default function RegisterForm({ onToggleView }: { onToggleView: () => void }) {
   const [error, setError] = useState<string | null>(null);
@@ -27,7 +29,28 @@ export default function RegisterForm({ onToggleView }: { onToggleView: () => voi
     };
 
     try {
+      const guestCartId = useCartStore.getState().cartId;
+      const guestWishlist = useWishlistStore.getState().items;
+
       await register(input);
+
+      // Merge client guest cart & wishlist with account-saved data
+      try {
+        const syncRes = await syncSession({ cartId: guestCartId, wishlist: guestWishlist });
+        if (syncRes && syncRes.success) {
+          if (syncRes.cart) {
+            useCartStore.getState().setCart(syncRes.cart);
+          } else if (syncRes.cartId === null) {
+            useCartStore.getState().clearCart();
+          }
+          if (syncRes.wishlist) {
+            useWishlistStore.getState().setWishlist(syncRes.wishlist);
+          }
+        }
+      } catch (syncErr) {
+        console.error("Session sync failed:", syncErr);
+      }
+
       router.push("/account");
       router.refresh();
     } catch (err: any) {

@@ -35,6 +35,7 @@ export default function CheckoutForm({ cartId, initialCustomer }: CheckoutFormPr
   const [zip, setZip] = useState(initialCustomer?.defaultAddress?.zip || "");
   const [country, setCountry] = useState(initialCustomer?.defaultAddress?.country || "India");
   const [paymentMethod, setPaymentMethod] = useState<"COD" | "CARD">("COD");
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   
   // Card Details (Mock)
   const [cardNumber, setCardNumber] = useState("");
@@ -55,6 +56,79 @@ export default function CheckoutForm({ cartId, initialCustomer }: CheckoutFormPr
     const pct = Math.floor(Math.random() * 6) + 5; // 5, 6, 7, 8, 9, 10
     setPrepaidDiscountPercent(pct);
   }, []);
+
+  const getAddressesList = () => {
+    const defaultAddr = initialCustomer?.defaultAddress;
+    if (!defaultAddr) return [];
+    if (defaultAddr.addresses && Array.isArray(defaultAddr.addresses)) {
+      return defaultAddr.addresses;
+    }
+    if (defaultAddr.address1) {
+      return [{
+        id: "addr_legacy",
+        name: `${initialCustomer.firstName || ""} ${initialCustomer.lastName || ""}`.trim() || "Saved Address",
+        phone: defaultAddr.phone || initialCustomer.phone || "",
+        alternatePhone: "",
+        address1: defaultAddr.address1,
+        address2: defaultAddr.address2 || "",
+        city: defaultAddr.city || "",
+        province: defaultAddr.province || "",
+        zip: defaultAddr.zip || "",
+        country: defaultAddr.country || "India",
+        isDefault: true
+      }];
+    }
+    return [];
+  };
+
+  const addressesList = getAddressesList();
+
+  useEffect(() => {
+    const list = getAddressesList();
+    if (list.length > 0) {
+      const defaultAddr = list.find((a: any) => a.isDefault) || list[0];
+      if (defaultAddr) {
+        setSelectedAddressId(defaultAddr.id);
+        const nameParts = defaultAddr.name ? defaultAddr.name.trim().split(" ") : ["", ""];
+        setFirstName(nameParts[0] || "");
+        setLastName(nameParts.slice(1).join(" ") || "");
+        setPhone(defaultAddr.phone || "");
+        setAddress1(defaultAddr.address1 || "");
+        setAddress2(defaultAddr.address2 || "");
+        setCity(defaultAddr.city || "");
+        setProvince(defaultAddr.province || "");
+        setZip(defaultAddr.zip || "");
+        setCountry(defaultAddr.country || "India");
+      }
+    }
+  }, [initialCustomer]);
+
+  const handleSelectAddress = (addr: any) => {
+    setSelectedAddressId(addr.id);
+    const nameParts = addr.name ? addr.name.trim().split(" ") : ["", ""];
+    setFirstName(nameParts[0] || "");
+    setLastName(nameParts.slice(1).join(" ") || "");
+    setPhone(addr.phone || "");
+    setAddress1(addr.address1 || "");
+    setAddress2(addr.address2 || "");
+    setCity(addr.city || "");
+    setProvince(addr.province || "");
+    setZip(addr.zip || "");
+    setCountry(addr.country || "India");
+  };
+
+  const handleUseNewAddress = () => {
+    setSelectedAddressId("new");
+    setFirstName("");
+    setLastName("");
+    setPhone("");
+    setAddress1("");
+    setAddress2("");
+    setCity("");
+    setProvince("");
+    setZip("");
+    setCountry("India");
+  };
 
   useEffect(() => {
     async function loadCart() {
@@ -269,6 +343,57 @@ export default function CheckoutForm({ cartId, initialCustomer }: CheckoutFormPr
               {/* Shipping Address */}
               <div className="pt-4 border-t border-gray-100">
                 <h3 className="text-md font-semibold text-gray-800 uppercase tracking-wider mb-4">Delivery Address</h3>
+                
+                {addressesList && addressesList.length > 0 && (
+                  <div className="mb-6 bg-creamClr/35 p-4 rounded-xl border border-gray-250">
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
+                      Deliver to a Saved Address
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                      {addressesList.map((addr: any) => {
+                        const isSelected = selectedAddressId === addr.id;
+                        return (
+                          <div
+                            key={addr.id}
+                            onClick={() => handleSelectAddress(addr)}
+                            className={`p-3.5 rounded-lg border-2 cursor-pointer transition-all ${
+                              isSelected
+                                ? "border-maroonClr bg-white shadow-sm"
+                                : "border-gray-200 bg-white hover:border-gray-300"
+                            }`}
+                          >
+                            <div className="flex justify-between items-center mb-1.5">
+                              <span className="font-semibold text-xs text-gray-900">{addr.name}</span>
+                              {addr.isDefault && (
+                                <span className="bg-maroonClr/15 text-maroonClr text-[8px] font-bold px-1 rounded uppercase tracking-wider">
+                                  Default
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[11px] text-gray-600 leading-relaxed font-sans font-medium">
+                              {addr.address1}, {addr.address2 && `${addr.address2}, `}{addr.city}, {addr.province} - {addr.zip}
+                            </p>
+                            <p className="text-[11px] text-gray-500 mt-2 font-medium font-sans">
+                              📞 {addr.phone}
+                            </p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleUseNewAddress}
+                      className={`text-xs font-bold uppercase tracking-wider transition-colors ${
+                        selectedAddressId === "new"
+                          ? "text-maroonClr underline"
+                          : "text-gray-500 hover:text-gray-950"
+                      }`}
+                    >
+                      + Deliver to a new address
+                    </button>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div>
                     <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">First Name</label>
