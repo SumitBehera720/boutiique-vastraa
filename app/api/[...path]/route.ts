@@ -822,9 +822,13 @@ async function handleAdmin(path: string[], req: NextRequest) {
     const ext = file.name.split(".").pop() || "png";
     const fileName = `upload-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
     const buffer = Buffer.from(await file.arrayBuffer());
-    const publicDir = nodePath.join(process.cwd(), "public", "images");
-    if (!fs.existsSync(publicDir)) fs.mkdirSync(publicDir, { recursive: true });
-    fs.writeFileSync(nodePath.join(publicDir, fileName), buffer);
+    // On Hostinger, UPLOAD_DIR points to public_html/images so Apache serves files.
+    // Locally falls back to public/images.
+    const uploadBase = process.env.UPLOAD_DIR
+      ? process.env.UPLOAD_DIR
+      : nodePath.join(process.cwd(), "public", "images");
+    if (!fs.existsSync(uploadBase)) fs.mkdirSync(uploadBase, { recursive: true });
+    fs.writeFileSync(nodePath.join(uploadBase, fileName), buffer);
     return json({ url: `/images/${fileName}` });
   }
 

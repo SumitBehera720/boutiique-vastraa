@@ -112,11 +112,15 @@ export async function uploadFileAction(formData: FormData) {
     const buffer = Buffer.from(await file.arrayBuffer());
     const ext = file.name.split('.').pop() || 'jpg';
     const filename = `${Date.now()}.${ext}`;
-    const publicDir = process.cwd() + '/public/images/uploads';
-    const fs = await import('fs');
+    // On Hostinger, UPLOAD_DIR points to public_html/images so Apache serves the files.
+    // Locally falls back to public/images/uploads.
     const path = await import('path');
-    if (!fs.existsSync(publicDir)) fs.mkdirSync(publicDir, { recursive: true });
-    fs.writeFileSync(path.join(publicDir, filename), buffer);
+    const fs = await import('fs');
+    const uploadDir = process.env.UPLOAD_DIR
+      ? path.join(process.env.UPLOAD_DIR, 'uploads')
+      : path.join(process.cwd(), 'public', 'images', 'uploads');
+    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+    fs.writeFileSync(path.join(uploadDir, filename), buffer);
     return { success: true, url: `/images/uploads/${filename}` };
   } catch (error: any) {
     return { success: false, error: error.message || "Failed to upload file." };
